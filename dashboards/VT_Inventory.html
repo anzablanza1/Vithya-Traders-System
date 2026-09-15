@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventory</title>
+<style>
+:root{
+  --brand:#CC3018; --brand-d:#A72410; --brand-l:#FBEDEA; --stone-l:#F2F1EE;
+  --w:#1D5FA8;
+  --ink:#1A1A17; --ink2:#4A4A42; --ink3:#8A8A7E; --line:#E2E0DA; --line2:#F0EFEB;
+  --bg:#F6F5F2; --card:#fff;
+  --green:#2C6B4A; --green-bg:#E9F3ED; --amber:#A8730F; --amber-bg:#FDF5E4;
+  --red:#B3372C; --red-bg:#FBEEEC; --blue:#1D5FA8; --blue-bg:#E9F0F9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.top{display:flex;align-items:center;gap:12px;height:56px;padding:0 18px;background:var(--card);
+  border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
+.logo{height:26px}
+.ttl{font-weight:750;font-size:15px}
+.sub{font-size:12px;color:var(--ink3)}
+.spacer{flex:1}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:9px;
+  padding:7px 13px;font-size:13px;cursor:pointer;font-weight:600;color:var(--ink)}
+.btn:hover{background:var(--stone-l)}
+.wrap{padding:16px 18px;max-width:1600px;margin:0 auto}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 15px;
+  cursor:pointer;transition:transform .08s}
+.card:active{transform:scale(.98)}
+.card.on{outline:2px solid var(--brand);outline-offset:-2px}
+.card .l{font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--ink3);font-weight:700}
+.card .v{font-size:23px;font-weight:750;margin-top:3px;font-variant-numeric:tabular-nums}
+.card .s{font-size:11.5px;color:var(--ink3);margin-top:2px}
+.card.warn{border-left:3px solid var(--amber)} .card.warn .v{color:var(--amber)}
+.card.bad{border-left:3px solid var(--red)}    .card.bad .v{color:var(--red)}
+.bar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+input[type=text],select{padding:8px 11px;border:1px solid var(--line);border-radius:9px;
+  font-size:13px;font-family:inherit}
+input[type=text]:focus,select:focus{outline:none;border-color:var(--brand)}
+input[type=text]{flex:1;min-width:180px}
+.grid{background:var(--card);border:1px solid var(--line);border-radius:13px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#EDE9E3;text-align:left;padding:9px 11px;font-weight:700;font-size:11px;
+  text-transform:uppercase;letter-spacing:.3px;color:var(--ink2);
+  position:sticky;top:56px;z-index:10;box-shadow:0 1px 0 var(--line);cursor:pointer;white-space:nowrap}
+th.num{text-align:right}
+td{padding:8px 11px;border-top:1px solid var(--line2);vertical-align:top}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+tr[data-c]{cursor:pointer}
+tr[data-c]:hover td{background:var(--stone-l)}
+.pill{display:inline-block;padding:1px 8px;border-radius:20px;font-size:10.5px;font-weight:750}
+.f-NEGATIVE{background:var(--red-bg);color:var(--red)}
+.f-STOCKOUT{background:var(--red-bg);color:var(--red)}
+.f-DEAD{background:#EEE;color:#666}
+.f-LOW{background:var(--amber-bg);color:var(--amber)}
+.f-EXCESS{background:var(--blue-bg);color:var(--blue)}
+.f-OK{background:var(--green-bg);color:var(--green)}
+.abc-A{font-weight:750;color:var(--brand)} .abc-B{font-weight:600} .abc-C{color:var(--ink3)}
+.empty{padding:40px;text-align:center;color:var(--ink3)}
+.spin{width:15px;height:15px;border:2px solid var(--line);border-top-color:var(--brand);
+  border-radius:50%;display:inline-block;animation:sp .7s linear infinite;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+.ov{position:fixed;inset:0;background:rgba(26,26,23,.45);display:none;z-index:60;
+  align-items:flex-start;justify-content:center;padding:34px 16px;overflow:auto}
+.ov.on{display:flex}
+.panel{background:var(--bg);border-radius:15px;width:100%;max-width:720px;overflow:hidden}
+.ph{display:flex;align-items:center;gap:11px;padding:14px 17px;background:var(--card);
+  border-bottom:1px solid var(--line)}
+.pb{padding:17px}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px}
+.kv div{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px}
+.kv .l{font-size:11px;color:var(--ink3);text-transform:uppercase;font-weight:700}
+.kv .v{font-size:17px;font-weight:700;margin-top:3px}
+#conn{position:fixed;inset:0;background:var(--bg);z-index:99;display:none;
+  align-items:center;justify-content:center;padding:24px}
+#conn .box{max-width:520px;width:100%}
+#conn h2{font-size:20px;font-weight:750;margin:0 0 6px}
+#conn p{color:var(--ink2);font-size:14px;line-height:1.5;margin:0 0 16px}
+#conn input{width:100%;padding:12px 14px;font-size:14px;border:1.5px solid var(--line);border-radius:10px}
+#conn .go{margin-top:12px;padding:11px 20px;border:none;border-radius:10px;background:var(--brand);
+  color:#fff;font-weight:700;cursor:pointer}
+#connMsg{margin-top:12px;font-size:13px;color:var(--red);min-height:18px}
+</style></head><body>
+
+<div id="conn"><div class="box">
+  <h2>Connect to your data</h2>
+  <p>Paste the Apps Script web app URL, deployed with <b>Access: Anyone</b>.</p>
+  <input id="connUrl" placeholder="https://script.google.com/macros/s/.../exec" spellcheck="false">
+  <button class="go" id="connGo">Connect</button>
+  <div id="connMsg"></div>
+</div></div>
+
+<div id="app" style="display:none">
+<div class="top">
+  <img class="logo" src="https://vithyatraders.com/wp-content/uploads/2021/05/vithya-logo.png"
+       alt="Vithya" onerror="this.style.display='none'">
+  <div><div class="ttl">Inventory</div><div class="sub" id="sub">loading…</div></div>
+  <div class="spacer"></div>
+  <button class="btn" id="bRefresh">Refresh</button>
+</div>
+<div class="wrap">
+  <div class="cards" id="cards"></div>
+  <div class="bar">
+    <input type="text" id="q" placeholder="search — code, name, brand, category (any order)">
+    <select id="fcat"><option value="">All categories</option></select>
+    <select id="fbrand"><option value="">All brands</option></select>
+    <select id="fabc"><option value="">ABC — all</option><option>A</option><option>B</option><option>C</option></select>
+    <span class="sub" id="count"></span>
+  </div>
+  <div class="grid" id="tbl"><div class="empty"><span class="spin"></span> loading…</div></div>
+</div>
+</div>
+
+<div class="ov" id="ov"><div class="panel">
+  <div class="ph"><button class="btn" id="bClose">← back</button>
+    <b id="pName"></b></div>
+  <div class="pb" id="pBody"></div>
+</div></div>
+
+<script>
+var $=function(id){return document.getElementById(id)};
+var CFG={url:''},SEQ=0,ROWS=[],SORT='revenue_12m',DIR=-1,CARD='';
+
+function n0(v){var n=Number(v);return isFinite(n)?Math.round(n).toLocaleString('en-IN'):'—'}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+
+function call(action,params,ok,err){
+  if(!CFG.url){err&&err('Not connected');return}
+  var cb='vti'+(++SEQ)+'_'+Date.now(),done=false,s=document.createElement('script');
+  var t=setTimeout(function(){if(done)return;done=true;clean();err&&err('Timed out')},30000);
+  function clean(){try{delete window[cb]}catch(e){window[cb]=undefined}
+    if(s.parentNode)s.parentNode.removeChild(s);clearTimeout(t)}
+  window[cb]=function(r){if(done)return;done=true;clean();
+    if(r&&r.ok)ok&&ok(r.data);else err&&err(r&&r.error?r.error:'Error')};
+  var qs=['app=inventory','action='+encodeURIComponent(action),'callback='+cb];
+  for(var k in(params||{})){var v=params[k];if(v!==undefined&&v!==null&&v!=='')
+    qs.push(k+'='+encodeURIComponent(v))}
+  s.src=CFG.url+(CFG.url.indexOf('?')<0?'?':'&')+qs.join('&');
+  s.onerror=function(){if(done)return;done=true;clean();err&&err('Could not reach that URL')};
+  document.body.appendChild(s);
+}
+function saveUrl(u){CFG.url=String(u||'').trim();try{localStorage.setItem('vt_inv_url',CFG.url)}catch(e){}}
+function loadUrl(){try{CFG.url=localStorage.getItem('vt_inv_url')||''}catch(e){CFG.url=''}return CFG.url}
+function showConnect(m){$('conn').style.display='flex';$('connMsg').textContent=m||'';
+  $('connUrl').value=CFG.url||'';$('app').style.display='none'}
+function tryConnect(){
+  var u=$('connUrl').value.trim();
+  if(!u){$('connMsg').textContent='Paste the URL first.';return}
+  if(u.indexOf('/a/macros/')>=0){$('connMsg').textContent=
+    'That URL needs a Google login. Deploy with Access: Anyone and use the URL without /a/macros/.';return}
+  saveUrl(u);$('connMsg').textContent='Checking…';
+  call('summary',null,function(){$('conn').style.display='none';$('app').style.display='block';boot()},
+    function(e){$('connMsg').textContent=String(e)});
+}
+
+var CARDS=[
+  ['',        'All products', ''],
+  ['DEAD',    'Dead stock',   'stock, no sale in 180 days'],
+  ['EXCESS',  'Excess',       'over 180 days of cover'],
+  ['LOW',     'Low',          'under 15 days of cover'],
+  ['STOCKOUT','Stocked out',  'selling, zero on hand'],
+  ['NEGATIVE','Negative',     'impossible — count it']
+];
+
+function drawCards(s){
+  var by={NEGATIVE:s.negative,STOCKOUT:s.stockout,DEAD:s.dead,LOW:s.low,EXCESS:s.excess};
+  $('cards').innerHTML=CARDS.map(function(c){
+    var n=c[0]===''?s.products:(by[c[0]]||0);
+    var cls=c[0]===''?'':(c[0]==='NEGATIVE'||c[0]==='STOCKOUT'?'bad':(c[0]==='DEAD'||c[0]==='LOW'?'warn':''));
+    return '<div class="card '+cls+(CARD===c[0]?' on':'')+'" data-card="'+c[0]+'">'+
+      '<div class="l">'+c[1]+'</div><div class="v">'+n0(n)+'</div>'+
+      '<div class="s">'+c[2]+'</div></div>';
+  }).join('');
+  each($('cards').querySelectorAll('[data-card]'),function(el){
+    el.onclick=function(){CARD=this.getAttribute('data-card');drawCards(SUM);draw()}});
+}
+function each(nl,fn){for(var i=0;i<nl.length;i++)fn(nl[i])}
+
+var SUM={};
+function boot(){
+  call('summary',null,function(s){SUM=s;drawCards(s);
+    $('sub').textContent=n0(s.products)+' products · '+n0(s.in_stock)+' in stock · '+
+      'Rs '+n0(s.revenue_12m)+' sold in 12m';},function(){});
+  call('rows',null,function(rows){
+    ROWS=rows||[];
+    fillSel('fcat','category');fillSel('fbrand','brand');
+    draw();
+  },function(e){$('tbl').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+}
+function fillSel(id,key){
+  var seen={},opts=[];
+  ROWS.forEach(function(r){var v=r[key];if(v&&!seen[v]){seen[v]=1;opts.push(v)}});
+  opts.sort();
+  var sel=$(id);sel.innerHTML=sel.options[0].outerHTML+
+    opts.map(function(o){return '<option>'+esc(o)+'</option>'}).join('');
+}
+
+function toks(q){return String(q||'').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean)}
+function draw(){
+  var q=toks($('q').value), cat=$('fcat').value, br=$('fbrand').value, abc=$('fabc').value;
+  var out=ROWS.filter(function(r){
+    if(CARD && r.flag!==CARD) return false;
+    if(cat && r.category!==cat) return false;
+    if(br && r.brand!==br) return false;
+    if(abc && r.abc!==abc) return false;
+    if(q.length){
+      var hay=((r.item_code||'')+(r.product_name||'')+(r.brand||'')+(r.category||''))
+        .toLowerCase().replace(/[^a-z0-9]/g,'');
+      for(var i=0;i<q.length;i++) if(hay.indexOf(q[i])<0) return false;
+    }
+    return true;
+  });
+  out.sort(function(a,b){var x=a[SORT],y=b[SORT];
+    if(typeof x==='string'){return (x<y?-1:x>y?1:0)*DIR}
+    return((Number(x)||0)-(Number(y)||0))*DIR});
+  $('count').textContent=out.length.toLocaleString('en-IN')+' shown';
+
+  var cols=[['item_code','Code',0],['product_name','Product',0],['category','Category',0],
+    ['brand','Brand',0],['abc','ABC',0],['xyz','XYZ',0],['qty_total','Stock',1],
+    ['days_cover','Cover d',1],['units_90d','90d sold',1],['revenue_12m','12m rev',1],
+    ['days_since_sale','Last sold',1],['flag','Flag',0]];
+  var h='<table><thead><tr>'+cols.map(function(c){
+    return '<th class="'+(c[2]?'num':'')+'" data-s="'+c[0]+'">'+c[1]+
+      (SORT===c[0]?(DIR<0?' ▾':' ▴'):'')+'</th>'}).join('')+'</tr></thead><tbody>'+
+    out.slice(0,500).map(function(r){
+      return '<tr data-c="'+esc(r.item_code)+'">'+
+        '<td>'+esc(r.item_code)+'</td>'+
+        '<td>'+esc(r.product_name)+'</td>'+
+        '<td>'+esc(r.category)+'</td>'+
+        '<td>'+esc(r.brand)+'</td>'+
+        '<td class="abc-'+esc(r.abc)+'">'+esc(r.abc)+'</td>'+
+        '<td>'+esc(r.xyz)+'</td>'+
+        '<td class="num">'+n0(r.qty_total)+'</td>'+
+        '<td class="num">'+(r.days_cover==null?'—':n0(r.days_cover))+'</td>'+
+        '<td class="num">'+n0(r.units_90d)+'</td>'+
+        '<td class="num">'+n0(r.revenue_12m)+'</td>'+
+        '<td class="num">'+(r.days_since_sale==null?'never':n0(r.days_since_sale)+'d')+'</td>'+
+        '<td><span class="pill f-'+esc(r.flag)+'">'+esc(r.flag)+'</span></td></tr>';
+    }).join('')+'</tbody></table>';
+  if(out.length>500) h+='<div class="empty">showing 500 of '+out.length+' — narrow the filter</div>';
+  if(!out.length) h+='<div class="empty">nothing matches</div>';
+  $('tbl').innerHTML=h;
+  each($('tbl').querySelectorAll('th[data-s]'),function(th){
+    th.onclick=function(){var s=this.getAttribute('data-s');
+      if(SORT===s)DIR=-DIR;else{SORT=s;DIR=(s==='item_code'||s==='product_name'||s==='category'||s==='brand')?1:-1}
+      draw()}});
+  each($('tbl').querySelectorAll('tr[data-c]'),function(tr){
+    tr.onclick=function(){openProduct(this.getAttribute('data-c'))}});
+}
+
+function openProduct(code){
+  var r=null;ROWS.forEach(function(x){if(x.item_code===code)r=x});
+  if(!r)return;
+  $('pName').textContent=r.product_name+'  ·  '+r.item_code;
+  $('ov').className='ov on';
+  $('pBody').innerHTML='<div class="kv">'+
+    kv('Stock total',n0(r.qty_total))+
+    kv('W / WO',n0(r.qty_w)+' / '+n0(r.qty_wo))+
+    kv('Days of cover',r.days_cover==null?'—':n0(r.days_cover))+
+    kv('Daily rate',r.daily_rate)+
+    kv('Sold 90d',n0(r.units_90d))+
+    kv('Sold 12m',n0(r.units_12m))+
+    kv('Revenue 12m','Rs '+n0(r.revenue_12m))+
+    kv('Last sold',r.days_since_sale==null?'never':n0(r.days_since_sale)+' days ago')+
+    kv('ABC / XYZ',r.abc+' / '+r.xyz)+
+    kv('Flag',r.flag)+
+    '</div>'+
+    '<div style="margin-top:14px;font-size:13px;color:var(--ink2)">'+advice(r)+'</div>';
+}
+function kv(l,v){return '<div><div class="l">'+l+'</div><div class="v">'+
+  (v==null||v===''?'—':esc(v))+'</div></div>'}
+function advice(r){
+  if(r.flag==='NEGATIVE') return 'Negative stock is impossible — physically count this and correct Vasy.';
+  if(r.flag==='STOCKOUT') return 'Selling but nothing on hand. Reorder — it is losing sales.';
+  if(r.flag==='DEAD') return 'On the shelf but nothing sold in 180 days. Consider clearing it — it is tying up cash.';
+  if(r.flag==='LOW') return 'Under 15 days of cover at the recent rate. Reorder soon.';
+  if(r.flag==='EXCESS') return 'Over 180 days of cover. Stop buying until it moves.';
+  return 'Healthy — cover is in a sensible range.';
+}
+
+$('connGo').onclick=tryConnect;
+$('connUrl').addEventListener('keydown',function(e){if(e.key==='Enter')tryConnect()});
+$('bRefresh').onclick=boot;
+$('bClose').onclick=function(){$('ov').className='ov'};
+['q','fcat','fbrand','fabc'].forEach(function(id){
+  $(id).addEventListener(id==='q'?'input':'change',draw)});
+window.addEventListener('DOMContentLoaded',function(){
+  if(loadUrl()){$('app').style.display='block';
+    call('summary',null,function(){boot()},function(e){showConnect(String(e))});}
+  else showConnect('');
+});
+</script>
+</body></html>

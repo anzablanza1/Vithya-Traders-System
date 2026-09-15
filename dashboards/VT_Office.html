@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vithya — Office</title>
+<style>
+:root{
+  --brand:#CC3018; --brand-d:#A72410; --brand-l:#FBEDEA; --stone:#6C6C60; --stone-l:#F2F1EE;
+  --w:#1D5FA8; --w-l:#E9F0F9; --wo:#CC3018; --wo-l:#FBEDEA;
+  --ink:#1A1A17; --ink2:#4A4A42; --ink3:#8A8A7E; --line:#E2E0DA; --line2:#F0EFEB;
+  --bg:#F6F5F2; --card:rgba(255,255,255,.82);
+  --amber:#A8730F; --amber-bg:#FDF5E4; --red:#B3372C; --red-bg:#FBEEEC;
+  --green:#2C6B4A; --green-bg:#E9F3ED;
+  --glass:saturate(160%) blur(18px);
+  --sh:0 1px 2px rgba(26,26,23,.05),0 8px 28px rgba(26,26,23,.07);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:13px;line-height:1.45;color:var(--ink);-webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(1100px 620px at 8% -8%, rgba(204,48,24,.10), transparent 60%),
+    radial-gradient(900px 520px at 96% 4%, rgba(108,108,96,.12), transparent 60%),
+    var(--bg);
+  background-attachment:fixed}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+
+.app{display:flex;flex-direction:column;height:100vh}
+.top{display:flex;align-items:center;gap:14px;padding:10px 18px;
+  background:rgba(255,255,255,.72);-webkit-backdrop-filter:var(--glass);
+  backdrop-filter:var(--glass);border-bottom:1px solid rgba(226,224,218,.85);flex:0 0 auto}
+.logo{height:28px;display:block}
+.bsub{font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--stone);
+  font-weight:700;border-left:1px solid var(--line);padding-left:11px}
+.tabs{display:flex;gap:2px;margin-left:10px}
+.tab{padding:6px 14px;border-radius:8px;cursor:pointer;color:var(--ink2);font-weight:600}
+.tab:hover{background:var(--stone-l)}
+.tab.on{background:var(--brand);color:#fff;box-shadow:0 2px 10px rgba(204,48,24,.26)}
+.tab .pill{display:inline-block;min-width:18px;padding:0 6px;margin-left:7px;border-radius:9px;
+  background:rgba(0,0,0,.12);font-size:10.5px;font-weight:700}
+.tab.on .pill{background:rgba(255,255,255,.28)}
+.spacer{flex:1}
+.meta{color:var(--ink3);font-size:11.5px}
+.ico{background:none;border:1px solid var(--line);border-radius:8px;padding:5px 10px;
+  cursor:pointer;color:var(--ink2)}
+.ico:hover{background:var(--stone-l)}
+
+.view{flex:1;overflow:auto;padding:18px}
+.view.grid{padding:0;display:flex;flex-direction:column}
+
+/* ── summary cards ── */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:12px;
+  margin-bottom:20px}
+.card{background:var(--card);-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass);
+  border:1px solid rgba(226,224,218,.9);border-radius:13px;padding:14px 16px;box-shadow:var(--sh)}
+.card .l{font-size:10.5px;font-weight:750;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--ink3)}
+.card .v{font-size:23px;font-weight:750;letter-spacing:-.5px;margin-top:4px;
+  font-variant-numeric:tabular-nums}
+.card .s{font-size:11.5px;color:var(--ink3);margin-top:2px}
+.card.alert{border-color:#E8BDB7;background:rgba(251,238,236,.85)}
+.card.alert .v{color:var(--red)}
+.card.warn{border-color:#F0DCB8;background:rgba(253,245,228,.85)}
+.card.warn .v{color:var(--amber)}
+.card.good .v{color:var(--green)}
+
+/* ── action feed ── */
+.grp{margin-bottom:22px}
+.grph{display:flex;align-items:baseline;gap:11px;margin-bottom:9px}
+.grph h3{margin:0;font-size:14px;font-weight:750}
+.grph .n{font-size:11.5px;color:var(--ink3)}
+.grph .imp{margin-left:auto;font-size:12.5px;font-weight:700}
+.item{background:var(--card);-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass);
+  border:1px solid rgba(226,224,218,.9);border-radius:11px;padding:11px 14px;margin-bottom:7px;
+  display:flex;align-items:center;gap:13px;flex-wrap:wrap;cursor:pointer;box-shadow:var(--sh)}
+.item:hover{border-color:var(--brand)}
+.item.r1{border-left:3px solid var(--red)}
+.item.r2{border-left:3px solid var(--amber)}
+.item.r3{border-left:3px solid var(--w)}
+.item.r4{border-left:3px solid var(--stone)}
+.item.r5{border-left:3px solid var(--ink3)}
+.item .cd{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--brand-d);
+  min-width:108px}
+.item .nm{flex:1;min-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .act{font-weight:650;white-space:nowrap}
+.item .imp{font-variant-numeric:tabular-nums;font-weight:700;min-width:96px;text-align:right}
+.tag{display:inline-block;padding:1px 8px;border-radius:6px;font-size:10.5px;font-weight:700}
+.t-a{background:var(--red-bg);color:var(--red)}
+.t-b{background:var(--amber-bg);color:var(--amber)}
+.t-c{background:var(--stone-l);color:var(--stone)}
+.t-x{background:var(--green-bg);color:var(--green)}
+.t-w{background:var(--w-l);color:var(--w)}
+.t-wo{background:var(--wo-l);color:var(--wo)}
+
+/* ── grid ── */
+.bar{display:flex;gap:8px;align-items:center;padding:9px 18px;flex-wrap:wrap;
+  background:rgba(255,255,255,.72);-webkit-backdrop-filter:var(--glass);
+  backdrop-filter:var(--glass);border-bottom:1px solid rgba(226,224,218,.85);flex:0 0 auto}
+.bar input[type=text]{padding:7px 11px;border:1.5px solid var(--line);border-radius:8px;
+  min-width:230px;outline:none;background:rgba(255,255,255,.9)}
+.bar input[type=text]:focus{border-color:var(--brand)}
+.bar select{padding:6px 9px;border:1px solid var(--line);border-radius:8px;
+  background:rgba(255,255,255,.9);max-width:170px}
+.chip{padding:6px 11px;border:1px solid var(--line);border-radius:8px;
+  background:rgba(255,255,255,.85);cursor:pointer;font-weight:600}
+.chip:hover{border-color:var(--brand);color:var(--brand-d)}
+.gw{flex:1;overflow:auto}
+table.g{border-collapse:separate;border-spacing:0;min-width:100%;
+  font-variant-numeric:tabular-nums}
+.g th{position:sticky;top:0;z-index:2;background:rgba(248,247,244,.95);
+  border-bottom:1.5px solid var(--line);border-right:1px solid var(--line2);
+  padding:7px 9px;text-align:left;font-size:10.5px;font-weight:700;color:var(--ink2);
+  white-space:nowrap;cursor:pointer;text-transform:uppercase;letter-spacing:.4px}
+.g th:hover{background:var(--brand-l)}
+.g th.num,.g td.num{text-align:right}
+.g td{padding:5px 9px;border-bottom:1px solid var(--line2);border-right:1px solid var(--line2);
+  white-space:nowrap;background:rgba(255,255,255,.62)}
+.g tr:hover td{background:rgba(255,255,255,.96);cursor:pointer}
+.g td.cd{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--brand-d)}
+.g td.nm{max-width:270px;overflow:hidden;text-overflow:ellipsis}
+.neg{color:var(--red);font-weight:700}
+.foot{display:flex;align-items:center;gap:14px;padding:8px 18px;
+  background:rgba(255,255,255,.72);-webkit-backdrop-filter:var(--glass);
+  backdrop-filter:var(--glass);border-top:1px solid rgba(226,224,218,.85);flex:0 0 auto}
+.stat{font-size:11.5px;color:var(--ink2)}
+.stat b{color:var(--ink);font-weight:750}
+
+/* ── panels ── */
+.ov{position:fixed;inset:0;background:rgba(26,26,23,.36);display:none;z-index:60;
+  align-items:flex-start;justify-content:center;padding:40px 20px;overflow:auto}
+.ov.on{display:flex}
+.panel{background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(26,26,23,.24);
+  width:100%;max-width:880px}
+.panel.sm{max-width:460px}
+.ph{padding:15px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.ph h3{margin:0;font-size:15.5px;font-weight:750}
+.pb{padding:18px 20px}
+.pf{padding:13px 20px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}
+.x{cursor:pointer;color:var(--ink3);font-size:22px;line-height:1;padding:0 6px}
+.x:hover{color:var(--red)}
+.fld{margin-bottom:12px}
+.fld label{display:block;font-size:11.5px;color:var(--ink2);font-weight:650;margin-bottom:4px}
+.fld input,.fld select{width:100%;padding:8px 11px;border:1.5px solid var(--line);
+  border-radius:8px;outline:none}
+.btn{padding:7px 15px;border-radius:8px;border:none;cursor:pointer;font-weight:650}
+.btn.p{background:var(--brand);color:#fff}
+.btn.p:hover{background:var(--brand-d)}
+.btn.g{background:#fff;border:1px solid var(--line);color:var(--ink2)}
+.btn.sm{padding:5px 10px;font-size:11.5px}
+
+/* detail */
+.kv{font-size:12.5px}
+.kv .r{display:flex;justify-content:space-between;padding:5px 0;
+  border-bottom:1px solid var(--line2)}
+.kv .r:last-child{border-bottom:none}
+.kv .k{color:var(--ink2)}
+.kv .v{font-weight:650;font-variant-numeric:tabular-nums}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.sec{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);
+  font-weight:750;margin:0 0 8px}
+.bars{display:flex;align-items:flex-end;gap:3px;height:92px;margin-top:6px}
+.bars .b{flex:1;background:var(--w);border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.bars .b span{position:absolute;bottom:-17px;left:50%;transform:translateX(-50%);
+  font-size:9px;color:var(--ink3);white-space:nowrap}
+.barwrap{padding-bottom:20px}
+
+.empty{padding:56px 20px;text-align:center;color:var(--ink3)}
+.spin{width:22px;height:22px;border:2.5px solid var(--line);border-top-color:var(--brand);
+  border-radius:50%;animation:sp .7s linear infinite;margin:0 auto 10px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);
+  color:#fff;padding:11px 20px;border-radius:10px;font-size:12.5px;z-index:99;display:none}
+.toast.on{display:block}
+.toast.err{background:var(--red)}
+
+.bars2{display:flex;align-items:flex-end;gap:6px;height:130px;margin:14px 0 30px}
+.bars2 .b{flex:1;background:var(--w);border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.bars2 .b:hover{opacity:.8}
+.bars2 .b span{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);
+  font-size:9.5px;color:var(--ink3);white-space:nowrap}
+.gridbox{display:grid;grid-template-columns:auto repeat(3,1fr);gap:4px;max-width:520px;margin:8px 0 18px}
+.gcell{padding:11px 8px;border-radius:9px;text-align:center;cursor:pointer;
+  background:var(--stone-l);border:1px solid var(--line)}
+.gcell:hover{border-color:var(--brand)}
+.gcell .n{font-size:17px;font-weight:750}
+.gcell .v{font-size:10.5px;color:var(--ink3);margin-top:1px}
+.gcell.hot{background:var(--red-bg);border-color:#E8BDB7}
+.gcell.warm{background:var(--amber-bg);border-color:#F0DCB8}
+.glabel{display:flex;align-items:center;justify-content:center;font-size:11px;
+  font-weight:750;color:var(--ink3)}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:820px){.split{grid-template-columns:1fr}}
+.collect{background:var(--amber-bg);border:1px solid #F0DCB8;border-radius:12px;
+  padding:14px 16px;margin-bottom:18px}
+.cbar{height:9px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden;margin:9px 0 6px}
+.cbar>div{height:100%;background:var(--amber);border-radius:99px}
+
+/* ── drill-down overlay ── */
+.drill{position:fixed;inset:0;background:rgba(26,26,23,.4);display:none;z-index:70;
+  align-items:flex-start;justify-content:center;padding:24px 16px;overflow:auto}
+.drill.on{display:flex}
+.dpanel{background:#fff;border-radius:15px;width:100%;max-width:1120px;
+  box-shadow:0 18px 50px rgba(26,26,23,.26)}
+.dhead{padding:15px 20px;border-bottom:1px solid var(--line);display:flex;
+  align-items:center;gap:12px;position:sticky;top:0;background:#fff;border-radius:15px 15px 0 0;z-index:2}
+.dhead h3{margin:0;font-size:16px;font-weight:750;flex:1}
+.dback{cursor:pointer;padding:6px 12px;border:1px solid var(--line);border-radius:8px;
+  font-weight:650;background:#fff}
+.dback:hover{background:var(--stone-l)}
+.dbody{padding:0 0 20px}
+.clik{cursor:pointer}
+.clik:hover{background:var(--brand-l)!important}
+/* ── verdict strip on the product card ── */
+.vstrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px;margin:4px 0 18px}
+.vbox{border-radius:12px;padding:12px 14px;border:1px solid var(--line);background:#fff}
+.vbox .k{font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:750;color:var(--ink3)}
+.vbox .n{font-size:21px;font-weight:750;letter-spacing:-.4px;margin-top:2px;
+  font-variant-numeric:tabular-nums}
+.vbox .s{font-size:11px;margin-top:2px;font-weight:650}
+.vbox.good{background:var(--green-bg);border-color:#BFD9C9}
+.vbox.good .n,.vbox.good .s{color:var(--green)}
+.vbox.bad{background:var(--red-bg);border-color:#E8BDB7}
+.vbox.bad .n,.vbox.bad .s{color:var(--red)}
+.vbox.warn{background:var(--amber-bg);border-color:#F0DCB8}
+.vbox.warn .n,.vbox.warn .s{color:var(--amber)}
+/* ── inline PO progress ── */
+.prog{display:inline-flex;align-items:center;gap:2px;cursor:pointer;vertical-align:middle}
+.prog i{width:7px;height:7px;border-radius:50%;background:var(--line);display:inline-block}
+.prog i.on{background:var(--w)} .prog i.done{background:var(--green)}
+.prog i.late{background:var(--red)}
+.progwrap{padding:8px 12px;background:var(--stone-l);border-radius:9px;margin:4px 0;
+  font-size:11.5px;line-height:1.7}
+.pbar{height:8px;border-radius:99px;background:rgba(0,0,0,.07);overflow:hidden;
+  display:flex;margin:5px 0}
+.pbar span{height:100%}
+.pbar .rec{background:var(--green)} .pbar .shp{background:var(--w)}
+.pbar .ord{background:var(--amber)}
+.act-note{font-size:11.5px;color:var(--ink2);line-height:1.6;margin-top:5px}
+
+.pbar{display:flex;height:9px;border-radius:99px;overflow:hidden;
+  background:rgba(0,0,0,.06);gap:1px}
+.pbar.mini{width:70px;display:inline-flex;vertical-align:middle}
+.pbar span{min-width:2px}
+.prog{cursor:pointer;display:inline-block}
+.progrow td{background:var(--stone-l)}
+</style>
+</head>
+<body>
+<div class="app" id="app" style="display:none">
+  <div class="top">
+    <img class="logo" id="logo" alt="Vithya Traders">
+    <span class="bsub">Office</span>
+    <div class="tabs">
+      <div class="tab on" data-v="today">Today <span class="pill" id="nToday"></span></div>
+      <div class="tab" data-v="grid">Products</div>
+      <div class="tab" data-v="inv">Inventory</div>
+      <div class="tab" data-v="sales">Sales</div>
+      <div class="tab" data-v="po">Purchase</div>
+      <div class="tab" data-v="gap">Cost gaps</div>
+      <div class="tab" data-v="counts">Counts <span class="pill" id="nCount"></span></div>
+    </div>
+    <div class="spacer"></div>
+    <span class="meta" id="meta"></span>
+    <button class="ico" id="btnConn">&#9881;</button>
+  </div>
+
+  <div class="view" id="vToday"><div class="empty"><div class="spin"></div>Loading…</div></div>
+
+  <div class="view grid" id="vGrid" style="display:none">
+    <div class="bar">
+      <input type="text" id="q" placeholder="Search code or name…">
+      <select id="fcat"><option value="">All categories</option></select>
+      <select id="fbrand"><option value="">All brands</option></select>
+      <select id="fabc"><option value="">ABC</option><option>A</option><option>B</option><option>C</option></select>
+      <select id="fxyz"><option value="">XYZ</option><option>X</option><option>Y</option><option>Z</option></select>
+      <select id="fmov"><option value="">Movement</option><option>fast</option><option>slow</option>
+        <option>excess</option><option>dead</option><option>reserve</option>
+        <option>negative</option><option>nosale</option></select>
+      <select id="fflag"><option value="">Flags</option><option value="ANY">Any flag</option>
+        <option value="LOSS">Loss</option><option value="STOCKOUT">Stockout</option>
+        <option value="REORDER">Reorder</option><option value="DEAD">Dead</option>
+        <option value="EXCESS">Excess</option><option value="NEGATIVE">Negative</option></select>
+      <button class="chip" id="btnClear">Clear</button>
+    </div>
+    <div class="gw" id="gw"></div>
+    <div class="foot">
+      <span class="stat" id="sTotal"></span>
+      <span class="stat" id="sVal"></span>
+      <span class="stat" id="sMarg"></span>
+      <div class="spacer"></div>
+      <button class="chip" id="pPrev">&lsaquo;</button>
+      <span class="stat" id="pInfo"></span>
+      <button class="chip" id="pNext">&rsaquo;</button>
+    </div>
+  </div>
+
+  <div class="view" id="vInv" style="display:none"></div>
+  <div class="view" id="vSales" style="display:none"></div>
+  <div class="view" id="vPo" style="display:none"></div>
+  <div class="view" id="vGap" style="display:none"></div>
+  <div class="view" id="vCounts" style="display:none"></div>
+</div>
+
+<div class="ov on" id="ovConn">
+  <div class="panel sm">
+    <div class="ph"><h3>Connect</h3></div>
+    <div class="pb">
+      <div class="fld"><label>Web app URL (ends with /exec)</label>
+        <input id="cUrl" placeholder="https://script.google.com/macros/s/…/exec"></div>
+      <div class="fld"><label>Office token</label><input id="cTok" placeholder="VT_OFFICE_TOKEN"></div>
+      <div class="meta" id="cMsg"></div>
+    </div>
+    <div class="pf"><button class="btn p" id="cSave">Connect</button>
+      <button class="btn g" id="cClose" style="display:none">Cancel</button></div>
+  </div>
+</div>
+
+<div class="ov" id="ovDet"><div class="panel"><div class="ph">
+  <h3 id="dT"></h3><div class="spacer"></div><span class="x" id="dX">&times;</span></div>
+  <div class="pb" id="dB"></div></div></div>
+
+<div class="ov" id="ovAct"><div class="panel sm"><div class="ph">
+  <h3 id="aT"></h3><div class="spacer"></div><span class="x" id="aX">&times;</span></div>
+  <div class="pb" id="aB"></div></div></div>
+
+<div class="drill" id="drill"><div class="dpanel">
+  <div class="dhead"><button class="dback" id="dBack">‹ Back</button>
+    <h3 id="dTitle"></h3><span class="x" id="dClose">&times;</span></div>
+  <div class="dbody" id="dBody"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+var CFG={url:localStorage.getItem('vto_url')||'',token:localStorage.getItem('vto_tok')||''};
+var SEQ=0;
+function api(action,params,ok,fail){
+  if(!CFG.url||!CFG.token){fail&&fail('Not connected');return;}
+  var cb='vto'+(++SEQ)+'_'+Date.now(),done=false,s=document.createElement('script');
+  var t=setTimeout(function(){if(done)return;done=true;clean();fail&&fail('Timed out');},45000);
+  function clean(){try{delete window[cb]}catch(e){window[cb]=undefined}
+    if(s.parentNode)s.parentNode.removeChild(s);clearTimeout(t);}
+  window[cb]=function(r){if(done)return;done=true;clean();
+    if(r&&r.ok)ok&&ok(r.data);else fail&&fail(r&&r.error?r.error:'Unknown error');};
+  var qs=['app=office','action='+encodeURIComponent(action),
+    'token='+encodeURIComponent(CFG.token),'callback='+cb];
+  for(var k in params){var v=params[k];
+    if(v!==undefined&&v!==null&&v!=='')qs.push(k+'='+encodeURIComponent(v));}
+  s.src=CFG.url+(CFG.url.indexOf('?')<0?'?':'&')+qs.join('&');
+  s.onerror=function(){if(done)return;done=true;clean();fail&&fail('Could not reach the URL');};
+  document.body.appendChild(s);
+}
+
+var FIELDS=[],IX={},ROWS=[],PAGE=0,SIZE=100,TOTAL=0,SORT='stock_value',DIR='desc',VIEW='today';
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function toast(m,e){var t=$('toast');t.textContent=m;t.className='toast on'+(e?' err':'');
+  setTimeout(function(){t.className='toast'},e?5000:2600)}
+function rs(v){if(v===''||v===null||v===undefined||isNaN(v))return '—';
+  return '\u20B9'+Math.round(Number(v)).toLocaleString('en-IN')}
+function n2(v){if(v===''||v===null||v===undefined||isNaN(v))return '—';
+  return Number(v).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function pc(v){if(v===''||v===null||v===undefined||isNaN(v))return '—';
+  return Number(v).toFixed(1)+'%'}
+function pcm(v){if(v===''||v===null||v===undefined||isNaN(v))return '—';
+  return (Number(v)*100).toFixed(1)+'%'}
+function abcTag(a){var c=a==='A'?'t-a':(a==='B'?'t-b':'t-c');
+  return a?'<span class="tag '+c+'">'+esc(a)+'</span>':''}
+function xyzTag(x){return x?'<span class="tag '+(x==='X'?'t-x':'t-c')+'">'+esc(x)+'</span>':''}
+
+/* logo is injected at build time */
+$('logo').src='data:image/png;base64,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';
+
+if(CFG.url&&CFG.token){$('cUrl').value=CFG.url;$('cTok').value=CFG.token;start();}
+$('cSave').onclick=function(){
+  var u=$('cUrl').value.trim(),t=$('cTok').value.trim();
+  if(!u||!t){$('cMsg').textContent='Both fields required';return;}
+  if(u.indexOf('/exec')<0){$('cMsg').textContent='URL should end with /exec';return;}
+  CFG.url=u;CFG.token=t;localStorage.setItem('vto_url',u);localStorage.setItem('vto_tok',t);
+  $('cMsg').textContent='Connecting…';start();
+};
+$('cClose').onclick=function(){$('ovConn').className='ov'};
+$('btnConn').onclick=function(){$('ovConn').className='ov on';$('cClose').style.display='block'};
+$('dX').onclick=function(){$('ovDet').className='ov'};
+$('aX').onclick=function(){$('ovAct').className='ov'};
+
+function start(){
+  api('init',{},function(d){
+    FIELDS=d.fields;FIELDS.forEach(function(f,i){IX[f]=i});
+    $('meta').textContent=Number(d.count).toLocaleString('en-IN')+' products';
+    fill($('fcat'),d.categories);fill($('fbrand'),d.brands);
+    $('ovConn').className='ov';$('app').style.display='flex';
+    loadToday();loadCountBadge();
+    /* fetch the full table in the background — by the time anyone opens
+       Products or clicks a drill-down it is already here */
+    loadAll(function(){});
+  },function(e){$('cMsg').textContent=e;$('cClose').style.display='none';});
+}
+function fill(sel,arr){arr.forEach(function(v){var o=document.createElement('option');
+  o.value=v;o.textContent=v;sel.appendChild(o);});}
+
+/* ── tabs ── */
+var tabs=document.querySelectorAll('.tab');
+for(var i=0;i<tabs.length;i++){
+  tabs[i].onclick=function(){
+    for(var j=0;j<tabs.length;j++)tabs[j].className='tab';
+    this.className='tab on';
+    VIEW=this.getAttribute('data-v');
+    $('vToday').style.display=VIEW==='today'?'block':'none';
+    $('vGrid').style.display=VIEW==='grid'?'flex':'none';
+    $('vInv').style.display=VIEW==='inv'?'block':'none';
+    $('vSales').style.display=VIEW==='sales'?'block':'none';
+    $('vPo').style.display=VIEW==='po'?'block':'none';
+    $('vGap').style.display=VIEW==='gap'?'block':'none';
+    if(VIEW==='gap')loadGap();
+    $('vCounts').style.display=VIEW==='counts'?'block':'none';
+    if(VIEW==='grid'&&!ROWS.length)loadGrid();
+    if(VIEW==='inv')loadInv();
+    if(VIEW==='sales')loadSales();
+    if(VIEW==='po')loadPo();
+    if(VIEW==='counts')loadCounts();
+  };
+}
+
+/* ══════════ TODAY ══════════ */
+function loadToday(){
+  api('summary',{},function(s){
+    api('actions',{limit:80},function(a){renderToday(s,a)},
+      function(e){$('vToday').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+  },function(e){$('vToday').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+}
+
+function renderToday(s,a){
+  var vp=s.products?(s.verified/s.products*100):0;
+  var h='<div class="cards">'+
+    card('Stock value','',rs(s.positive_value),
+      s.negative_count?(s.negative_count+' items negative, '+rs(Math.abs(s.negative_value))):'','stock')+
+    card('Cost needs verifying',s.check_cost?'warn':'good',s.check_cost||0,
+      'margin looks negative on a frozen cost','checkcost')+
+    (s.loss?card('Selling below cost','alert',s.loss,'against a CURRENT cost','loss'):'')+
+    card('Out of stock',s.stockout?'warn':'good',s.stockout,'still selling','stockout')+
+    card('To reorder','',s.reorder,rs(s.reorder_value)+' to commit','reorder')+
+    card('Dead stock',s.dead?'warn':'good',s.dead,rs(s.dead_value)+' locked','dead')+
+    card('Verified',vp<20?'warn':'',pc(vp),s.verified+' of '+s.products+' counted')+
+    '</div>';
+
+  if(s.negative_count){
+    h+='<div class="card alert" style="margin-bottom:20px">'+
+      '<div class="l">Read this first</div>'+
+      '<div style="font-size:12.5px;margin-top:6px;color:var(--ink2);line-height:1.6">'+
+      '<b>'+s.negative_count+' products show negative stock</b> ('+rs(Math.abs(s.negative_value))+
+      '). Sales were recorded against them; purchases were not. Until they are counted, '+
+      'reorder points, cover and excess figures for those products are not meaningful. '+
+      'The Counts tab is where that gets fixed.</div></div>';
+  }
+
+  var byRank={};
+  a.items.forEach(function(x){(byRank[x.rank]=byRank[x.rank]||[]).push(x)});
+  a.groups.forEach(function(g){
+    var list=byRank[g.rank]||[];
+    if(!list.length)return;
+    h+='<div class="grp"><div class="grph"><h3>'+esc(g.group)+'</h3>'+
+      '<span class="n">'+g.n+' item'+(g.n===1?'':'s')+
+      (list.length<g.n?' · showing top '+list.length:'')+'</span>'+
+      '<span class="imp">'+rs(g.impact)+'</span></div>';
+    list.forEach(function(x){h+=actItem(x)});
+    h+='</div>';
+  });
+  if(!a.items.length)h+='<div class="empty">Nothing needs action today.</div>';
+  $('vToday').innerHTML=h;
+  $('nToday').textContent=a.total;
+  loadDigest();
+  wireItems();
+  wireCards($('vToday'));
+  /* the group heading opens everything in that group, not just the top rows */
+  each($('vToday').querySelectorAll('.grph'),function(el){
+    el.className+=' clik'; el.style.cursor='pointer';
+    el.onclick=function(){
+      var t=this.querySelector('h3'); if(!t)return;
+      var g=t.textContent;
+      var f={'Cost needs verifying':'checkcost',
+        'Selling below a current cost':'loss','Out of stock, still selling':'stockout',
+        'Below reorder point':'reorder','Dead stock':'dead',
+        'Margin below floor':null}[g];
+      loadAll(function(){
+        var rows = f&&CARD_FILTER[f] ? allWhere(CARD_FILTER[f][0])
+          : allWhere(function(r){return String(r[IX.action]||'')!==''});
+        drill(g, rows, '');
+      });
+    }});
+}
+
+/* card(label, class, value, sub, drillKey)
+   The class comes second so the colour is decided beside the label rather
+   than trailing after two other arguments. drillKey is optional — when set,
+   the card becomes clickable and opens the products behind the number. */
+function card(l,cls,v,s,k){
+  return '<div class="card '+(cls||'')+(k?' clik':'')+'"'+
+    (k?' data-card="'+k+'"':'')+'>'+
+    '<div class="l">'+l+'</div>'+
+    '<div class="v">'+v+'</div><div class="s">'+(s||'')+'</div></div>';
+}
+
+/* every headline number can open the rows behind it */
+var CARD_FILTER={
+  loss:     [function(r){return String(r[IX.flags]).indexOf('LOSS')>=0},'Selling below a current cost'],
+  checkcost:[function(r){return String(r[IX.flags]).indexOf('CHECK COST')>=0},'Cost needs verifying'],
+  stockout: [function(r){return String(r[IX.flags]).indexOf('STOCKOUT')>=0},'Out of stock, still selling'],
+  reorder:  [function(r){return Number(r[IX.suggested_order])>0},'Below reorder point'],
+  dead:     [function(r){return r[IX.movement]==='dead'},'Dead stock'],
+  excess:   [function(r){return r[IX.movement]==='excess'},'Excess stock'],
+  negative: [function(r){return Number(r[IX.qty_total])<0},'Negative stock'],
+  stock:    [function(r){return Number(r[IX.stock_value])>0},'All stock']
+};
+function wireCards(scope){
+  if(!scope)return;
+  each(scope.querySelectorAll('[data-card]'),function(el){
+    el.style.cursor='pointer';
+    el.onclick=function(){
+      var f=CARD_FILTER[this.getAttribute('data-card')];
+      if(!f)return;
+      loadAll(function(){ drill(f[1], allWhere(f[0]), ''); });
+    };
+  });
+}
+function actItem(x){
+  return '<div class="item r'+x.rank+'" data-c="'+esc(x.code)+'">'+
+    '<span class="cd">'+esc(x.code)+'</span>'+
+    abcTag(x.abc)+xyzTag(x.xyz)+
+    '<span class="nm">'+esc(x.name)+'</span>'+
+    '<span class="act">'+esc(x.action)+'</span>'+
+    '<span class="imp">'+rs(x.impact)+'</span></div>';
+}
+function wireItems(){
+  var el=document.querySelectorAll('.item[data-c]');
+  for(var i=0;i<el.length;i++)el[i].onclick=function(){openDetail(this.getAttribute('data-c'))};
+}
+
+/* ══════════ GRID ══════════ */
+var GCOLS=['item_code','product_name','category','abc_revenue','xyz','movement',
+  'qty_total','stock_value','units_365d','days_cover','turns','gmroi',
+  'margin_pct','suggested_order','flags'];
+var GLAB={item_code:'Code',product_name:'Product',category:'Category',abc_revenue:'ABC',
+  xyz:'XYZ',movement:'Movement',qty_total:'Qty',stock_value:'Stock ₹',units_365d:'Sold 12m',
+  days_cover:'Cover d',turns:'Turns',gmroi:'GMROI',margin_pct:'Margin%',
+  suggested_order:'Order',flags:'Flags'};
+var GNUM={qty_total:1,stock_value:1,units_365d:1,days_cover:1,turns:1,gmroi:1,
+  margin_pct:1,suggested_order:1};
+
+function filters(){return {q:$('q').value.trim(),cat:$('fcat').value,brand:$('fbrand').value,
+  abc:$('fabc').value,xyz:$('fxyz').value,movement:$('fmov').value,flag:$('fflag').value};}
+var FT=null;
+$('q').oninput=function(){
+  if(ALL){PAGE=0;loadGrid();return}          /* local — no wait */
+  if(FT)clearTimeout(FT);FT=setTimeout(function(){PAGE=0;loadGrid()},320);
+};
+['fcat','fbrand','fabc','fxyz','fmov','fflag'].forEach(function(id){
+  $(id).onchange=function(){PAGE=0;loadGrid()}});
+$('btnClear').onclick=function(){['q','fcat','fbrand','fabc','fxyz','fmov','fflag']
+  .forEach(function(i){$(i).value=''});PAGE=0;loadGrid()};
+$('pPrev').onclick=function(){if(PAGE>0){PAGE--;loadGrid()}};
+$('pNext').onclick=function(){if((PAGE+1)*SIZE<TOTAL){PAGE++;loadGrid()}};
+
+/* Filter, sort and page entirely in the browser.
+   This used to call the server for every sort click, every filter change and
+   every page — four round trips to look at one category. The rows are the
+   same 7,000 each time, so they are fetched once and worked on locally. */
+function loadGrid(){
+  if(!ALL){
+    $('gw').innerHTML='<div class="empty"><div class="spin"></div>'+
+      'Loading the full table once — after this, sorting and filtering are instant.</div>';
+    loadAll(function(){ loadGrid(); });
+    return;
+  }
+  var p=filters();
+  /* punctuation-blind, order-independent: "14 30 45 pel" and "35*45" both
+     find 4 PEL 14*30/35*45 MM COUPLING AQA */
+  var terms=String(p.q||'').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+
+  var f=ALL.filter(function(r){
+    if(p.cat && r[IX.category]!==p.cat) return false;
+    if(p.brand && r[IX.brand]!==p.brand) return false;
+    if(p.abc && r[IX.abc_revenue]!==p.abc) return false;
+    if(p.xyz && r[IX.xyz]!==p.xyz) return false;
+    if(p.movement && r[IX.movement]!==p.movement) return false;
+    if(p.flag){
+      var fl=String(r[IX.flags]||'');
+      if(p.flag==='ANY' ? !fl : fl.indexOf(p.flag)<0) return false;
+    }
+    if(terms.length){
+      var hay=(String(r[IX.item_code])+String(r[IX.product_name])+
+        String(r[IX.brand])+String(r[IX.category])+String(r[IX.sub_category]))
+        .toLowerCase().replace(/[^a-z0-9]/g,'');
+      for(var i=0;i<terms.length;i++) if(hay.indexOf(terms[i])<0) return false;
+    }
+    return true;
+  });
+
+  var i=IX[SORT], dir=(DIR==='asc')?1:-1;
+  f.sort(function(a,b){
+    var x=a[i], y=b[i];
+    var nx=Number(x), ny=Number(y);
+    if(isFinite(nx)&&isFinite(ny)&&x!==''&&y!=='') return (nx-ny)*dir;
+    return String(x).localeCompare(String(y))*dir;
+  });
+
+  TOTAL=f.length;
+  if(PAGE*SIZE>=TOTAL) PAGE=0;
+  ROWS=f.slice(PAGE*SIZE,PAGE*SIZE+SIZE);
+
+  var sv=0, rev=0, mar=0;
+  f.forEach(function(r){
+    var v=Number(r[IX.stock_value]); if(isFinite(v)&&v>0) sv+=v;
+    var rv=Number(r[IX.revenue_365d]); if(isFinite(rv)) rev+=rv;
+    var mg=Number(r[IX.margin_365d]); if(isFinite(mg)) mar+=mg;
+  });
+  $('sTotal').innerHTML='<b>'+TOTAL.toLocaleString('en-IN')+'</b> products';
+  $('sVal').innerHTML='stock <b>'+rs(sv)+'</b>';
+  $('sMarg').innerHTML='margin <b>'+pc(rev>0?mar/rev*100:'')+'</b> on '+rs(rev);
+  $('pInfo').textContent=(TOTAL?PAGE*SIZE+1:0)+'–'+Math.min((PAGE+1)*SIZE,TOTAL);
+  renderGrid();
+}
+function renderGrid(){
+  if(!ROWS.length){$('gw').innerHTML='<div class="empty">No matches.</div>';return;}
+  var h='<table class="g"><thead><tr>';
+  GCOLS.forEach(function(f){
+    h+='<th class="'+(GNUM[f]?'num':'')+'" data-f="'+f+'">'+esc(GLAB[f]||f)+
+      (SORT===f?(DIR==='asc'?' \u25B2':' \u25BC'):'')+'</th>';
+  });
+  h+='</tr></thead><tbody>';
+  ROWS.forEach(function(r){
+    h+='<tr data-c="'+esc(r[IX.item_code])+'">';
+    GCOLS.forEach(function(f){
+      var v=r[IX[f]],cls=GNUM[f]?'num':'';
+      var disp;
+      if(f==='item_code'){cls+=' cd';disp=esc(v)}
+      else if(f==='product_name'){cls+=' nm';disp=esc(v)}
+      else if(f==='abc_revenue')disp=abcTag(v);
+      else if(f==='xyz')disp=xyzTag(v);
+      else if(f==='stock_value')disp=rs(v);
+      else if(f==='qty_total'){disp=n2(v);if(Number(v)<0)cls+=' neg';}
+      else if(f==='margin_pct')disp=pc(v);
+      else if(f==='flags')disp='<span style="font-size:11px;color:var(--ink3)">'+esc(v)+'</span>';
+      else if(GNUM[f])disp=n2(v);
+      else disp=esc(v);
+      h+='<td class="'+cls+'">'+disp+'</td>';
+    });
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  $('gw').innerHTML=h;
+  var th=$('gw').querySelectorAll('th[data-f]');
+  for(var i=0;i<th.length;i++)th[i].onclick=function(){
+    var f=this.getAttribute('data-f');
+    if(SORT===f)DIR=(DIR==='asc'?'desc':'asc');else{SORT=f;DIR='desc'}
+    PAGE=0;loadGrid();
+  };
+  var tr=$('gw').querySelectorAll('tr[data-c]');
+  for(var j=0;j<tr.length;j++)tr[j].onclick=function(){openDetail(this.getAttribute('data-c'))};
+}
+
+/* ══════════ DETAIL ══════════ */
+function openDetail(code){
+  $('ovDet').className='ov on';
+  $('dT').textContent=code;
+  $('dB').innerHTML='<div class="empty"><div class="spin"></div>Loading…</div>';
+  api('product',{code:code},function(p){
+    $('dT').textContent=p.item_code+'  ·  '+p.product_name;
+    var series=p.series||[];
+    var max=1;series.forEach(function(s){if(s.qty>max)max=s.qty});
+    var bars='<div class="barwrap"><div class="bars">'+series.slice(-12).map(function(s){
+      return '<div class="b" style="height:'+Math.max(2,s.qty/max*90)+'px" title="'+
+        esc(s.month)+': '+s.qty+'"><span>'+esc(String(s.month).slice(5))+'</span></div>';
+    }).join('')+'</div></div>';
+
+    $('dB').innerHTML=
+      '<div style="margin-bottom:14px">'+abcTag(p.abc_revenue)+' '+xyzTag(p.xyz)+
+      ' <span class="tag t-c">'+esc(p.movement)+'</span> '+
+      (p.flags?'<span class="tag t-b">'+esc(p.flags)+'</span>':'')+'</div>'+
+      (p.action?'<div class="card alert" style="margin-bottom:16px"><div class="l">Do this</div>'+
+        '<div style="font-size:15px;font-weight:750;margin-top:3px">'+esc(p.action)+'</div></div>':'')+
+      verdictStrip(p)+
+      '<div class="two"><div>'+
+        '<div class="sec">Demand — last 12 months</div>'+bars+
+        '<div class="kv">'+
+        kv('Sold 30 / 90 / 365d',n2(p.units_30d)+' / '+n2(p.units_90d)+' / '+n2(p.units_365d))+
+        kv('Trend',trendTag(p.trend))+
+        kv('Variability',cvTag(p.demand_cv))+
+        kv('W / WO share',pc(p.w_share)+' / '+pc(p.wo_share))+
+        kv('Revenue 12m',rs(p.revenue_365d))+
+        kv('Margin 12m',rs(p.margin_365d)+'  ('+pc(p.margin_pct)+')')+
+        kv('Last sale / purchase',esc(p.last_sale||'—')+' / '+esc(p.last_purchase||'—'))+
+        '</div></div><div>'+
+        '<div class="sec">Stock and replenishment</div><div class="kv">'+
+        kv('On hand',n2(p.qty_total)+(Number(p.qty_total)<0?
+          '  <span class="bad">⚠ impossible</span>':''))+
+        kv('W / WO',n2(p.qty_w)+' / '+n2(p.qty_wo))+
+        kv('Stock value',rs(p.stock_value))+
+        kv('Safety stock',n2(p.safety_stock))+
+        kv('Reorder point',n2(p.reorder_point))+
+        kv('Suggested order',n2(p.suggested_order))+
+        kv('True margin W / WO',pc(p.true_margin_w)+' / '+pc(p.true_margin_wo))+
+        '</div>'+
+        costPanel(p)+
+        '</div></div>';
+  },function(e){$('dB').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+}
+function kv(k,v){return '<div class="r"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>'}
+
+/* ══════════ COUNTS ══════════ */
+function loadCountBadge(){
+  api('counts',{status:'pending'},function(d){
+    $('nCount').textContent=(d.counts.pending||0);
+  },function(){});
+}
+function loadCounts(){
+  $('vCounts').innerHTML='<div class="empty"><div class="spin"></div>Loading…</div>';
+  api('counts',{status:'pending'},function(d){
+    var c=d.counts||{};
+    var h='<div class="cards">'+
+      card('Awaiting count','',c.pending||0,'assigned, not yet done')+
+      card('Counted','good',c.counted||0,'confirmed from Vasy')+
+      card('Deferred',(c.deferred?'warn':''),c.deferred||0,'parked with a reason')+
+      card('Unclear',(c.unclear?'warn':''),c.unclear||0,'a purchase also landed')+
+      '</div>'+
+      '<div style="display:flex;gap:10px;margin-bottom:16px">'+
+      '<button class="btn p" id="bBatch">Hand out next 50</button>'+
+      '<button class="btn g" id="bDetect">Detect counts from Vasy</button></div>'+
+
+      /* VT-025: the assigned list is a suggestion, not an order. Somebody
+         standing at a shelf wants to count what is in front of them. */
+      '<div class="sec">Find anything to count</div>'+
+      '<div class="bar" style="margin-bottom:12px">'+
+        '<input type="text" id="cfq" placeholder="product name or code" '+
+          'style="flex:1;min-width:150px">'+
+        '<select id="cfcat"><option value="">All categories</option></select>'+
+        '<select id="cfbr"><option value="">All brands</option></select>'+
+      '</div><div id="cfind"></div>';
+
+    if(!d.items.length){h+='<div class="empty">Nothing awaiting count.</div>';}
+    else{
+      h+='<div class="grp"><div class="grph"><h3>Awaiting count</h3>'+
+        '<span class="n">'+d.items.length+'</span></div>';
+      d.items.forEach(function(x){
+        h+='<div class="item r'+(x.qty<0?'1':'3')+'">'+
+          '<span class="cd">'+esc(x.code)+'</span>'+abcTag(x.abc)+
+          '<span class="nm">'+esc(x.name)+'</span>'+
+          '<span class="stat">'+esc(x.reason)+'</span>'+
+          '<span class="imp'+(x.qty<0?' neg':'')+'">'+n2(x.qty)+'</span>'+
+          '<button class="btn g sm" data-defer="'+esc(x.code)+'">Defer</button>'+
+          '<button class="btn g sm" data-block="'+esc(x.code)+'">Block</button></div>';
+      });
+      h+='</div>';
+    }
+    $('vCounts').innerHTML=h;
+    /* the same category and brand lists the grid uses */
+    ['cfcat','cfbr'].forEach(function(id){
+      var src=$(id==='cfcat'?'fcat':'fbrand'), dst=$(id);
+      if(!src||!dst)return;
+      for(var i=1;i<src.options.length;i++){
+        var o=document.createElement('option');
+        o.value=src.options[i].value;o.textContent=src.options[i].textContent;
+        dst.appendChild(o);
+      }
+    });
+    var cft=null;
+    if($('cfq'))$('cfq').oninput=function(){
+      if(cft)clearTimeout(cft); cft=setTimeout(drawCountFind,250)};
+    if($('cfcat'))$('cfcat').onchange=drawCountFind;
+    if($('cfbr'))$('cfbr').onchange=drawCountFind;
+    drawCountFind();
+    $('bBatch').onclick=function(){
+      this.disabled=true;this.textContent='Assigning…';
+      api('countact',{act:'batch'},function(r){
+        toast('Assigned '+r.assigned+' items');loadCounts();loadCountBadge();
+      },function(e){toast(e,true);loadCounts()});
+    };
+    $('bDetect').onclick=function(){
+      this.disabled=true;this.textContent='Checking…';
+      api('countact',{act:'detect'},function(r){
+        toast('Confirmed '+r.counted+' count(s)');loadCounts();loadCountBadge();
+      },function(e){toast(e,true);loadCounts()});
+    };
+    each('[data-defer]',function(el){el.onclick=function(ev){ev.stopPropagation();
+      askAction(this.getAttribute('data-defer'),'defer')}});
+    each('[data-block]',function(el){el.onclick=function(ev){ev.stopPropagation();
+      askAction(this.getAttribute('data-block'),'block')}});
+  },function(e){$('vCounts').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+}
+/* Accepts a selector string OR a NodeList. It used to take only a string, so
+   every each(el.querySelectorAll(...)) call threw and its handlers never
+   bound — that is why the drill-downs looked dead. */
+function each(sel,fn){
+  var el = (typeof sel==='string') ? document.querySelectorAll(sel) : sel;
+  if(!el) return;
+  for(var i=0;i<el.length;i++) fn(el[i]);
+}
+
+function askAction(code,act){
+  $('ovAct').className='ov on';
+  $('aT').textContent=(act==='defer'?'Defer ':'Block ')+code;
+  $('aB').innerHTML='<div class="fld"><label>Reason</label>'+
+    '<input id="aR" placeholder="'+(act==='defer'?'rack being rearranged':'item not traceable')+'"></div>'+
+    (act==='defer'?'<div class="fld"><label>Come back on</label>'+
+      '<input id="aU" placeholder="2026-08-20"></div>':'')+
+    '<div style="margin-top:12px"><button class="btn p" id="aGo">Confirm</button></div>';
+  $('aGo').onclick=function(){
+    var r=$('aR').value.trim();
+    if(!r){toast('A reason is required',true);return;}
+    var u=$('aU')?$('aU').value.trim():'';
+    this.disabled=true;
+    api('countact',{code:code,act:act,note:r,until:u},function(){
+      $('ovAct').className='ov';toast(act==='defer'?'Deferred':'Blocked');
+      loadCounts();loadCountBadge();
+    },function(e){toast(e,true);$('aGo').disabled=false});
+  };
+}
+
+/* ══════════════════ INVENTORY ══════════════════ */
+var INV=null;
+function loadInv(){
+  if(INV){drawInv();return}
+  $('vInv').innerHTML='<div class="empty"><div class="spin"></div>Loading…</div>';
+  api('inventory',{},function(d){INV=d;drawInv()},
+    function(e){$('vInv').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+}
+function drawInv(){
+  var d=INV, s=d.stock;
+  var h='<div class="cards">'+
+    card('Stock value','',rs(s.positive),'positive stock only')+
+    card('Negative stock',s.negative_count?'alert':'good',s.negative_count,
+      rs(Math.abs(s.negative))+' — shown apart, never netted','negative')+
+    card('Dead stock',d.dead_value?'warn':'good',rs(d.dead_value),'no sale in 12 months','dead')+
+    card('Excess',d.excess_value?'warn':'good',rs(d.excess_value),'over the cover threshold','excess')+
+    card('To reorder','',d.reorder,rs(d.reorder_value)+' to commit','reorder')+
+    '</div>';
+
+  /* the honest gate on turns and service level */
+  var hi=d.history;
+  if(!hi.ready){
+    var pct=Math.min(100,Math.round(hi.days/hi.needed*100));
+    h+='<div class="collect"><div class="l" style="font-size:10.5px;font-weight:750;'+
+      'letter-spacing:.6px;text-transform:uppercase;color:var(--amber)">Collecting</div>'+
+      '<div style="font-weight:700;margin-top:3px">True turns · stockout days · fill rate</div>'+
+      '<div class="cbar"><div style="width:'+pct+'%"></div></div>'+
+      '<div style="font-size:12px;color:var(--ink2)">'+hi.days+' of '+hi.needed+
+      ' days'+(hi.first?'  ·  since '+esc(hi.first):'')+
+      '  ·  '+hi.anchors+' anchor snapshot'+(hi.anchors===1?'':'s')+
+      '</div><div style="font-size:12px;color:var(--ink3);margin-top:5px">'+
+      'These need <b>average</b> inventory, which needs history. Every nightly '+
+      'snapshot moves this bar. A stalled bar means a missed night.</div></div>';
+  }
+
+  /* ABC x XYZ */
+  h+='<div class="sec">ABC × XYZ — where the money and the predictability sit</div>'+
+    '<div class="gridbox"><div class="glabel"></div>'+
+    '<div class="glabel">X stable</div><div class="glabel">Y variable</div>'+
+    '<div class="glabel">Z erratic</div>';
+  ['A','B','C'].forEach(function(a){
+    h+='<div class="glabel">'+a+'</div>';
+    ['X','Y','Z'].forEach(function(x){
+      var g=d.grid[a+x]||{n:0,value:0,revenue:0};
+      var cls=(a==='A'&&x==='Z')?' hot':((a==='A')?' warm':'');
+      h+='<div class="gcell'+cls+'" data-abc="'+a+'" data-xyz="'+x+'">'+
+        '<div class="n">'+g.n+'</div><div class="v">'+rs(g.value)+'</div></div>';
+    });
+  });
+  h+='</div>';
+
+  h+='<div class="split"><div>'+
+    '<div class="sec">Stock value by category</div>'+catTable(d.categories)+
+    '</div><div>'+
+    '<div class="sec">Stock value by brand</div>'+catTable(d.brands)+
+    '</div></div>';
+
+  h+='<div class="split" style="margin-top:20px"><div>'+
+    '<div class="sec">Best GMROI — margin per rupee of stock</div>'+gmTable(d.best_gmroi)+
+    '</div><div>'+
+    '<div class="sec">Worst GMROI (over ₹1,000 held)</div>'+gmTable(d.worst_gmroi)+
+    '</div></div>';
+
+  h+='<div class="sec" style="margin-top:20px">Slowest moving by cover</div>'+
+    coverTable(d.slowest);
+
+  $('vInv').innerHTML=h;
+  wireCards($('vInv'));
+  each($('vInv').querySelectorAll('.gcell[data-abc]'),function(el){
+    el.onclick=function(){
+      var a=this.getAttribute('data-abc'), x=this.getAttribute('data-xyz');
+      var act=GRID_ACTION[a+x]||['',''];
+      loadAll(function(){
+        drill(a+x+' — '+act[0],
+          allWhere(function(r){return r[IX.abc_revenue]===a&&r[IX.xyz]===x}),
+          '<b>'+esc(act[0])+'</b><br>'+esc(act[1]));
+      });
+    }});
+  each($('vInv').querySelectorAll('tr[data-c]'),function(tr){
+    tr.onclick=function(){openDetail(this.getAttribute('data-c'))}});
+  each($('vInv').querySelectorAll('tr[data-grp]'),function(tr){
+    tr.onclick=function(){
+      var g=this.getAttribute('data-grp');
+      loadAll(function(){
+        drill(g, allWhere(function(r){
+          return r[IX.category]===g||r[IX.brand]===g;}), '');
+      });
+    }});
+}
+function catTable(a){
+  if(!a||!a.length)return '<div class="empty">No data.</div>';
+  var mx=a[0].value||1;
+  return '<table class="g"><thead><tr><th>Name</th><th class="num">Value</th>'+
+    '<th class="num">Items</th><th></th></tr></thead><tbody>'+
+    a.map(function(x){
+      return '<tr class="clik" data-grp="'+esc(x.name)+'"><td>'+esc(x.name)+'</td>'+
+        '<td class="num">'+rs(x.value)+'</td>'+
+        '<td class="num">'+x.items+'</td>'+
+        '<td style="width:80px"><div style="height:7px;border-radius:99px;'+
+        'background:var(--w);width:'+Math.max(3,Math.round(x.value/mx*100))+'%"></div></td></tr>';
+    }).join('')+'</tbody></table>';
+}
+function gmTable(a){
+  if(!a||!a.length)return '<div class="empty">No data.</div>';
+  return '<table class="g"><thead><tr><th>Product</th><th class="num">GMROI</th>'+
+    '<th class="num">Stock</th></tr></thead><tbody>'+
+    a.map(function(x){
+      return '<tr data-c="'+esc(x.code)+'"><td class="nm">'+esc(x.name)+'</td>'+
+        '<td class="num'+(x.gmroi<1?' bad':'')+'">'+n2(x.gmroi)+'</td>'+
+        '<td class="num">'+rs(x.value)+'</td></tr>';
+    }).join('')+'</tbody></table>';
+}
+function coverTable(a){
+  if(!a||!a.length)return '<div class="empty">No data.</div>';
+  return '<table class="g"><thead><tr><th>Product</th><th class="num">Days cover</th>'+
+    '<th class="num">Stock value</th></tr></thead><tbody>'+
+    a.map(function(x){
+      return '<tr data-c="'+esc(x.code)+'"><td class="nm">'+esc(x.name)+'</td>'+
+        '<td class="num">'+Math.round(x.cover).toLocaleString('en-IN')+'</td>'+
+        '<td class="num">'+rs(x.value)+'</td></tr>';
+    }).join('')+'</tbody></table>';
+}
+
+/* ══════════════════ SALES ══════════════════ */
+var SALES=null;
+function loadSales(){
+  if(SALES){drawSales();return}
+  $('vSales').innerHTML='<div class="empty"><div class="spin"></div>Loading…</div>';
+  api('sales',{months:'18'},function(d){SALES=d;drawSales()},
+    function(e){$('vSales').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+}
+function drawSales(){
+  var d=SALES;
+  if(!d.series||!d.series.length){$('vSales').innerHTML='<div class="empty">'+
+    esc(d.note||'No sales data.')+'</div>';return}
+  var t=d.total, l=d.lanes;
+  var h='<div class="cards">'+
+    card('Revenue','',rs(t.revenue),d.series.length+' months')+
+    card('Gross profit','',rs(t.profit),pc(t.margin)+' margin')+
+    card('W / WO split','',pc(l.w_share)+' W',qn2(l.w)+' vs '+qn2(l.wo)+' units')+
+    (d.yoy?card('Last 6 months',d.yoy.change>=0?'good':'alert',
+      (d.yoy.change>=0?'+':'')+d.yoy.change+'%','vs the same 6 a year earlier'):'')+
+    '</div>';
+
+  if(d.insight&&d.insight.length){
+    h+='<div class="sec">What this says</div><div class="cards">'+
+      d.insight.map(function(x){
+        return card(x.k,x.bad?'warn':'',x.v,x.s);
+      }).join('')+'</div>';
+  }
+  var y=d.yoy_months;
+  if(y&&y.months&&y.months.length){
+    var priceLed = (y.change!==''&&y.qty_change!==''&&y.change>y.qty_change+3);
+    h+='<div class="sec">This year against last</div><div class="cards">'+
+      card('Revenue',y.change>=0?'good':'alert',
+        (y.change>=0?'+':'')+y.change+'%',
+        rs(y.total_now)+' against '+rs(y.total_then))+
+      card('Units',y.qty_change>=0?'good':'alert',
+        (y.qty_change>=0?'+':'')+y.qty_change+'%','how much actually moved')+
+      card('Months up','',y.up+' of '+(y.up+y.down),
+        y.down?y.down+' were down':'every month grew')+
+      (priceLed?card('Growth is price-led','warn',
+        (y.change-y.qty_change).toFixed(1)+' pts',
+        'revenue rose faster than units — check it is pricing, not mix'):'')+
+      '</div>'+
+      '<table class="g"><thead><tr><th>Month</th><th class="num">This year</th>'+
+      '<th class="num">Last year</th><th class="num">Change</th>'+
+      '<th class="num">Margin now</th><th class="num">Margin then</th></tr></thead><tbody>'+
+      y.months.slice().reverse().map(function(x){
+        return '<tr><td>'+esc(x.month)+'</td>'+
+          '<td class="num">'+rs(x.now)+'</td><td class="num">'+rs(x.then)+'</td>'+
+          '<td class="num '+(x.change<0?'bad':'')+'">'+
+            (x.change>=0?'+':'')+x.change+'%</td>'+
+          '<td class="num">'+pc(x.margin_now)+'</td>'+
+          '<td class="num">'+pc(x.margin_then)+'</td></tr>';
+      }).join('')+'</tbody></table>';
+  } else if(y&&y.note){
+    h+='<div class="hint">'+esc(y.note)+'</div>';
+  }
+  var mx=Math.max.apply(null,d.series.map(function(x){return x.revenue}))||1;
+  h+='<div class="sec">Revenue by month</div><div class="bars2">'+
+    d.series.map(function(x){
+      return '<div class="b" style="height:'+Math.max(2,x.revenue/mx*100)+'%" '+
+        'title="'+esc(x.month)+': '+rs(x.revenue)+' · margin '+pc(x.margin)+'">'+
+        '<span>'+esc(x.month.slice(2))+'</span></div>';
+    }).join('')+'</div>';
+
+  h+='<table class="g"><thead><tr><th>Month</th><th class="num">Revenue</th>'+
+    '<th class="num">Profit</th><th class="num">Margin</th><th class="num">Units</th>'+
+    '<th class="num">W</th><th class="num">WO</th></tr></thead><tbody>'+
+    d.series.slice().reverse().map(function(x){
+      return '<tr><td>'+esc(x.month)+'</td><td class="num">'+rs(x.revenue)+'</td>'+
+        '<td class="num">'+rs(x.profit)+'</td><td class="num">'+pc(x.margin)+'</td>'+
+        '<td class="num">'+qn2(x.qty)+'</td><td class="num">'+qn2(x.w)+'</td>'+
+        '<td class="num">'+qn2(x.wo)+'</td></tr>';
+    }).join('')+'</tbody></table>';
+
+  h+='<div class="split" style="margin-top:20px"><div>'+
+    '<div class="sec">By category</div>'+revTable(d.categories)+'</div><div>'+
+    '<div class="sec">By brand</div>'+revTable(d.brands)+'</div></div>';
+
+  h+='<div class="hint" style="margin-top:18px;font-size:12px;color:var(--ink3)">'+
+    'Time-of-day analysis is not shown: the timestamp on a sale records when it '+
+    'was billed, not when it happened, so an hourly chart would look meaningful '+
+    'and mislead.</div>';
+  $('vSales').innerHTML=h;
+  each($('vSales').querySelectorAll('tr[data-grp]'),function(tr){
+    tr.onclick=function(){
+      var g=this.getAttribute('data-grp');
+      loadAll(function(){
+        drill(g, allWhere(function(r){
+          return r[IX.category]===g||r[IX.brand]===g;}), '');
+      });
+    }});
+}
+function revTable(a){
+  if(!a||!a.length)return '<div class="empty">No data.</div>';
+  return '<table class="g"><thead><tr><th>Name</th><th class="num">Revenue</th>'+
+    '<th class="num">Margin</th></tr></thead><tbody>'+
+    a.map(function(x){
+      return '<tr class="clik" data-grp="'+esc(x.name)+'"><td>'+esc(x.name)+'</td>'+
+        '<td class="num">'+rs(x.revenue)+'</td>'+
+        '<td class="num'+(x.margin!==''&&x.margin<12?' bad':'')+'">'+pc(x.margin)+
+        '</td></tr>';
+    }).join('')+'</tbody></table>';
+}
+function qn2(v){var n=Number(v);return isFinite(n)?Math.round(n).toLocaleString('en-IN'):'—'}
+
+/* ══════════════════ PURCHASE ══════════════════ */
+var POD=null;
+function loadPo(){
+  if(POD){drawPo();return}
+  $('vPo').innerHTML='<div class="empty"><div class="spin"></div>Loading…</div>';
+  api('purchase',{},function(d){POD=d;drawPo()},
+    function(e){$('vPo').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+}
+function drawPo(){
+  var d=POD;
+  if(!d.products){$('vPo').innerHTML='<div class="empty">Nothing on order.<br><br>'+
+    'If that looks wrong, run buildPoStatus() — it reads the PO request sheet.</div>';return}
+  var h='<div class="cards">'+
+    card('Products on order','',d.products,qn2(d.on_order)+' units')+
+    card('In transit','',qn2(d.in_transit),'shipped, not yet received')+
+    card('Committed','',rs(d.value),'at current cost')+
+    card('Overdue',d.overdue?'alert':'good',d.overdue,rs(d.overdue_value)+' past the expected date')+
+    '</div>';
+  var st=d.by_status||{};
+  h+='<div class="sec">By status</div><div style="margin-bottom:18px">'+
+    Object.keys(st).sort().map(function(k){
+      return '<span class="tag t-c" style="margin-right:7px">'+esc(k)+': '+st[k]+'</span>';
+    }).join('')+'</div>';
+  h+='<div class="sec">On order — overdue first, then by value</div>'+
+    '<table class="g"><thead><tr><th>Product</th><th class="num">In stock</th>'+
+    '<th class="num">On order</th><th class="num">In transit</th><th></th><th>Due</th>'+
+    '<th>Status</th><th class="num">Value</th></tr></thead><tbody>'+
+    d.items.map(function(x){
+      return '<tr data-c="'+esc(x.code)+'"><td class="nm">'+esc(x.name)+'</td>'+
+        '<td class="num'+(x.qty<0?' neg':'')+'">'+n2(x.qty)+'</td>'+
+        '<td class="num">'+qn2(x.on_order)+'</td>'+
+        '<td class="num">'+(x.in_transit?qn2(x.in_transit):'—')+'</td>'+
+        '<td>'+progDots(x)+'</td>'+
+        '<td'+(x.late?' style="color:var(--red);font-weight:700"':'')+'>'+
+          (x.due?esc(x.due):'—')+(x.late?' ⚠':'')+'</td>'+
+        '<td>'+esc(x.status||'—')+'</td>'+
+        '<td class="num">'+rs(x.value)+'</td></tr>';
+    }).join('')+'</tbody></table>';
+  $('vPo').innerHTML=h;
+  each($('vPo').querySelectorAll('.prog'),function(el){
+    el.onclick=function(ev){ ev.stopPropagation(); togProg(this); };
+  });
+  each($('vPo').querySelectorAll('tr[data-c]'),function(tr){
+    tr.onclick=function(){openDetail(this.getAttribute('data-c'))}});
+}
+
+
+/* ══════════════════ LOCAL TABLE ══════════════════
+   Ship every row once, then filter and sort in the browser. The office was
+   round-tripping for every sort click; now nothing waits on the network. */
+var ALL=null, ALOADING=false;
+function loadAll(cb){
+  if(ALL){cb&&cb();return}
+  if(ALOADING){setTimeout(function(){loadAll(cb)},400);return}
+  ALOADING=true;
+  var acc=[],page=0;
+  (function next(){
+    api('catalog',{page:page},function(d){
+      acc=acc.concat(d.rows||[]);
+      if(page+1<d.pages){page++;next();return}
+      ALL=acc;ALOADING=false;cb&&cb();
+    },function(e){ALOADING=false;toast(e,true)});
+  })();
+}
+function allWhere(fn){ return (ALL||[]).filter(fn); }
+
+/* ══════════════════ DRILL-DOWN ══════════════════
+   Every number on every screen opens the products behind it. Back returns to
+   where you were, so exploring never loses your place. */
+var DSTACK=[];
+function drill(title,rows,note){
+  DSTACK.push({title:title,rows:rows,note:note});
+  renderDrill();
+}
+function renderDrill(){
+  if(!DSTACK.length){$('drill').className='drill';return}
+  var top=DSTACK[DSTACK.length-1];
+  $('drill').className='drill on';
+  $('dTitle').textContent=top.title+'  ('+top.rows.length+')';
+  $('dBack').style.display=DSTACK.length>1?'block':'none';
+  var val=top.rows.reduce(function(s,r){return s+(Number(r[IX.stock_value])||0)},0);
+  var rev=top.rows.reduce(function(s,r){return s+(Number(r[IX.revenue_365d])||0)},0);
+  var h=(top.note?'<div class="hint" style="margin:14px 20px 0">'+top.note+'</div>':'')+
+    '<div style="padding:14px 20px 0;display:flex;gap:22px;flex-wrap:wrap">'+
+    '<span class="stat">stock <b>'+rs(val)+'</b></span>'+
+    '<span class="stat">revenue 12m <b>'+rs(rev)+'</b></span>'+
+    '<button class="chipbtn" id="dCsv">Download</button></div>'+
+    '<div style="padding:12px 20px 0;overflow:auto">'+drillTable(top.rows)+'</div>';
+  $('dBody').innerHTML=h;
+  each($('dBody').querySelectorAll('tr[data-c]'),function(tr){
+    tr.onclick=function(){openDetail(this.getAttribute('data-c'))}});
+  $('dCsv').onclick=function(){drillCsv(top)};
+}
+function drillTable(rows){
+  var cols=['item_code','product_name','category','movement','qty_total','stock_value',
+    'units_365d','days_cover','gmroi','margin_pct','suggested_order','action'];
+  var lab={item_code:'Code',product_name:'Product',category:'Category',movement:'Movement',
+    qty_total:'Qty',stock_value:'Stock ₹',units_365d:'Sold 12m',days_cover:'Cover',
+    gmroi:'GMROI',margin_pct:'Margin%',suggested_order:'Order',action:'Action'};
+  var num={qty_total:1,stock_value:1,units_365d:1,days_cover:1,gmroi:1,margin_pct:1,suggested_order:1};
+  var h='<table class="g"><thead><tr>';
+  cols.forEach(function(c){h+='<th class="'+(num[c]?'num':'')+'">'+lab[c]+'</th>'});
+  h+='</tr></thead><tbody>';
+  rows.slice(0,400).forEach(function(r){
+    h+='<tr data-c="'+esc(r[IX.item_code])+'">';
+    cols.forEach(function(c){
+      var v=r[IX[c]],cls=num[c]?'num':'';
+      var disp;
+      if(c==='item_code'){cls+=' cd';disp=esc(v)}
+      else if(c==='product_name'){cls+=' nm';disp=esc(v)}
+      else if(c==='stock_value')disp=rs(v);
+      else if(c==='qty_total'){disp=n2(v);if(Number(v)<0)cls+=' neg'}
+      else if(c==='margin_pct')disp=pc(v);
+      else if(c==='action')disp='<span style="font-size:11.5px">'+esc(v)+'</span>';
+      else if(num[c])disp=n2(v);
+      else disp=esc(v);
+      h+='<td class="'+cls+'">'+disp+'</td>';
+    });
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  if(rows.length>400)h+='<div class="empty">Showing 400 of '+rows.length+'.</div>';
+  return h;
+}
+function drillCsv(top){
+  var cols=['item_code','product_name','category','brand','movement','abc_revenue','xyz',
+    'qty_total','stock_value','units_365d','days_cover','gmroi','margin_pct',
+    'suggested_order','action'];
+  var out=[cols];
+  top.rows.forEach(function(r){out.push(cols.map(function(c){return r[IX[c]]}))});
+  var csv=out.map(function(r){return r.map(function(c){
+    var s=String(c==null?'':c);
+    return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}).join(',')}).join('\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='VT_'+top.title.replace(/[^A-Za-z0-9]+/g,'_')+'.csv';a.click();
+}
+$('dBack').onclick=function(){DSTACK.pop();renderDrill()};
+$('dClose').onclick=function(){DSTACK=[];$('drill').className='drill'};
+
+/* what to DO with each ABC×XYZ cell — the grid is useless without this */
+var GRID_ACTION={
+  AX:['Tight reorder, thin safety stock','Your best products: high value and predictable. '+
+      'Keep them always in stock — a stockout here is the most expensive kind. '+
+      'Statistical reorder points work well.'],
+  AY:['Buffer stock, review weekly','High value, some variation. Carry a real buffer and '+
+      'look at them every week rather than trusting a formula.'],
+  AZ:['Make to order, never stock deep','High value but erratic. A formula will overstock '+
+      'these. Order against demand, keep a token quantity, and expect lumpiness.'],
+  BX:['Periodic review','Steady middle. A monthly review is enough.'],
+  BY:['Moderate buffer','Middle value, variable. Buffer modestly and review monthly.'],
+  BZ:['Review monthly, keep it light','Middle value, erratic. Small quantities only.'],
+  CX:['Bulk buy, rarely review','Low value but predictable — buy in quantity and forget them.'],
+  CY:['Minimum stock','Low value, variable. Keep the bare minimum.'],
+  CZ:['Consider delisting','Low value and unpredictable. Ask whether these earn their shelf '+
+      'space at all — this is usually the largest group and the biggest cash release.']
+};
+
+/* the five numbers that decide what to do, judged rather than listed */
+function verdictStrip(p){
+  var out='';
+  var cover=Number(p.days_cover), gm=Number(p.gmroi), tn=Number(p.turns);
+  var mp=Number(p.margin_pct), qty=Number(p.qty_total);
+
+  out+=vbox('Stock cover', isFinite(cover)&&cover>0?Math.round(cover)+'d':'—',
+    !isFinite(cover)||!cover ? ['',''] :
+    cover<14?['bad','running out']:
+    cover<30?['warn','getting thin']:
+    cover<180?['good','comfortable']:['warn','a lot of cash parked']);
+
+  out+=vbox('GMROI', isFinite(gm)?n2(gm):'—',
+    !isFinite(gm)?['','']:
+    gm<1?['bad','earns less than it ties up']:
+    gm<2?['warn','thin return']:['good','earning its shelf space']);
+
+  out+=vbox('Turns', isFinite(tn)?n2(tn):'—',
+    !isFinite(tn)?['','']:
+    tn<2?['bad','barely moving']:
+    tn<4?['warn','below par']:['good','healthy']);
+
+  out+=vbox('Margin', isFinite(mp)?pc(mp):'—',
+    !isFinite(mp)?['','']:
+    mp<0?['bad','selling at a loss']:
+    mp<12?['warn','under the floor']:['good','above the floor']);
+
+  out+=vbox('On hand', n2(p.qty_total),
+    qty<0?['bad','impossible — count it']:
+    qty===0?['warn','nothing on the shelf']:['','']);
+
+  return '<div class="vstrip">'+out+'</div>';
+}
+function vbox(k,n,st){
+  return '<div class="vbox '+(st[0]||'')+'"><div class="k">'+k+'</div>'+
+    '<div class="n">'+n+'</div>'+(st[1]?'<div class="s">'+st[1]+'</div>':'')+'</div>';
+}
+function trendTag(t){
+  if(!t)return '—';
+  var c=t==='growing'?'t-x':(t==='declining'?'t-a':'t-c');
+  return '<span class="tag '+c+'">'+esc(t)+'</span>';
+}
+function cvTag(cv){
+  var v=Number(cv);
+  if(!isFinite(v))return '—';
+  var l=v<0.5?['t-x','stable']:(v<1?['t-b','variable']:['t-a','erratic']);
+  return '<span class="tag '+l[0]+'">'+l[1]+'</span> '+n2(v);
+}
+
+/* ── PO progress as three dots, expanding on click ──
+   A full bar on every row would swamp the table. Three dots read at a glance
+   — ordered, shipped, received — and the detail is one click away. */
+/* ── VT-022 · the Purchase Intelligence bar, small enough for a table row ──
+   Same five segments and the same colours as the purchase dashboard, so the
+   two read alike. A full-width bar per row would swamp the table, so it sits
+   at 70px and expands on click. */
+var PSEG=[['received','#29A36A'],['shipped','#F2B33D'],
+          ['sent','#A8C6F0'],['created','#4C82E6'],['excess','#8B5CF6']];
+function progSegs(x){
+  var ord=Number(x.on_order)||0, tr=Number(x.in_transit)||0;
+  var rec=Math.max(0,(Number(x.ordered)||0)-(Number(x.on_order)||0));
+  var st=String(x.status||'');
+  var shipped=Math.max(0,tr);
+  var rest=Math.max(0,ord-shipped);
+  /* a PO that has been sent is further along than one merely created */
+  var sent=(st==='PO Sent'||st==='Shipped')?rest:0;
+  var created=rest-sent;
+  return {received:rec,shipped:shipped,sent:sent,created:created,excess:0,
+          total:rec+shipped+sent+created};
+}
+function progDots(x){
+  var f=progSegs(x);
+  if(!f.total) return '';
+  var bar=PSEG.map(function(s){
+    var v=f[s[0]]||0;
+    return v>0?'<span style="flex:'+v+';background:'+s[1]+'" title="'+s[0]+': '+v+'"></span>':'';
+  }).join('');
+  var payload=encodeURIComponent(JSON.stringify({
+    n:x.name,o:x.on_order,t:x.in_transit,due:x.due||'',st:x.status||'',
+    pos:x.pos||0,part:x.part_received||'',f:f}));
+  return '<span class="prog" data-p="'+payload+'" title="click for detail">'+
+    '<span class="pbar mini">'+bar+'</span></span>';
+}
+function togProg(el){
+  var tr=el.closest('tr');
+  var nx=tr.nextElementSibling;
+  if(nx&&nx.className==='progrow'){ nx.parentNode.removeChild(nx); return; }
+  var d={};
+  try{ d=JSON.parse(decodeURIComponent(el.getAttribute('data-p'))); }catch(e){}
+  var f=d.f||{};
+  var bar=PSEG.map(function(s){
+    var v=f[s[0]]||0;
+    return v>0?'<span style="flex:'+v+';background:'+s[1]+'"></span>':'';
+  }).join('');
+  var legend=PSEG.filter(function(s){return (f[s[0]]||0)>0})
+    .map(function(s){return '<span style="display:inline-flex;align-items:center;gap:4px;'+
+      'margin-right:12px"><i style="width:9px;height:9px;border-radius:2px;'+
+      'display:inline-block;background:'+s[1]+'"></i>'+s[0]+' '+qn2(f[s[0]])+'</span>'})
+    .join('');
+  var row=document.createElement('tr');
+  row.className='progrow';
+  row.innerHTML='<td colspan="9"><div class="progwrap">'+
+    '<b>'+esc(d.n||'')+'</b>'+
+    '<div class="pbar" style="height:13px;margin:7px 0">'+bar+'</div>'+
+    '<div style="font-size:11px;color:var(--ink2);margin-bottom:4px">'+legend+'</div>'+
+    'total PO request — '+qn2(f.total)+' qty'+
+    (d.due?'  ·  due '+esc(d.due):'')+
+    (d.part?'  ·  last received '+esc(d.part):'')+
+    (d.pos?'  ·  across '+d.pos+' PO'+(d.pos>1?'s':''):'')+
+    (d.st?'  ·  '+esc(d.st):'')+
+    '</div></td>';
+  tr.parentNode.insertBefore(row, tr.nextSibling);
+}
+
+
+/* ══════════════ VT-027 · COST GAPS ══════════════
+   Where the batch cost and the cost the margin was computed from disagree.
+   A large gap means the margin on screen is fiction — so this is the verify
+   queue, ordered by how much revenue rides on getting the answer right. */
+var GAP=null;
+function loadGap(){
+  if(GAP){drawGap();return}
+  $('vGap').innerHTML='<div class="empty"><div class="spin"></div>Loading…</div>';
+  api('pricegap',{},function(d){GAP=d;drawGap()},
+    function(e){$('vGap').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+}
+function drawGap(){
+  var d=GAP;
+  if(!d.total){$('vGap').innerHTML='<div class="empty">No material cost gaps. '+
+    'Either the costs agree, or Product_Analytics needs rebuilding.</div>';return}
+  var h='<div class="cards">'+
+    card('Products with a gap','warn',d.total,'batch vs frozen cost differ by 5%+')+
+    card('Revenue affected','',rs(d.revenue_exposed),'12-month sales on these products')+
+    card('Margin at stake','alert',rs(d.at_risk_total),'if the batch cost is the true one')+
+    '</div>'+
+    '<div class="hint" style="margin-bottom:14px">Two independent costs disagree on '+
+    'these products, so the margin shown for them is a guess. Sorted by the money '+
+    'riding on the answer, not by the size of the gap — a 90% gap on something that '+
+    'never sells is not where to start.</div>'+
+    '<table class="g"><thead><tr><th>Product</th><th>Category</th>'+
+    '<th class="num">Frozen cost</th><th class="num">Batch cost</th>'+
+    '<th class="num">Gap</th><th class="num">Margin now</th>'+
+    '<th class="num">Revenue 12m</th><th class="num">At stake</th></tr></thead><tbody>'+
+    d.items.map(function(x){
+      return '<tr data-c="'+esc(x.code)+'"><td class="nm">'+esc(x.name)+'</td>'+
+        '<td>'+esc(x.cat)+'</td>'+
+        '<td class="num">'+n2(x.frozen)+'</td>'+
+        '<td class="num">'+n2(x.current)+'</td>'+
+        '<td class="num '+(Math.abs(x.gap)>25?'bad':'')+'">'+
+          (x.gap>0?'+':'')+n2(x.gap)+'%</td>'+
+        '<td class="num">'+pc(x.margin)+'</td>'+
+        '<td class="num">'+rs(x.revenue)+'</td>'+
+        '<td class="num"><b>'+rs(x.at_risk)+'</b></td></tr>';
+    }).join('')+'</tbody></table>';
+  $('vGap').innerHTML=h;
+  each($('vGap').querySelectorAll('tr[data-c]'),function(tr){
+    tr.onclick=function(){openDetail(this.getAttribute('data-c'))}});
+}
+
+/* ══════════════ VT-025 · COUNT ANYTHING ══════════════ */
+var CFIND=null;
+function drawCountFind(){
+  var box=$('cfind'); if(!box)return;
+  var q=$('cfq')?$('cfq').value.trim():'';
+  var c=$('cfcat')?$('cfcat').value:'', b=$('cfbr')?$('cfbr').value:'';
+  if(!q&&!c&&!b){box.innerHTML='<div class="empty">Search, or pick a category '+
+    'or brand, to count a whole shelf.</div>';return}
+  box.innerHTML='<div class="empty"><div class="spin"></div>…</div>';
+  api('countfind',{q:q,cat:c,brand:b},function(d){
+    if(!d.total){box.innerHTML='<div class="empty">Nothing found.</div>';return}
+    box.innerHTML='<div class="sec">'+
+      (d.total>d.items.length?d.items.length+' of '+d.total:d.total)+' products</div>'+
+      '<table class="g"><thead><tr><th>Product</th><th>Category</th><th>Brand</th>'+
+      '<th class="num">System qty</th><th class="num">Value</th>'+
+      '<th>Movement</th></tr></thead><tbody>'+
+      d.items.map(function(x){
+        return '<tr data-c="'+esc(x.code)+'"><td class="nm">'+esc(x.name)+'</td>'+
+          '<td>'+esc(x.cat)+'</td><td>'+esc(x.brand)+'</td>'+
+          '<td class="num'+(x.qty<0?' neg':'')+'">'+n2(x.qty)+'</td>'+
+          '<td class="num">'+rs(x.value)+'</td>'+
+          '<td>'+esc(x.movement)+'</td></tr>';
+      }).join('')+'</tbody></table>';
+    each(box.querySelectorAll('tr[data-c]'),function(tr){
+      tr.onclick=function(){openDetail(this.getAttribute('data-c'))}});
+  },function(e){box.innerHTML='<div class="empty">'+esc(e)+'</div>'});
+}
+
+
+/* ── VT-024 · the two ERP opinions, side by side ──
+   vasy-batch (Cost_Current) is the live figure and leads. vasy-master
+   (ERP_Snapshot) sits underneath. Where they disagree the margin above is a
+   guess, so the gap is stated rather than averaged away. */
+function costPanel(p){
+  var gst=Number(p.gst_rate)||18;
+  var inc=function(v){var n=Number(v);return isFinite(n)&&n?n*(1+gst/100):''};
+  var gap=Number(p.price_gap);
+  var flagged=isFinite(gap)&&Math.abs(gap)>=5;
+
+  var h='<div class="sec" style="margin-top:18px">Cost and price by lane</div>';
+  if(flagged){
+    h+='<div class="card alert" style="margin-bottom:12px"><div class="l">'+
+      'The two costs disagree</div><div style="font-size:14px;margin-top:3px">'+
+      'Batch cost is <b>'+(gap>0?'+':'')+n2(gap)+'%</b> against the frozen cost the '+
+      'margin above was computed from. Until that is settled the margin is a guess.'+
+      '</div></div>';
+  }
+  h+='<table class="g"><thead><tr><th></th>'+
+    '<th class="num">W ex GST</th><th class="num">W incl GST</th>'+
+    '<th class="num">WO</th></tr></thead><tbody>'+
+
+    '<tr><td><b>vasy-batch</b><div style="font-size:11px;color:var(--ink3)">'+
+      'Cost_Current — the live cost</div></td>'+
+      '<td class="num">'+n2(p.cost_current_w)+'</td>'+
+      '<td class="num">'+n2(inc(p.cost_current_w))+'</td>'+
+      '<td class="num">'+n2(p.cost_current_wo)+'</td></tr>'+
+
+    '<tr><td>vasy-master<div style="font-size:11px;color:var(--ink3)">'+
+      'frozen on build day ('+esc(p.cost_source||'—')+')</div></td>'+
+      '<td class="num">'+n2(p.cost_frozen)+'</td>'+
+      '<td class="num">'+n2(inc(p.cost_frozen))+'</td>'+
+      '<td class="num">—</td></tr>'+
+
+    /* VT-011b: the bill rate and the landing figure are different numbers,
+       and the gap between them is transport that was folded into cost. */
+    '<tr><td>bill rate<div style="font-size:11px;color:var(--ink3)">'+
+      'what the supplier invoiced'+(p.cost_bill_date?' · '+esc(p.cost_bill_date):'')+
+      '</div></td>'+
+      '<td class="num">'+n2(p.cost_bill_w)+'</td>'+
+      '<td class="num">'+n2(inc(p.cost_bill_w))+'</td>'+
+      '<td class="num">'+n2(p.cost_bill_wo)+'</td></tr>'+
+
+    '<tr><td>landing cost<div style="font-size:11px;color:var(--ink3)">'+
+      'bill rate plus whatever was loaded onto it</div></td>'+
+      '<td class="num">'+n2(p.landing_w)+'</td>'+
+      '<td class="num">'+n2(inc(p.landing_w))+'</td>'+
+      '<td class="num">'+n2(p.landing_wo)+'</td></tr>'+
+
+    (Number(p.landing_w)&&Number(p.cost_bill_w)?
+      '<tr><td style="color:var(--amber);font-weight:700">loaded on top'+
+      '<div style="font-size:11px;color:var(--ink3)">the gap — transport, '+
+      'folded into cost</div></td>'+
+      '<td class="num" style="color:var(--amber);font-weight:700">'+
+        n2(Number(p.landing_w)-Number(p.cost_bill_w))+'</td>'+
+      '<td class="num">—</td>'+
+      '<td class="num" style="color:var(--amber);font-weight:700">'+
+        (Number(p.landing_wo)&&Number(p.cost_bill_wo)?
+          n2(Number(p.landing_wo)-Number(p.cost_bill_wo)):'—')+'</td></tr>':'')+
+
+    '<tr><td><b>selling</b><div style="font-size:11px;color:var(--ink3)">'+
+      'what it goes out at</div></td>'+
+      '<td class="num">'+n2(exG(p.sell_price_w,gst))+'</td>'+
+      '<td class="num"><b>'+n2(p.sell_price_w)+'</b></td>'+
+      '<td class="num">'+n2(p.sell_price_wo)+'</td></tr>'+
+
+    '<tr><td>selling · vasy-master<div style="font-size:11px;color:var(--ink3)">'+
+      'ERP_Snapshot</div></td>'+
+      '<td class="num">'+n2(exG(p.sell_master_w,gst))+'</td>'+
+      '<td class="num">'+n2(p.sell_master_w)+'</td>'+
+      '<td class="num">'+n2(p.sell_master_wo)+'</td></tr>'+
+
+    '</tbody></table>'+
+    '<div class="hint" style="margin-top:8px">W prices are quoted including '+
+    'GST at '+gst+'%; the ex-GST column is derived. WO carries no tax component.</div>';
+
+  if(p.margin_vs_cat!==''&&p.margin_vs_cat!==undefined&&isFinite(p.margin_vs_cat)){
+    var d=Number(p.margin_vs_cat);
+    h+='<div class="card '+(d<-10?'warn':'')+'" style="margin-top:12px">'+
+      '<div class="l">Against its category</div>'+
+      '<div style="font-size:15px;font-weight:750;margin-top:3px">'+
+      (d>=0?'+':'')+n2(d)+' points vs the '+esc(p.category)+' median of '+
+      pc(p.cat_median_margin)+'</div></div>';
+  }
+  return h;
+}
+function exG(v,gst){var n=Number(v);return isFinite(n)&&n?n/(1+(Number(gst)||18)/100):''}
+
+
+/* ══════════════ VT-033 · WHAT CHANGED SINCE YESTERDAY ══════════════
+   Everything else here answers a question you thought to ask. This one
+   tells you what moved without being asked, which is the only way a problem
+   gets noticed on the day it starts rather than the week it is discovered. */
+function loadDigest(){
+  api('digest',{},function(d){renderDigest(d)},function(){});
+}
+function renderDigest(d){
+  var host=$('vToday'); if(!host)return;
+  var box=document.createElement('div');
+  if(d.first_run){
+    box.innerHTML='<div class="hint" style="margin-bottom:16px">'+
+      '<b>Change tracking starts tonight.</b> Today\'s state has been recorded; '+
+      'from tomorrow this shows what moved.</div>';
+    host.insertBefore(box,host.firstChild);
+    return;
+  }
+  var n=(d.new_stockout_n||0)+(d.new_cost_flag_n||0)+(d.new_negative_n||0);
+  if(!n&&!d.recovered_n){
+    box.innerHTML='<div class="hint" style="margin-bottom:16px">'+
+      'Nothing changed since yesterday.</div>';
+    host.insertBefore(box,host.firstChild);
+    return;
+  }
+  var grp=function(title,items,total,cls,note){
+    if(!total)return '';
+    return '<div style="margin-bottom:10px"><b class="'+(cls||'')+'">'+title+
+      '  ('+total+')</b>'+
+      (note?'<div style="font-size:11.5px;color:var(--ink3)">'+note+'</div>':'')+
+      '<div style="font-size:12.5px;margin-top:4px">'+
+      items.slice(0,6).map(function(x){
+        return '<span class="clik dgi" data-c="'+esc(x.code)+'" style="display:inline-block;'+
+          'margin:2px 8px 2px 0;padding:2px 9px;border-radius:20px;'+
+          'background:var(--stone-l)">'+esc(x.name)+'</span>';
+      }).join('')+
+      (total>6?'<span style="color:var(--ink3)"> +'+(total-6)+' more</span>':'')+
+      '</div></div>';
+  };
+  box.innerHTML='<div class="card" style="margin-bottom:18px;padding:16px">'+
+    '<div class="l">Since yesterday</div>'+
+    grp('Went out of stock',d.new_stockout,d.new_stockout_n,'bad',
+      'these were selling and are now at zero')+
+    grp('Back in stock',d.recovered,d.recovered_n,'',
+      'no longer stocked out')+
+    grp('Cost flag appeared',d.new_cost_flag,d.new_cost_flag_n,'bad',
+      'margin turned negative, or the cost went stale')+
+    grp('Went negative',d.new_negative,d.new_negative_n,'bad',
+      'impossible quantities — someone needs to count these')+
+    '</div>';
+  host.insertBefore(box,host.firstChild);
+  each(box.querySelectorAll('.dgi'),function(el){
+    el.onclick=function(){openDetail(this.getAttribute('data-c'))}});
+}
+</script>
+</body>
+</html>

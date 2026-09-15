@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Vithya — Counter</title>
+<style>
+:root{
+  --brand:#CC3018; --brand-d:#A72410; --brand-l:#FBEDEA; --stone:#6C6C60; --stone-l:#F2F1EE;
+  --w:#1D5FA8; --w-l:#E9F0F9;
+  --ink:#1A1A17; --ink2:#4A4A42; --ink3:#8A8A7E; --line:#E2E0DA; --line2:#F0EFEB;
+  --bg:#F6F5F2; --card:rgba(255,255,255,.86);
+  --green:#2C6B4A; --green-bg:#E9F3ED; --amber:#A8730F; --amber-bg:#FDF5E4;
+  --red:#B3372C; --red-bg:#FBEEEC;
+  --glass:saturate(160%) blur(18px);
+  --sh:0 1px 2px rgba(26,26,23,.05),0 8px 28px rgba(26,26,23,.07);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:15px;line-height:1.45;color:var(--ink);-webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(900px 500px at 10% -6%, rgba(204,48,24,.10), transparent 60%),
+    radial-gradient(800px 460px at 95% 3%, rgba(108,108,96,.12), transparent 60%),
+    var(--bg);
+  background-attachment:fixed}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+
+.app{display:flex;flex-direction:column;height:100vh}
+.top{display:flex;align-items:center;gap:12px;padding:10px 14px;
+  background:rgba(255,255,255,.74);-webkit-backdrop-filter:var(--glass);
+  backdrop-filter:var(--glass);border-bottom:1px solid rgba(226,224,218,.85);flex:0 0 auto}
+.logo{height:26px;display:block}
+.bsub{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:var(--stone);
+  font-weight:700;border-left:1px solid var(--line);padding-left:10px}
+.spacer{flex:1}
+.ico{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 11px;
+  cursor:pointer;color:var(--ink2)}
+
+.tabs{display:flex;gap:4px;padding:8px 12px;background:rgba(255,255,255,.6);
+  -webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass);
+  border-bottom:1px solid rgba(226,224,218,.7);flex:0 0 auto;overflow-x:auto}
+.tab{padding:9px 16px;border-radius:9px;cursor:pointer;color:var(--ink2);font-weight:650;
+  white-space:nowrap}
+.tab.on{background:var(--brand);color:#fff}
+.tab .pill{display:inline-block;min-width:18px;padding:0 6px;margin-left:6px;border-radius:9px;
+  background:rgba(0,0,0,.12);font-size:11px;font-weight:750}
+.tab.on .pill{background:rgba(255,255,255,.3)}
+
+.view{flex:1;overflow:auto;padding:14px}
+.sbar{padding:12px 14px 6px;position:sticky;top:0;z-index:5;
+  background:linear-gradient(rgba(246,245,242,.97),rgba(246,245,242,.86))}
+.sbar input{width:100%;padding:14px 16px;border:2px solid var(--line);border-radius:12px;
+  font-size:17px;outline:none;background:#fff}
+.sbar input:focus{border-color:var(--brand)}
+.srow{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
+.srow select{padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff}
+.tog{display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--ink2)}
+
+.res{padding:0 14px 14px}
+.p{background:var(--card);-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass);
+  border:1px solid rgba(226,224,218,.9);border-radius:13px;padding:13px 15px;margin-bottom:9px;
+  display:flex;align-items:center;gap:13px;cursor:pointer;box-shadow:var(--sh)}
+.p:active{transform:scale(.995)}
+.p .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+.p .dot.y{background:var(--green)} .p .dot.n{background:var(--red)}
+.p .mid{flex:1;min-width:0}
+.p .nm{font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p .cd{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--ink3);margin-top:2px}
+.p .rt{text-align:right;white-space:nowrap}
+.p .pr{font-size:17px;font-weight:750;font-variant-numeric:tabular-nums}
+.p .st{font-size:12px;margin-top:1px}
+.st.y{color:var(--green);font-weight:650} .st.n{color:var(--red);font-weight:650}
+
+/* detail */
+.dh{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+.thumbs{display:flex;gap:8px;overflow-x:auto;flex:0 0 auto;max-width:52%}
+.th{width:88px;height:88px;border-radius:11px;overflow:hidden;border:1px solid var(--line);
+  background:var(--stone-l);flex:0 0 auto;cursor:zoom-in}
+.th img{width:100%;height:100%;object-fit:cover;display:block}
+.noimg{width:88px;height:88px;border-radius:11px;border:1px dashed var(--line);
+  display:flex;align-items:center;justify-content:center;color:var(--ink3);font-size:11px;
+  text-align:center;padding:6px;flex:0 0 auto}
+.prices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.pc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff}
+.pc.w{border-top:3px solid var(--w)} .pc.wo{border-top:3px solid var(--brand)}
+.pc .l{font-size:10.5px;font-weight:750;letter-spacing:.5px;text-transform:uppercase}
+.pc.w .l{color:var(--w)} .pc.wo .l{color:var(--brand)}
+.pc .v{font-size:25px;font-weight:750;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.stock{border-radius:12px;padding:13px 15px;margin-bottom:14px;font-weight:650}
+.stock.y{background:var(--green-bg);color:var(--green);border:1px solid #BFD9C9}
+.stock.n{background:var(--red-bg);color:var(--red);border:1px solid #E8BDB7}
+.stock .big{font-size:22px;font-weight:750}
+.desc{font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.act{padding:13px;border-radius:11px;border:1px solid var(--line);background:#fff;
+  cursor:pointer;font-weight:650;text-align:center}
+.act:active{background:var(--stone-l)}
+.act.pri{background:var(--brand);color:#fff;border-color:var(--brand)}
+.alts{margin-top:16px}
+.alt{display:flex;gap:11px;align-items:center;padding:9px 12px;border:1px solid var(--line);
+  border-radius:10px;margin-bottom:7px;background:#fff;cursor:pointer}
+
+.sec{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);
+  font-weight:750;margin:0 0 9px}
+.cap{background:var(--card);border:1px solid rgba(226,224,218,.9);border-radius:12px;
+  padding:11px 14px;margin-bottom:8px;box-shadow:var(--sh)}
+.cap .t{font-size:11px;font-weight:750;text-transform:uppercase;letter-spacing:.4px}
+.t-no_stock{color:var(--red)} .t-request{color:var(--brand)}
+.t-enquiry{color:var(--w)} .t-feedback{color:var(--amber)}
+.cap .m{font-weight:600;margin-top:2px}
+.cap .s{font-size:12px;color:var(--ink3);margin-top:2px}
+
+.ov{position:fixed;inset:0;background:rgba(26,26,23,.4);display:none;z-index:60;
+  align-items:flex-end;justify-content:center}
+.ov.on{display:flex}
+.sheet{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:620px;
+  max-height:92vh;overflow:auto;box-shadow:0 -8px 40px rgba(0,0,0,.22)}
+@media(min-width:700px){.ov{align-items:center}.sheet{border-radius:16px}}
+.sh{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;background:#fff;z-index:2}
+.sh h3{margin:0;font-size:16px;font-weight:750;flex:1;overflow:hidden;text-overflow:ellipsis}
+.sb{padding:16px 18px 24px}
+.x{cursor:pointer;color:var(--ink3);font-size:26px;line-height:1;padding:0 6px}
+.fld{margin-bottom:12px}
+.fld label{display:block;font-size:12px;color:var(--ink2);font-weight:650;margin-bottom:5px}
+.fld input,.fld textarea,.fld select{width:100%;padding:11px 13px;border:1.5px solid var(--line);
+  border-radius:10px;outline:none}
+.fld textarea{min-height:70px;resize:vertical}
+.btn{padding:13px 18px;border-radius:11px;border:none;cursor:pointer;font-weight:700;width:100%}
+.btn.p{background:var(--brand);color:#fff}
+.btn.g{background:#fff;border:1px solid var(--line);color:var(--ink2)}
+.lb{position:fixed;inset:0;background:rgba(20,18,16,.9);display:none;align-items:center;
+  justify-content:center;z-index:200}
+.lb.on{display:flex}
+.lb img{max-width:94vw;max-height:88vh;border-radius:10px}
+
+.empty{padding:46px 18px;text-align:center;color:var(--ink3)}
+.spin{width:22px;height:22px;border:2.5px solid var(--line);border-top-color:var(--brand);
+  border-radius:50%;animation:sp .7s linear infinite;margin:0 auto 10px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);
+  color:#fff;padding:13px 22px;border-radius:11px;font-size:14px;z-index:220;display:none}
+.toast.on{display:block}
+.toast.err{background:var(--red)}
+
+.ptag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11.5px;
+  font-weight:750;margin:0 4px 3px 0;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ptag.pw{background:#E9F0F9;color:#1D5FA8}
+.ptag.pwx{background:#F2F6FB;color:#5C82AD;font-weight:600}
+.ptag.pwo{background:#FBEDEA;color:#CC3018}
+.ptag.pnone{background:var(--stone-l);color:var(--ink3);font-weight:600}
+.pricebox{display:flex;flex-wrap:wrap;gap:0;margin-top:4px}
+.dchip{display:inline-block;padding:1px 8px;border-radius:20px;font-size:10.5px;
+  font-weight:750;margin-right:5px}
+.d-no_stock{background:#FBEEEC;color:#B3372C}
+.d-request{background:#FBEDEA;color:#CC3018}
+.d-enquiry{background:#E9F0F9;color:#1D5FA8}
+.d-feedback{background:#FDF5E4;color:#A8730F}
+.why{font-size:11.5px;color:var(--ink2);margin-top:3px}
+.why b{color:var(--brand-d)}
+
+.qbar{display:flex;gap:7px;align-items:center;padding:10px 14px;flex-wrap:wrap;
+  background:rgba(255,255,255,.72);border-bottom:1px solid var(--line)}
+.qbar select,.qbar input{padding:8px 11px;border:1.5px solid var(--line);
+  border-radius:9px;background:#fff;outline:none;font-size:14px}
+.qrow{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line2);
+  background:var(--card)}
+.qrow.sel{background:#E9F3ED}
+.qrow .qn{flex:1;min-width:0}
+.qrow .qn b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qrow .qn span{font-size:11.5px;color:var(--ink3)}
+.qcell{text-align:right;min-width:86px;font-variant-numeric:tabular-nums}
+.qcell .l{font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);font-weight:750}
+.qcell .v{font-size:14px;font-weight:750}
+.qcell.was .v{color:var(--w)} .qcell.now .v{color:var(--ink2)}
+.qup{color:var(--green);font-size:11px;font-weight:700}
+.qdn{color:var(--red);font-size:11px;font-weight:700}
+.qin{width:78px;text-align:right;padding:6px 8px;border:1.5px solid var(--line);
+  border-radius:8px;font-weight:750;font-variant-numeric:tabular-nums}
+.qin.edited{border-color:var(--amber);background:var(--amber-bg)}
+.qtot{position:sticky;bottom:0;background:var(--ink);color:#fff;padding:12px 15px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.qtot b{font-size:17px}
+.qout{width:100%;min-height:200px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;
+  padding:12px;border:1.5px solid var(--line);border-radius:10px;background:#fff}
+.sortbar{display:flex;gap:6px;padding:8px 14px;flex-wrap:wrap;align-items:center;
+  background:rgba(255,255,255,.6);border-bottom:1px solid var(--line2)}
+.sortbar select{padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.newtag{display:inline-block;padding:1px 7px;border-radius:5px;font-size:10px;font-weight:750;
+  background:#EDE8FA;color:#6A4FB5;margin-left:5px}
+
+/* ── landing page ── */
+.hero{padding:26px 18px 8px;text-align:center}
+.hero .hi{font-size:26px;font-weight:750;letter-spacing:-.5px}
+.hero .sub{font-size:14px;color:var(--ink2);margin-top:4px}
+.bigsearch{margin:18px 16px 8px;position:relative}
+.bigsearch input{width:100%;padding:18px 20px 18px 52px;font-size:17px;
+  border:2px solid var(--line);border-radius:16px;background:var(--card);
+  outline:none;box-shadow:0 2px 10px rgba(26,26,23,.04)}
+.bigsearch input:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-l)}
+.bigsearch .mag{position:absolute;left:19px;top:50%;transform:translateY(-50%);
+  font-size:20px;opacity:.4}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 16px 20px}
+.tile{background:var(--card);border:1.5px solid var(--line);border-radius:16px;
+  padding:18px 16px;cursor:pointer;text-align:left;transition:transform .08s}
+.tile:active{transform:scale(.97)}
+.tile .ic{font-size:26px;line-height:1}
+.tile .tl{font-size:16px;font-weight:750;margin-top:8px}
+.tile .ts{font-size:12.5px;color:var(--ink2);margin-top:2px;line-height:1.4}
+.tile .cnt{display:inline-block;margin-top:8px;padding:2px 10px;border-radius:20px;
+  font-size:12px;font-weight:750;background:var(--stone-l);color:var(--ink2)}
+.tile.urgent{border-color:#E8BDB7;background:var(--red-bg)}
+.tile.urgent .cnt{background:var(--brand);color:#fff}
+.tile.wide{grid-column:1 / -1}
+.hstat{display:flex;gap:10px;padding:0 16px 18px}
+.hstat div{flex:1;background:var(--card);border:1px solid var(--line);
+  border-radius:13px;padding:13px;text-align:center}
+.hstat .n{font-size:20px;font-weight:750;font-variant-numeric:tabular-nums}
+.hstat .l{font-size:11px;color:var(--ink3);margin-top:2px}
+@media(min-width:720px){
+  .tiles{grid-template-columns:repeat(3,1fr);max-width:900px;margin:0 auto}
+  .bigsearch{max-width:640px;margin-left:auto;margin-right:auto}
+  .hstat{max-width:900px;margin:0 auto}
+}
+
+.qcell.pick{outline:2px solid var(--brand);outline-offset:-2px;border-radius:8px}
+.qcell.pick .l{color:var(--brand);font-weight:800}
+.lanetag{display:inline-block;padding:2px 9px;border-radius:6px;font-size:10.5px;font-weight:800}
+.lanetag.w{background:#E9F0F9;color:#1D5FA8}
+.lanetag.wo{background:#FBEDEA;color:#CC3018}
+</style>
+</head>
+<body>
+<div class="app" id="app" style="display:none">
+  <div class="top">
+    <img class="logo" id="logo" alt="Vithya Traders">
+    <span class="bsub">Counter</span>
+    <div class="spacer"></div>
+    <button class="ico" id="stockBtn" title="Refresh stock from Vasy"
+      style="width:auto;padding:0 12px;font-size:12.5px;font-weight:700">&#8635; Stock</button>
+    <button class="ico" id="poTop" title="Open the PO request app"
+      style="width:auto;padding:0 14px;font-size:13px;font-weight:750">&#43; PO</button>
+    <button class="ico" id="btnConn">&#9881;</button>
+  </div>
+  <div class="tabs">
+    <div class="tab on" data-v="home">Home</div>
+    <div class="tab" data-v="find">Search</div>
+    <div class="tab" data-v="browse">All items</div>
+    <div class="tab" data-v="quote">Price list <span class="pill" id="nQuote"></span></div>
+    <div class="tab" data-v="alert">To do <span class="pill" id="nAlert"></span></div>
+    <div class="tab" data-v="log">My notes <span class="pill" id="nLog"></span></div>
+    <div class="tab" data-v="count">Counting <span class="pill" id="nCount"></span></div>
+  </div>
+
+  <div class="view" id="vHome"></div>
+
+  <div class="view" id="vFind" style="display:none;padding:0">
+    <div class="sbar">
+      <input type="text" id="q" placeholder="Search product..." autocomplete="off">
+      <div class="srow">
+        <select id="fcat"><option value="">All categories</option></select>
+        <select id="fsub"><option value="">All subcategories</option></select>
+        <select id="fbrand"><option value="">All brands</option></select>
+        <label class="tog"><input type="checkbox" id="fstock"> In stock only</label>
+        <div class="spacer"></div>
+        <button class="act" style="padding:8px 13px" id="btnAsk">Log a request</button>
+      </div>
+      <div class="tog" style="margin-top:6px;font-size:11.5px;color:var(--ink3)">
+        <span id="catMeta">loading catalogue…</span>
+        <button class="act" style="padding:3px 9px;font-size:11px" id="btnRefreshCat">refresh</button>
+      </div>
+    </div>
+    <div class="res" id="res"><div class="empty">Type to search.</div></div>
+  </div>
+
+  <div class="view" id="vBrowse" style="display:none;padding:0"></div>
+  <div class="view" id="vQuote" style="display:none;padding:0"></div>
+  <div class="view" id="vAlert" style="display:none"></div>
+  <div class="view" id="vLog" style="display:none"></div>
+  <div class="view" id="vCount" style="display:none"></div>
+</div>
+
+<div class="ov on" id="ovConn"><div class="sheet">
+  <div class="sh"><h3>Connect</h3></div>
+  <div class="sb">
+    <div class="fld"><label>Web app URL</label>
+      <input id="cUrl" placeholder="https://script.google.com/macros/s/.../exec"></div>
+    <div class="fld"><label>Floor token</label><input id="cTok" placeholder="VT_FLOOR_TOKEN"></div>
+    <div class="fld"><label>Your name</label><input id="cWho" placeholder="so requests are attributed"></div>
+    <div class="fld"><label>PO request app link (optional)</label>
+      <input id="cPo" placeholder="https://script.google.com/…/exec">
+      <div style="font-size:11.5px;color:var(--ink3);margin-top:4px">Lets the
+        Request button open the PO app with the product already filled in.</div></div>
+    <div id="cMsg" style="font-size:12.5px;color:var(--ink3)"></div>
+    <div style="margin-top:14px"><button class="btn p" id="cSave">Connect</button></div>
+  </div>
+</div></div>
+
+<div class="ov" id="ovDet"><div class="sheet">
+  <div class="sh"><h3 id="dT"></h3><span class="x" id="dX">&times;</span></div>
+  <div class="sb" id="dB"></div>
+</div></div>
+
+<div class="ov" id="ovCap"><div class="sheet">
+  <div class="sh"><h3 id="capT"></h3><span class="x" id="capX">&times;</span></div>
+  <div class="sb" id="capB"></div>
+</div></div>
+
+<div class="lb" id="lb"><img id="lbimg" alt=""></div>
+<div class="toast" id="toast"></div>
+<script>
+var CFG={url:localStorage.getItem('vtf_url')||'',token:localStorage.getItem('vtf_tok')||'',
+  who:localStorage.getItem('vtf_who')||''};
+var SEQ=0;
+function api(action,params,ok,fail){
+  if(!CFG.url||!CFG.token){fail&&fail('Not connected');return;}
+  var cb='vtf'+(++SEQ)+'_'+Date.now(),done=false,s=document.createElement('script');
+  var t=setTimeout(function(){if(done)return;done=true;clean();fail&&fail('Timed out');},30000);
+  function clean(){try{delete window[cb]}catch(e){window[cb]=undefined}
+    if(s.parentNode)s.parentNode.removeChild(s);clearTimeout(t);}
+  window[cb]=function(r){if(done)return;done=true;clean();
+    if(r&&r.ok)ok&&ok(r.data);else fail&&fail(r&&r.error?r.error:'Error');};
+  var qs=['app=floor','action='+encodeURIComponent(action),
+    'token='+encodeURIComponent(CFG.token),'callback='+cb];
+  for(var k in params){var v=params[k];
+    if(v!==undefined&&v!==null&&v!=='')qs.push(k+'='+encodeURIComponent(v));}
+  s.src=CFG.url+(CFG.url.indexOf('?')<0?'?':'&')+qs.join('&');
+  s.onerror=function(){if(done)return;done=true;clean();fail&&fail('Could not reach the URL');};
+  document.body.appendChild(s);
+}
+function $(i){return document.getElementById(i)}
+/* takes a NodeList. This was missing entirely, so every alert click handler
+   threw and the buttons did nothing — the "stuck" tabs. */
+function each(sel,fn){
+  var l = (typeof sel==='string') ? document.querySelectorAll(sel) : sel;
+  if(!l) return;
+  for(var i=0;i<l.length;i++) fn(l[i]);
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function toast(m,e){var t=$('toast');t.textContent=m;t.className='toast on'+(e?' err':'');
+  setTimeout(function(){t.className='toast'},e?4500:2400)}
+function rs(v){if(v===''||v===null||v===undefined||isNaN(v)||Number(v)===0)return '—';
+  return '\u20B9'+Number(v).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+/* W is quoted INCLUDING GST; the ex-GST figure is derived, never stored twice */
+function exGst(inc,gst){var i=Number(inc),g=Number(gst);
+  if(!isFinite(i)||!i)return '';
+  if(!isFinite(g)||!g)return i;
+  return i/(1+g/100);}
+function priceTags(w,wo,gst){
+  var out='';
+  if(w){out+='<span class="ptag pw">W '+rs(w)+'</span>';
+    var ex=exGst(w,gst);
+    if(ex)out+='<span class="ptag pwx">ex '+rs(ex)+'</span>';}
+  if(wo)out+='<span class="ptag pwo">WO '+rs(wo)+'</span>';
+  return out||'<span class="ptag pnone">no price</span>';}
+function qn(v){var n=Number(v);return isFinite(n)?n.toLocaleString('en-IN'):'0'}
+var CUR=null,VIEW='home',CNT=null;
+
+$('logo').src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAACICAYAAABdh9Y5AABDU0lEQVR42u19eXiU5dX+fc7zvDOTEBZxXyqSsChCEkSrtYtbra2ttrXi8rVftYBxhbBW7Ubpr183FlnU1giodfsUl9p+tbXWrbXWDUkCogLBqihqRWTNzLzvc87vj5mBCWSZSWZCqO99XXPBlWvmfZ/1fs45z1mAEDswZcK4UVdccUVZOBIhQvRMcDgEWSCcFzPxweFAhAjRM2HDIWiBE0G0FcCyYjy8oar84hLDpyZEAxDeY9DL5NzzwxpfX9WdnVxWNehbpYwTEiLNTPQuQVc2m6D+2KVvrg+XQIieLVOEAADU1NR4ZSXuZQL0g4+Cqttuuy1eeMKqWLSPx2PioiAAAsB3up0Zz/hKN71Wv+bB8wBX7L42VFfc0d/yN+OiAIBAgUDlAwb9VRQ3jWhoejJcESFClbAHo6Qk0QugXp4XGdK/n3dekV6TjIsiLopmUSREAUKpIfp8lLBkWFXFn+ory4d3Q3eTzek2NIvCVwUT7ecxXUCEx5ZXVdzZMGLQYeGqCBESVg+F5yNGipiqwIB+PH78d/bvjvcKgIQokqqIGDo9YujxhhEVZ3d3/50CcVEowDFD/2WNPvVSdcWJ4coIERJWT9SNyTAAdk5grRkYIZ6n2r0qc0pFo/09g/9tGNn9pAUACqBZFIaoPAL8fnlIWiFCwup5cNHmpBJ8APCDANazF06pHfvz7m5HoAoQlVjFLd2kHrauM6rCEu0L4O4Xh5UfHq6QECFh9SD4/n5bCLqRKCVUOedgrb16au24G6ZM+Vav7iYtj6k/MRa8OGqUtydJK8Z0uOfRHA0vaEKEhNVzsGDBggSAVcypfamaIi1j7RUspY9Nm1xzWnerhzHmk6P+R+fsyXGJi8IyzllePfDz4SoJERJWT4LyIxkJa4e0EwQgouPFyV+mThz38NRJl3zj6pqavt3SHADCuOpewOyxIQHgERHAE8IFEiIkrB4Ex3S/7wf/Zm45LM45EMDGmC8x8X2uRF+aVjtuZm3t2KOKqqaKgqCfHFxVceSeHJekKBR68rKqAUeEqyRESFg9BHPn1q2H4kfMjF0lLQUQBC5FXkzlxrNTI8zPTqkd+6PRo0cXRQJSADHmCAN79KZOUu0os2qPD1dJiJCwehBmz1/4G9/3fwRCYK3djbgAQETg+wFU0SfiRWYcfkif2cVqT9qiNqInLBRHWhmukBAhYfUwzJm/6P+pyOnOye8B3epZC2N2F6JUFX4QwLCpnTJxzJeLJWWBcOCeHhMFQEQHh6sjREhYPVHSmrfoyVlz675KYo4JgmCSiDzLRLsRl6qCmAHlWhTh6j8V7UdeTxgTUsTClREiJKwejJnzb1o9a97CuW+8/dFnApEvi7jnrG2Z5MI5ByiOmzix5qBwxEKECAlrj2PJkiXuuvmLHt68nU8NnJtjsgzzqgoQ+hlF6BEeIkRIWD0HdXV122fPvXmKL+57GSdTAGBmqAZhttIQIULC6nm4bt6in7vALfCy1EMicuHIhAgRElaPRFncXOMHwTJrDUTEWbYbw1EJESIkrB6JGXV1253INSqqqrq52QXvhqMSIkTxEOZ07yLmLlj86JTacf8AsM/69Zs/CEdkd6waNCi6ua/EymC97U6or5Gk28TxIWvWJMLR6fl4cdTBpZGkFw1MxMY8K5sp8I93fZtp6VI/JKy9D6qQW4j500uWLHFFesFeYxurr6zsZXhblSE6XiDVolSegO4fcShLaBCxALYG8KlMtyyvqngXpKtI6UVWfeaoxrUrKRUJVDA0VA+qLWH9XFzUZ6V3iWg5VJ89uqHp5T01Ri9VDzyuBHyNrxAi3ciK1Y74+Q3JyNJTVq7cuifnr3H4wAONpWMUOE6VRoBwuDrdF0ylVsU635dSaHK5btzSWF3+PoHWKrTBMj8v8ciK4UVuv11eWXE+EdlcVgkDCFQcsO0P1Y3vbdsTA/rEgAGxfv3s2R7Iy21lOxg2lFA8ckz9mn+3983nj674RKmH86AkYPlIhV6nSPDq8BfeaFfVMwH+7JheLUZ/nQJEOLK+umJKtv7OBIXoh2Jo+YbeTQ2nPIVgTy70FcOGRZwXn2F42zdUMdgjQMEQpBhIQQBp+tsESvVhKBOdBOCShGji5eqKZS9D7/YF/1vduPb9QrSLgE/HmM9JtwAKICGaWDGy4lkFfj18UNN9tKR7DwRiOqyE+BxWBaXHIqmK/SOJVSuqy+/clnR1x698o9vMC68MHdpbYsGXlHCBqn6Gife36ZNDNDVySi2ZgAkgYBgTTgYICVHlSLzp5epBj4jK3SMa1v6jrfctHzWowjr9elLJGZIPiXVtQsyrHe1PALDKemkvw6f4qrlMPkrJYLPf6xsAHtgTG2OfvvakXobuUWS8wDsSIS22ObcBxB1mVjCsQ0oNzxIFBAyfAU3af6+oLv8HiG5Zuazpj61VtZl5w+J3ALxTjP4GqrCE4RGiWbtJXoaQEHUHbKp4YVmV/mpkw9oH9xRhSST51TI21yRVESBV3KIdmXG3/xIoaolOMEQnADJteVX5AqdlN1Q3NnbpYFRoMi6Z9NM73+WBTlLgpJfXVPy1vlInVTeuXdFdY8VKLq6pPP7Ze8sQDfGIZnCExjRWDfp+ZcOaO4vZjmVVA/p5bMc4DS61REOIUhWUfFX42v6out3mD0TEgzzCoLjQ5S9XV/zVQWZW1r/+1901BqksNWamVYWCkVSFB313ZXX5U07olhGNTY+0LTQpzd/uRBPpKi7tfeKi6RS+uHBPbQxmXKBILcBc2ixQKOHuXNibmVymkkxcFE4VxNg/wvw1A3ro6OryR5dVDfxkd/fZKZBd5Sa7jQCMITohxvxAY1X5TJ3e/RcpT5x0khWVyamFrjkdJK1RWFJT/SLiw2KGf2l521PFyCmvABJpwogQfT5i6PH6yoFn7VG7QvpwahYFiAZ4jDsaq8pn3ju6OLnQlo8svyBC9p9RotlMNCSpqf3itADtB9gyfcGAH1kxctBty6oGH9qSsFruM1WACQdZ5vONoT+vqKr4Y8OI8lYD/ll066NO9TVLuYXBJUXBRKctHTn0kO6e1JXHHbmvAF/ycxxUSon/Dsx3doUs4ulSWB7zKRHmxxqqKi7pMQa09EYPVFFieGrj7yqmd7vUu3Hd5yPMx+cipecqVTaLwiMaZQh/aawqv7RYbU/ViKT9I8z/u6yq/Ms9YU6DrPkcuqr8ukI++8VRhx+8fGTFXRZ8NxMd2ZwRQgp9IIhCAI4Svh0h+VvDiPLT2vt+Zp+5VPWoMz1LTzZUl+8mGHHKFkVLvBzDdlO5kWgfK0G3T64LkqeXMB3ochxgjwhOsezD3oe+WKjFDaAswlTXUDVwEnoQMovEEq6trxzcrXmrmDDB0E4LVaGQSElrvTzm3zRWlv+wWO33VUFEpR7h1sbhA47sKfMZF0XM8PhlVRVXFeKZjSMrPlXivCdiRBcGaWm42H1oTgk45Z6h39dXVvx3Sq1re6nojn1G/T3Qb+urB45tqRICsMA9cZEE5dEQAs7v7sIEKvmpooYAgO465amnCmaQdgq4lLQ1s37kwG/0JNISABEmj0lqu+udDSMqjmHC55NSnMWfGe+o5Z80VldcW0zSijDvp9bM09F7LiV1a2qWJf2frhLp8srycyzwsCEa2iydU9u7MrZKKI0wFi+vrDhf1TXnImUqwXrgG16qHnh6C8Ia1tC0UoBnIpwb//iiIMKJjSOOGNJdnV4xqvxwACf7OW4MBtAsstlYub8YxACQYeXre1qF5KQik864X6GfTaS7b2SDmiiTV8wNIOk1Zwk/bU1NKKR6GCH+QuPqiq/0lPl0CsSY+6g13++0ZFU16Fts6C6A+iVV91g/lGCFdSEpfyOpHTfEKWCIohb065XHHbnvDsIiQElxO+WxgGJMJUr89e5TB+msmOE+uTrpRJigSo8OX7r2zWLZGUqYDiKWa3sSYUmq+uv+gD200Ke9KqItDpFhAw4i1W90xyZIHxLMoAX1lQOLdlAyAaR6VU8qa5YQBYO+vnzUoIp8f7usetBoy7oIoGiwh8iqBQGBykC4DDmOb1IVpcwVfuDX7iAsAAiI/6/Zyb8N5bphASY694mTTiq68+n01Do6Px+tw6X01tuLvZBA+NbSkUcM6EmkBSJjWEuKvgAjfE7M8H6um/ZBoIoo077EPFuLFFaWkuDp0ytGDSrvSap+jKkXnOQl+TWMPOJzEegigCKui2RlCIgQYVd+iBAhQpTzZAiQtzqaUIBEx9ZXlh+w4z3H1K/5NxP9wcvxtjBQBROq99v05shiT9h5VRVHEeknczUSWiIkVV43yehjxV5IJcx9PJiz8TFDijD4v6SbD+1E6vbwKw2VA88s1pxGDZWIkx5VcCPtgHtyrt9fOvKIAazmdkPUu6uSFQFwgvVJ0b87wTvZpJVUfTyh+rQCG4slkqZtxocQ09m8i9R0h6+qlNuCRZTJiNJ5RT/JSb8RY47mOuweAQS6b3g3hDkIAKie/nEjrIbK8mEEPc7vZjVD06c9E00rlo8Sp9Tfo3uWqg8QMDiXSuAvjhrlWeGbYkyHd0Zd94gQTduz01wgBB1d2dD0OVH9fx4RUm5Quk6k19lV9U2fBXBv5jeGgCgTchV+8pj9L7cgrPXb6JlA8XKuPllpf6ivvTjq4NJiTdSKYcMiAjo3yMf3yqkvQnd3l16uSkc+MWDAxyrfOTOdUcIc0V0k2xinPpkFG0n/rYTzUx3atWukrso/c+SaiqI48WqKtA7sUYSV+qcfsLHDveYFG68sMXxGcyfEX0NAUrQh7mSRIcoQFgcw2wBAyfyhWWRLmWGI4s+ZSASBKGGHK9GqhNPxgcoyLlBsqKQUyeoW6+fMNWsSUPyvzdmOpfCYB0WD6GeKNVG+Fz/OAkcH+fheEZ6ralzT0D0nvgLQ/vv0NX0+Viqh4lTJsmNYIjiVNQnRO5qdfDepcmHg3FlJ0a8nBOOaRWcmVf+uQHOMu0ZcaemeVfW/itdD6nGJARRkIsmg3aFrHDG4nIl+1BnJN0IEETxs/OhnqhrWjgtU7ygzBgrdLIwEAIxsWP22Cs70nZxNwjN2Cgr0rioCgSSU3CWVDU3Xw6evimJLIQ6plIRJ+9vd7T96b9zhe0wozYUaLQE+mQsA/KUYk2RB50WZONfTggkg0TsKHfXf3uYhkBXiolW2YQAmR6k3HeBLgUrRbrme/eSgPpSUStWU1ORUHw8I80wy9nhHavjLVRVH+yKXATTOI4p1VqX0Uwv4C8+ccFjJic+ua0aItIgkP4wx7ZOPdMXYaQwX4IDXjl7ZjJWASSZqt0eiTxngqRHLVq/JfL+6ce3Tu0m9Zp+fkfvwYR/od0z9v/4GAM5QdYTRJ1AFA6DUWun0PlNFbDfCOrp+7er6qoqnSpi+lMih074qoPjSimHD+g9fufLDQo7900OH9lYKzs41FMcQ0CzyoYm4h/5T1p9HhKTIPwX605zGAKno7F6GVhWrTb3jqIChQwW6zSl995X6pptaCwpvDem0LuMbqwfdRyqLIsQVnbGzpBd+Ren22JEAloVMBbxUPbiK4C5M5HFUGyIEovEoUyylMdGxKVW76Z/DV677EMDCXJ5zbCo31gstDk/WL5cwU0KApOh2VfkoynxIV9xgWhV7DetvAfpSrjacmKGDkpo4HcA9hZyAsmjyJI/MEX4e6mCg+nBH6WD2KlsRAcT0duWypod7SpsC1lFR0Pakuq9X1r/+aGeeUVm/5qmXqsu/FFH9k0dUka+kpQBiTKYZOiokrPS+VTc+Zjiaq3RlU2S1lMmNjau5OApc6VSWk+GCpPYB8V3bRc6AYoM1dJWQvuM7vcMSfbazN5etqpdl4v6cEHnb5GHlV9KCeyAT0wUmD8UmUICVb/9PW4iqPSNUZOei0cq46hWdJasMjqlfuzoQvVhU452xc1C6LSFVAcuqBh/KROfkGiJFqYXlE2HCiPp/NVTXN00KIJ9mL/KFEUvXNBWiTVXLVv/N+XLCxmZ7yrCX1jw7fOnaNx3wkKGurL1WMLDhjY8A/C6S44PT4TKnLD+24hOFmoD6yvIDoDgjH+nKV321rJ//t3D5Fok4CankQoRnquubfluIZ1Y3rn06UNyaa1hYNgSAKg0KZwawpGdHmfbJNROhpmxKniomZ1wlRtS//sKwF17dUMh2Va54/b3PvPbaFiAVd+oRftAVV5i2DzaiO5OijnJcODHDfRBQ4XIKMX0xHy9qSwCr3DPwqTfi4fItlmSVQnQLFzRRoKrekMgj+H7HulMApAdpWEwFqnpOrjSQThaIQBWlhr4RkY/G5/OuVZ8c1OfVUUP2e2Xo0N55qPAEoz+LEPXrirNxmxO9oc9hLwSKZbk6f4kCqnr+9AItHlZckI9qEBeNg+09Ia0UVTUlArTQxSMebFy7UoH6fB0N0+u+79JRB8c+zvPyysihhyhwXC6JASi1V+NOdD0RkFBVJ/paR79bPnLwUS+PrPjJiuqKp+NJWeE793IQC5avqC5/YkV1xbX1lUMGdvBehdIfunp13ya5pFKyyF256pupnEJ6/NeqKo7q6gQ0jhhcDsLncs3MkAp0xtPDl61+NaSVvQ8zAFGl5/K1baSvukv2DSKRj/P4JZwbFWHqmwsZRFPR3QubE94IOP1sQvUrIxvW/rGt77846uDS5dUVv2CV5yJEP7REnzbEn2DCAYZpgCU+Ocr0M4/dC43VFddqO7HF20oSi+NOVnbFA75daShgfaDZyWbOcfHEmKOG9Jwun+SsXy1h6pUPGxPhdgI03P57J4j1lfwnTwHAbrDRj3X1J2b9ZC7O3gTAFw0c9LfHv/rqhuGNa58+pn5tm7fPK4YN6x8LSn9Xwny1Eno3SyqttNNUKuUgnWY6ldYZ+5Yw/Wz5prfuaCvy5cRn1zWDUFdwo3sGo5b96w0l+muuBtEgFaZy7ophwzp94t0LGIWc53L2vSLERd8znvfHcNvvvRCH9ztp2yB2Qh/rsVOtzOVwTxduMR74F40jy49t77svjhrlOS9+a8zw6dtF0NHcZOoOlLI53wtK5reVnscYPBiX3ISgvAkrjd/mSh6BKgxhuEYSx3Z28AdXDR5hiUblepMQIYCgvy/07UaI7paw0ByKx/njiZNgCXRErmQvAEWYTjVKTzWOrPhUW9/zgo9qSg2ftV3yszo1iyDKPHZFZXmrufJS+enoRdtJtbBDwjLJ6GO+6uu5vGBnjBc6ncHBkDs31wyWBCApKkrmjnDpFh9KJOEo9Cz0+2hAGaD75zoxUSaY1F4tZaVNrX1n1ScH9QHp1KATJ0jmJ0J0bVualir+0Vm1sEPCGr5y5VZVvd/L2fgOKOGrT+dx5ZnB6wMGxFRxTpCzKwMhUCw3Ce/ZcOkWWQICQIrQZaSHwVnThwhlHWUcTm9fFxe5J6H6k0Dw7X/3PbTV8K2Ej5OixEd0Ps5TYQjHwGuubr0x0tjZyrU5GStV+a6EaC0BHUo+QarW2xF9Yv7nAORlV/qonz3BYxwZ5JyoD/Chdw9fuTIZLt0QH0dEYEsVQYe54piAQHSj8WPjjt4RoN7Uxn7Xzxju/BVWOmyKm4VOAPD87o0x63zZWYm7oBIWAFQ1rmlwwPO5Xkemq9UMzFvcEx0QIcqpXBQDiItuI8v3hcs2xMcW4keglEPoFoEIzb7n982BcQ4vkD3xiFYfH8hWVXSqklVOhEWAEOkd+URPdMbeoUQ5XxR5TFDo44WKewoR4j9adVQFQIdZyPOvjBz0YEP1oHPb2YkFcRPRNjQ4JdLOFhrL+XbRcvBQs+iH3EMukFNao94eLsUQH2cYYZfZDbnIHsx0SCnT16B6dTsSynuF2OYEWt8q6RjqzUSdCujPmbCGLX1zPaB/itCeZyxLhITKW0lDfwmXbIi9DioF88x3HjcD5Oe6Ky2A7U58EJa2QwovdFUlDBQQwUutEpm43iZH00+nCSs1znR77led2hlDeE6/8QiA0oPHLl27KVz9IfY2sLAp1LkvSbcV0O25PC8d8PyACH+2qr7psjZJ0PFjcaebOut6YImQFH0z8LTgt/d5Edb20sTfkqKvdWR891VBiv9+uarihsZRHZfYrq8cMrCxqvwGQxgX5HA9mxB1ArkzXPohiiYEke4VAdV9N7nNADZSDnVJPQIC4E9HN65+rr3vVS1fs06B26LUOX/0tDP3jW0JFCLc6QQJef3wxGfXNRNwT0dxS04Bj+lzpZavEKUOi4waCg4pMXyFx/T5jrzqPSI46NLqIa8vDbdViFy4J+8fKEBK++4NnRv4xhtxIqzLZSNL6sAf3XhMxahXRlWc0p6newnRT5tFVkXzNFqXMGG7yHOiZde3STqsnQ4nzJvpDNE9cdF4Ry/000GRLNShj5gySVwUuTiqMQEE3ElL4MK9GCIH+Pn+wAFQwuGrBg2K7g0dJKVXc+GVZMr36QsqeAFCj5Pgr8tHDm41u8qQ+jX/FocLA9W3YzmSVgkTEqKv+UTfypT/2hXLqgYfKsKdzqCbN2EdXb/mFVU8HdkD14UMIO50E/n0YLgPQ+S0ZlTzLqbrVEHA4c0lwRF7Qx+lHQN6a+ImAyRQeEylEP1E26ph00tJwRm+6NOxrLqSlGWe4XTR1CgREk4fTpA7Y9SypjWtk9WAfgbyaWYX7woH5MfmgCrpHondizCBSB8Z8XLTW+FWDJHTBiVsyPdoTXtqx9TwGUXQTwueHZVIno87DSi/fbytWeSy4Q1r2s3LP7Kh6WVvK30+6WRMoPp3hW4mSplmUnnhsdF3+mggev7KhqazRy371xttk425mBhRp+x3tq+dchDzjf0jnHvPEg503Rhi7xSA7L2+V9rpWolKIfV0dszpbe3kWiOlsasGDbqpUBlWG0aUj2gEbwQ7hwLWFVm3xbx2aC9Z5REPy8WsEmXC9kDqRjauvSmX56f7fwuAW14eecQAEB0OcKlRbGHlN4Y2rH67o2csHVkxiBTXCuvnGTgA6NyS7hRhHbt01Qf1VeV/8JjHdVQYkbljj3fDLOLa/1rqqlSaFNuf2JvtKXmf9qkkRvuE1NM5GNa1fif43ldFzFBlcy+5HMDcrrajvvLAXsT4fiyCmnjSFPQAOnPNmkRDVfmfLWFYLjU8fVUYpnMajx18PeLJiGdtTVKR+LDfYT9MZRpuxySUkqDeyKd9rwwd2tvBv01AXp8yt3rrR97BnZUzOy2eemxu97X98sIMQBx1WMLduaC3IWr3OieVLYKWVDe+t22vtadA8267A0CgIcuqBvQL6acT6pJKU6CytTML3ReFJfp/DSPLT+tKG+4dNixiuWwhQAOHPL9ms4gWXC20au5N5Fg0xilgiAYgcH9Ta16wzJN6Gbqm/6a3zit0u54YMCDmlwS39mZzoiqWDXzqjTixdo9bQ4uTP+E9GwhWtJcnK1XGXSe+OKq8b9snT2UvgKZw+/o24iJJYrl77949lHdlbKeKiKGDDcz5If3kj2be9x0ore2Mp6YAIKIyq3RvfWV5p1J/L6safOiwSPyePtZcIIp/AihKkclhQ1e/6FSfyzVBQSrZJh9qQGUJETSLbGEyBS1I+8rQob3362dvjzGdk672/Hx6TVO3E9bwlSuTRHp3ez5Zvio85pNijh5bPnLQN7KJ65WhQ3s3VFd81fC2v0aIv9he+WqPCKp49v5lr6/Yu+0pur4zRiynCkP0s4bq8i+FFJSv+WKpD+AftpNbJFAFiPp7TPcur664qXHUkCNz+d3K447cd0VVxZWW5JkI89eaRUCkzxXtLFwCB8IN+fCyU4UgXcQF9OsRy1a/AgCNwwceuKJq4Ce70p6Xq8sHu5Lg/2KGzo2LZtKnP9NlSbJLg2R4SdzpDxhos2BEUhUe0agI033q6FcArgaARNSf2NvwT3xJfaddViVAQXfM6LTRumdAFG90Jg9QWoTvbxQPNVZX3K+g+w2wkk1yozSXbQjzgXUk2Or/BUqXd/b3aTcHE2WqiTv3X43VFU+S0mNK7uUA+r5xiHvEXsC8L6sOUeDTzk+eFjF8mFMgIQqFJuDkpWL2s89G98CWfag+QlSdzCP5nlOAlfqvGjQomuwrB8LR/RFCVWN1xZzK+qZr8mnDdIDPqS7/b4B+4TEd1CwKBpAU2axkXtqjhDVi6ZqmhuqKJ2JMX0m0kxjGV4VVQFTLsuSNXqodk5UhIO7kA3L6+2IvbAv1tYgXcjH2Xk9KsMkw+uabzDG9abwo0wWquCCpklTnbUM0vv7l6vLHfEFddePa3CRQVensLU3RpE8hKYquBICTsb/5kfhaS1wedDKLpgKIpzZfmcf0FQK+EqgBRB2MBoHCGFLrpf0TfSVk9oRHBF+wyo/suxb4V9HGcOAbb8Qb+1XMUMKD+RyKviqiTOPivXSIBtg/ZugoSi2ToZnvrBhVfnhU6awtgmXH1Dc9kx4TWlE16HTLOnQbm7uPXbrqgx+PHk2Nq1/6nsd8UDydD94SQYDG6vrV7wDpi7hOehd02fhHits1xwlPtTtz6uWW+8pLGeMfrlzx+nvF3jROscl1MrFYLli+7LX3FFhjOkkWitRpnVQFgSJE2MeCh0WYx0eY/tFQXV6b25zRBz3NT8KwfOhrcY6LdJrv270CPFzSc5BScxREMASKEpEVTZFaXBTZt+c2VUX00bR6WlSMaGh6KKnyu1iejt0JVXhMn/OYj8oQLWFntgUJ8NNSNtcb6P/WVx7YCwBeGXX4QUr6QG9j5keC4OqUarrEEfBadr6r1J2o/iWTw5ScbOzsXHeZsJJWH4mLrLNFSDtDKfZXou7xvWIN3gbhg2I58Z8HOCb8zRbg+SmXtJ0hUEroE2OeW19dMaXD35K+2tMq1CSMW6fApmJlLxLYm+NO/m0K/ALd5dPaGk6IChPd3y3qL6AqdnJc9P1896SvKRJO2e4ABo5eVjW4ur6y/FQmuuAj50Cg/ZVi+wOAc95AQ+i1yTkQ0aX1lYNGNo6oGMWKPhlphAAknPoEs0NDYuveQifnusuEdezStZtI8aBXhIVmiRCIvrJhozzdHZNdufzNjYA22qLm/KKHkkWQJDKFLS30fzqqOWeIn4+LJHuSlPWHpW++B+BlWyRVdWTD6rcVmB3p5k7bVLB+Q8L0e6G73lnduOp1VYwH0OmCjalCEny+gXueCA8C8NK21JiFGb2isvxUpzjPgFJOtkBvJvkLWP/JTCdlHFjTyQpeeGXw6h3miqOWvvmeqq7szFwXxB9E1dyZqw9IfpMNEOGeU954o9uqtajgQS7i89dtxbOBoCik6BSIMkchNLm97x09eM1rULzkUc+hrBmAMPA7U8QmJW3zgmbR56PdGAdrU8ag27tDHWxx+DY03RuI/CLWhb76qiAizxD1kR1rTMHMvyLDj3mM2owNWgAYpv2IyMu2E6aTFfz2vKxkBZT6eqfmuiB7s2po9YsCXZrDBtCs/2hHDYuLNntW7unOiRbm+5udri+WlHXmmjUJJVlQrI2ZTI3qKSuGHda/TRlvCZwCN3EPM2RFlO9uFv2wWGNz7NL120FySSD6oe0GsjYENIt+GHCk5Ro22tkKWvnZs4as/VGzyO2lXZhoxe5X8y6rXP2uB6bu3v/3Itbe38pG69RcF4SwaMkSB+DOHMal106WpbL2vugxQaB/P+rFf73WnZvmmPo1/4ZillfE9dx3o9xZrJNeUjthP7aRQ9r73raS5D3bRV6K9iDWGtqw+m2Bzo8WkUwql73e6BRjFZowRe56Op34faOWvfZOS3saBd0xnrQEbmsseel20ftL9sA8R4ig0LuOXLrqg92EnOVr1qETc10w7Yd8ejDudFNbDwxSVsnPPXPCYSVPnHSSBXByR+mWRXmPBDr33ie4cbuTp4o1yQPfeCPOkKsC1a22GK8gmMCg3YyZJz67rtkoJgSicdODJC2bjM3e5vSFWBE3WGVD0++SImNJES+WpEUA4ipJVv71nhzPE59d15w0278dd3p3CVO3ObOkU0FtJydtBlhzMjZ7e55zXTDCGvFy01sg+ktbebKcKixTRSweHbnv5jeHGcLRbfnEGCLEna73/PjDe2KSBz71RlzVficpsqZYG2dE/esvJIUuhyKwe8iWNKJh7T980kkMAvcQwhq+cuVWsubbvshbxZT+Rja8fmeS6DyFvl+MOY4yQQSPDG9YXb+nx/TYpeu3J2y/i+IicywRTDestwgThPSBquVta0jDV67cCmu+nRRZl+tcF3SdCuH2ttLNaEpEJKM4i4TPijIZbVOUBED4/fCV6z7cU5Nc3bjq9QT4q77qymKdTCMb1twRqFysKptje0g1q1629je+0wkM+D3FCF+5dNWrgaOvOZE1xZQKqpet+UNScGpS9akYEwp1cKTdcUS161keCkdaS/0R9Wun+CJjoLqhmOuNAPiiSWKam8tcO0dfDUSbctFoCnuwui2PJ1TWtjXxSQWIcL4CFyW17c4mREVlzyQJ3MWetbKZ/c/HRe61RIgWYfNUNrx+Z5xwmi94MpJ+R3dLO5WNTQsC6NccdHVJATduV1C1vOml7QanJVQe8iiV7bI4h0bTy29uoTMSIhNV5a0Spp3J6Tq5WUsNIxD9e9XX1z6JHobKhrW3JECf80X/GEmPazGky0D1D5UvNS3Nda7j5E5LqDwU6WCuC7o3qhvf28agJTFOiZ27fgCFRzTQYxoMaKvfiTHBQRsDb5/nesIEH7v0zfUj6teeL6pfC1SfAuBKOEUsEUotbgBeQjrvWjVq2doX3+976Ok+cK4v+hdVbI9xaiy8lCt1i9S0bW2UTMpaS0SUp6tXZf3ah+NsTkyI/Fig/4oQoSSd+tbL9JPIdu/Yr33z6GVrv+4U5znIMwAkM/Y72gTyuvqeM9esSYyoXzvPFxybFJ3moA0ANPMuS5S5nm/xYaRuwrz0QZOWEDTppBEsP6IZPTP29Zj6NSuH1Ted5UMvCFSXFfKgTJf4Eib9ZX574F9vHL1s7deToue3NdeGqPDm1saRAytJ+Q+q6qEV1wVN7ztqw60hykTNDj+vbmxa0NMmWgFaPrJ8FINPU+ixUHyCCL1EsX1bIGd/qkDhQysrBw4B8+ec4jMEHC2EwwD0IyBmqOXCylw7O1UoNMmg7QA+cqJn5RxbuOscjjh8H2O8zylwMoBhAt0/yhSNO324qmHttD0x9vcC5uhRg4+Fk9MUGCXAYYZQGig2bUsmzj6xgOaDFcOGRTiaGOUEpxLhBAUGK3AAoKUAeQoQpRIdJAHdSoT3Aawm8HNC+tS6LfTSme1kKW0YWXF2NOVAnHOb0jUF3yXnD0s5OBcGrw8YENvez54NojEK/WyEqVSRclGQdEF5be+QJMAgdaimoi/03aTg5qqGph8Vcq5JERPqvCNsu1j1yUF9vITPH3Xit/0AvNDwxpbzsHdUxdGTTrJLt26lY5cuDQBoMUjy+eOO7F/mJ/v7YvozB32UuIREjQNggCQrmkG6Vay32RfaHE2YzUevXLmNCtQeBXjpqFFmVPlS6UnVirLGvqhOma+fNCC2Yavu0yvJfRJkS9mIATTJ4O1JpU1i+n6UTxt6EmG1OKhGDTiSxX4eilMEWklKhxCj1CIlYbY4JFOJC5SBjwD8C9AXWemvzslTxYj71dGp0PgwV3iIEN2MnkpY2Xhx1MGlUfQ6WIQONaoHKNDXQSKsEIC3AbLRM/TudrXrjxn02nvddZDZcPmECBFiVxy7dP12AE3pT/tY1n3t4nBqQoQIsbcgJKwQIUKEhBUiRIgQIWGFCBEiJKwQIUKECAkrRIgQLWB2pC0LERJWiBA9HKqyoVgFN0LCChEiRGEJK8CbCmzkkLFCwgoRoqdjxIrX34fqckMhY4WEFSJEDwcBSkr3m3AoQsIKEWJvgEDvaXb6rg2lrJCwQoTo6ahuXPu+Qn7lhXyVF8Lg5wJg+vTpkfXr19u6urrt4Wjs/aipqSnt3ZvLok5MnOH7fnTLggULEoV+T8k2c2NzL/1yiaHTmiV0dCgqYdXU1HgHH7yRsLKArRkGrF+/j9bV1bXILdXhu4YBwDCZMWNGsCcGccumt0f3LsFAAD8t4KbpeHzbGK8CEjEDK23B5ngYsHIl3JJUWbgMaPTo0d6wYUB789vK7wqKyZPHDWGhrwE4VVUGIZB+CYUhhR/h5g1TJ45bpYqnSfWRWfMXNRbinUPWrEk0jBh0cZzlkRjzsHhIWh2iUwLpFVeMLovZvn9g5oNUCreGKFXH7CNtNmfNqav7ILNptmx6e4khHibOtdML8gFsAtFbBGok0n8KN784e/Yd24osXfHmjev+TkRHmIgcOXPm4i1dfebo0aPN4Qf3vY8NH9lmn9NQghCoGcBHIKyHUpMhXqFKy0v7HdjUFRKfPGHs6cbY+eIKcw7YiAc/Edw4Z8HCHdlkv/vdcYe5BH5PQIm2lx+KKEGgDSC8DtAyqPzjjXc2Le8qiV155ZhDSqz5IQjftNb0VlWIKDJtSS0tAjOBiOD7QZKI/q4qN86au+hBoq4fFI0jBpezkXtizMc2i7T6wO7Oh/UfJWEZE2EQjjKGDyxkzlIiQhC4LYJtLfJ0k2KwtXxk0O5vU8uLiECEC4PAgVzJqmmTLrk7QOLm66777dtFka42rj/RGnO8YTZ+wj8XwC0FGo3B1rTf5+wNteNfAlQUzgXxbZveeWXqxHF/FpYlc+YszjtrETH1TbWhMPdZlhlJwoHZf0smXYTBw42xXnuE1WJ+AfiBBAMO7bt06qRxi/Tf8btm35H/wVR75diTvQgvssaUB4GD7+8+2goAqhDZsUYjxvBpqnzatEmXPDz5Sp0054aFq7oyLpXLV699ZthhZ2gk+nMGxnhMNinaMxPC72F0weiuvoig0B8CfGvtris3cB38zjmBcw5BEMD3A6gqiGiIMXa60ejzU2vHXVKcIXTjmdmk819fNX306Ehhnqsd9llE4CTd76y+B86BiGLMNNJaey2LeXbqxHEPTZ049tP5NUHFFXBuXWp+XcvDzyiADtdSi/kNAhCRZTbHG7Z1tH/p3yZOHHdqPl2bOH7MFyIRfoiJyzPrJbchUQSBg3MO1poz2aMnJl6V37tbw4kr1304or7p0oD4NF/0AYVuiaULW0R5R8Wm6FYnFBLWXghjGNZaWGtgjIExDGYGZV0Tiwh83wcRHWKsqZsy4ZK68ePHRwvVhtrasUcx0VnOpRawMeaYLQf3/ULR9HdCWoLc+WlvYzknGakhYow9G6Anpk4ct6C29qJ+PV70t6bl/O4yt6n+pQiMiY7xiB6ePH7c+Fyefc2ksYMs8+1E1MftonIzM7wW6yrTDgvexTXd9wMw8yGex/dPnjD29EL0u2rZ6r8dXd/0DRgemRS5OC6yIOnkobiTx0B4TFwv/+NMWF24JSTPcPt8J7K7UMvt/IaIEIjzXBBQR6qjc+4ZVfcOEWKqVEbQfUC0vyoO8DxrVVOncqYdIkAk4l2ifnNk9OjRYwthwLWgS61nSzKqBKeq/U4A8EcUwQguogFSRXJApAQQAzDMvMPGoprqr+pOO0xKKghARJ619ir4OKG2dsy35s1b/Fpn1HbqpO+QYYaiY/1SVQM/cI8QNK6gEoL2VtC+pHoAiPbzrEVG8gMAl5Ioo9Yz8ydNGKvXzV90fXtdSDr6ZSRiD8hWAYkIzAwRt9J3+mdRbSDFh6IwhnAgCMeB6Cxr7YFBELRY455n+4nIqQAeLdRcj1i6JpOe+LZQEewiYfXvv2775s1DzpcgiLWz6/sDWsfEZWn1DCrS7AfBpcz8ftt2E/gu2r/dkk3MDCfuZ3PmLf5jtqG6Yr/9+iRicrjv3MkEXGytqXZOdmzcpO8j4tmLDjukbz3Qtaq8EyfWHAx133TBzhEIAgciOmXSpHHHX3fdwmcLK1EaBE4nGASPO2fJWTFW1CiZElX0DZwcCMVAghytRCOgGOxZa7M3tqrC931Ya4+FuIenjP/OWbMX3JLzHWB6Qy8XpU6V+vIDAYw2dUSICo1HVcf+fP6iHdVXampqvN69eR9y/mA/cGcS9CJrzaFBevxTxnKBNTxr4sSxy+bOXfSP1p4/adJ3KllxVpA1b2m7WLMT+T5MvK6Ni5q6CRNqDie4X1lrzg8CB2MYKtocTyav6dPvsOtDOumhhDVjxlMB8NRT7X1n0qSx/Vko2dKASYEQ/jJ33sIulwFSRQvDfFpi2pj+NNTU1NzcJybXksH3AVDGROGcgIEfTJp06ZLrrrup04Z4o/Jtz/P229VQa42xEgTjATxb6MlSpTdmzu9YKpp+0UWxrX29owNx56jiYmvtIdlSQRAEsNaUOzb3T5s25rSZMxe/k6t0BeCDOfMWPlLshSkwLVT3uro6H8D76c8/Jk269EYNZIG15uvZpGWMjbKvP5s+ffpprd2QkuMv2Yj1dpGuxIleNWfezYvba9P8+XVvquLCqZPGrfE8+30XuLecyNjr5i96NKSSvdyGpWqiitYyaJhod3Ssrq5u+6z5N/9QRH5ujNlVhN+Xxf1XZ589bdqY3gq9JKNyZiNwDgR8bVrtmKGFt2FJTgfMjNtui8+ev3DprOtu/j777jgXuLpd7XtB4GA9e6QkaPH06XldFPQIu+d11930dlJiFwaBe9Ra04KMmemz2zasO771hUlV2fZ1YwxEZFnvfofcmqMdUWfPXfiDpO/GOqYvzAnJ6j+DsHoKyprN//iBW51tO9OUn80XO03GSf66Z21FazY6VYXn2VKndFlP6P/MGxa/M2vezZeKk8uJKJlNWr4fwIt4Z2zZ2Gfy3ji3CxYsSBDwXecknt0vaw05ojNaJxzdJ9u8SESA0vIZM2bk5UUwZ97Ni+fMqXs1pJCQsAqKGXV126H6R2N2dlVUAaKKK64YXZbv82pqajyBXpV9Su9qiHYpKetbU6dedFBPGYfZ8xf+RpxcAUB2lbSI+HuTr6o5cm+c31nzFjaISEOLA0kBZh3e6mEDxHf7C8l+IRWEhNVzOkm0MptgUkZ4LSspiZbmLbGVyKmGzbGZ6/DUzZxsFpH3M0QgovAi3n6StBf3pHGYPX/hIhGZma0ipyRC05uMfH8vnV4F0epdXR4A9G+DsJpaHi4CEH12byXskLD+M7Gb7wqBRLVUOrE9xjPvXPFp+8ltzPQTm0UEaftWzfjx3+zTo3a32TzDD/wXskkrCBwI+MZ3a8ce9Z8yv6ptlk5/TLJi9lQVhk1ftnLrpEmXHhpSQkhYexyiGJDtOpSyW+hG34/mFfc3bWLNMcx0esbYng4lSpJioYnyHX4QvJdxLkwZ972BHqLn9qSxuO66Jc1C8j1Vddmb1nq2xAHf2jtlLP0EtKVdioD1rX7X9Hki8IMVpsXh4mCMOd6oPDm59pKzQ1oICWtPLmYC9IzsU5WZoaAV+aYMEXFXWmsiGb8uYxgi+uis+Ysaf/nLuk2q+ttd1S0QXTm6YOE6hSKtWx5zzj1td7k9heKsjkKLdg2t2dOYNOnbhzLxMS7rAoQIEKIXW+/7dc1g/WHKNxAtpEwmGsSEh6ZOHPdg3mFMIboF//H5sCbVjvumMeb43UIwoA/m85yray89IoA7N9vhUEQVhAU71S3U+X5wORGVZUJHjDHHfCIVrvN/PWVMiKBTJtDtIDopqy8A0dCtB5UNQhuJXkQEAqqYUjvuJ51abNYgcO7J2XMXPl6wvoj3PWNN/4yfWTqjQpwc/7mt38yZt/h3k2vHXB/1olcl/Z3aZIb0rLVfc859ZerES/5CiptK+3305xkzliRDuggJq6iYMnHcuQS+Hqo7JEljGH7gr/Y1/vt8npVUNy4asX0yDocpz/Pgxa3N5vGdp/eiNZMnjH3As/bbftA94TqdVpMDfSpA0ExMJZkwHmtNxA90RFuEpapgogHWmh925p2eZ+FvcxZAlwmrpqbG61Mq3yPiy7OdYq018JP+g3Oub9/lYMNHbtp+/fwDPc8bHQQtg5/TYUzWGD5TVc/ctqnf0mm1l9wotvmeYqcrCvEfSliqlGxdRZhUwrLtOJBeRtDziZQz6mAm1k5Vr12w4M7NuasdY/uzw8XZjqJEACluSHtgZ6lMfH3ggguJ4KnuiHMrSrhOV9Bn/8Pe3LLx7TeZaOiO3E9EgGJI++OuraZhyQM5Be8yXKKtuTDgU1S0ltl8NtsXjpkRBMEGH256R8+/7bbb4hdddNG39+tH7zPTlcyE7PnNZGVIH06jiLBIXenEyRPH/bJ330PvztdvK8THmLBUFQR8atqEsVBwiajsQ4zDQHQkZPNIgIZYY+GCIOVzld6M1hokk/4vr5u/+P681I6ALvQi9tCdUhMj8N1ajuoDu3539vybX5w8Ydxjnme+GAQOqoBnixeu01nMmDEjOXnC2LeJaKdHvgIKPXiPq6wKk4T54uQJ4zYQo5RU9wXxAFEdToJqNnQoDCFbzU/7YfnqcNn8BbeuzuU9t912WxzAVVMmjnuSQD/xrD0qO/Zyh6rodhDXCIa5Y/umd75VWzt28rx5i14JKaR7sVca3UUExpgfkDV/ZMv3eRHvZs/zpltjz2c2QzJive5QAw2ISH0/+EXvfQ77Xj7vmj79ohhILxfduYiNYSj05jayiyoRzc828hczXKeL2JJteFYABOrVvv2LdqRbyffjWQugZQxoa4cRiErY4FZrzR+sMfcY691orbnas+bLzHxoJjfWTjXQQoFNgXMXz16w8L58B2H23IX3bd5Gn/IDv1ZVXrXWwBqDXZNSZNIIsTFfjDA/OaV27DkhhYQSVs6k1dHGysTPOZGXVdyPZs9b9EC+79m80XzZs/bobEfRpB9sEDZtpv3Y0kx/LStxL1hjj3PO7QjXSSb9ywBM6jmjSNwKYWh7Y6qq7/lB8JfOik5E+mKh5jcdBwjn3KOB718z94ZbX+rsSNTV1W0CMP+KK65YXBoNzoboWBCdZK0xmTnMtnEx8wHM5u4pE8bWzJ6/KEwBExJWFzplDZxzCRH3AoFvIy+4Z1Yncq1Pnz6dt2x8+yra5dm+7981d27d+nYWvz9lwtgbiHDrjtM5yITrXPHLWbNufLeHDFX/FiFGAJipTdseM8O5YOWceYu+vccolgjGMJyTj5yTJxVYWNb3kD8VyqZ04403bgVwF4C7ptaO+VTgcBlBz7XWlu6aB4uZI2zMb6ZOvOTtWXNv/mtIJyFhtas9EBGp7hrIqs1O9HsMPPqruQtXogs3c1s2rj/RMH82yJKuAt81Q+xvOvptWRC9fwslfmjYVIgIRFPhOslk4mIAv9jTg3fFFVeUgZKH6S6MpYp1PcSMoMxMuxrVReVfgXNXW+Fnfzm/7s1iNmDWvMX/BPDPSZO+MwcB/YCZz81OjJg2TcRE5KbJk2uOnzMnVTglRGjD2u2kV0Gtil7aMuhVQYajKuL9au7Cl9FlNwI3ng2blrYreWD2gps6THo348Ybt0J1QXZaXecEBLpk2rQxvff0GMZMfDABh2qWbU5EQYw9akhOJ/DbTkRfECc3WWtbzC+D94fKu8Umq2xcd90tDbPm3TxaRWoAxHcNdPc8r5xFJod0EkpYbS5qMrJ29tzFf5w0Ydyp0Yg9P3PVrqLMRDOm1Nb8bfa8uuc6+47a2rFHMVL52rPUAIVi2eTxl5wopuNiAKR4y/fdNmbqtSMjpmfL/WRyNIDFe9h69WXPWutnOVwGQbCNPG3sAVMsngsatiL5PPySk401QzN2JDbcSx0vnDRp7AnXXbfow+5s1Kx5C2+eNGFsszXmVqgazSItVYyZPLlmTihlhRJW6/pCJuOoMVN8P3g7I2mpKpi5BJAbpkz5Vq8uMPml1rMtauWJKIFoJhv8w4Kf7ugD0P1EKM1+hqoCSldO34PhOtOn15RC+VtuF3WLCMvKyj7xVk+YXyGvZMGCOzcrdLyIBBmpxjmHiGcHk6Of7Yl2XTd/0R0i7jcmS/ITEVhrDoRzp4SUEhJWB+L6TW8rdEq2uBM4B8+zo9SPdCplytSpVxwExTdd60VMKWPH6Oiz0zKEFiqELXJ1nY6w5UP5jvXM0Jb2IYIS3dvTHCLnzF/0qIje2EpW0UumjB971h4hU7Y/D/zgw2zVMJ0I8DMhpYSE1fGinrfoniAI7vI8m7WoHYwxkydPqMl7EamfvMiLePtl+1LtWl4r309LdYxAhAkp/9fuxcSJ3ylnQz/cNRg88IP3A9F7e+L8OvKn+8nglUxgeSpBH7Ey5l07/jv776FD8u/ZSSHTOdYqQkoJCSu3U8/YqYEfvJWtGhJxFCQ35GPkbi1fOxFBRJMq0ty5jza3MNSmq+tcPXnc8d05RldccUWZUbPYGD4wW7pKO8L+en5WlZqehHnzbvtIIeNV1d+pGgoinjcwweaX+Tzrmmsu32fyhJrTrp5y2S8njx97eacbRbS2ZdJAgAhlIaWEhJUT5s6tW6+Eyci6GUzbOypdkqfnTHwJOic7X3vqKl3fhZUTSM2IznzEaKWIPJ5J56IAjDE2EIzvrvGprb2oX6mXvMtae1J2xgljDHw/WO0lI/N6tBQ9f/FjToLrs1VD3w9gmC/OxeN8Su3Yc6ZNuuR+v9lfbgz+yszfZaafTLtyzCGda5H2wS4+bMgxTjJE5/Ef5Tg6e+7C+6ZMGHu7F/G+nbk1DAIHwzxhylXjHp59fftpTWpqajwld2XLqioMCeS3s+ctXtaVtk2ZOGaOqp6aTaaZcJ2ZnShomte7J4wbRUQ3GmM+me38mPZcdwDV/uLXv97Y0+e3t/T68Ra/+XRrzPAs+yKB6LqJE2v+2Z4zryodGY1Ez0kkExARJJNJeNbul0TwUwBj8mnHvaNHm+cUx2aHa4EIClofUkooYeWFCPDdwHdvmBaqIXlk0GGJ9tbytft+sJWiXNfVdpW9veXRwLmXdtphil9dZ/Lkiz8xrbbm58R4kplbkBWQiQgI/mf2vJv/tDfM7YwFCzYTdLyoJnfmzxd41h5uxM1sV4NL2oXb4/F3s+9A/CAloU2qHXtpPu147sA+X2VjRuyavUOBl0JKCQkrL/x8/qL3oDpJd1ENrWeHWbXtJ57bNV+7MVDVB2fNqmvq8mZbsiQJ1Ruy7e+Z6joTJ9bkmCFB282QOn366Mh3x487bMrEsWdNra25mcRbypavAahs1xtPz/OQ9IPb3lq/Ja9kfHs64+jseYuedM7N3001tOabUyZcckGbv/vNb95X0PxsQ3n64CDDPH/KhHE5HRxTJ4ytJMvzsvdO+mBLKiGsURiqhPlj1vyFD06uHXdrxLPfyVYN2ZjLJ9eO+2NrlYunTaw5RqE78rWDgMC5gEhuKFS7TAxL/ETwA2PMQBHZUV1Hk/5F6CBcJ+0mceHkCWNHpoKWJUrEMSh6g7UflA7Y8hEOBuuhlkxfMgznHHaVqjJpdnw/uHPDR/5l6YrZudGlKlRxxOTxY6Z2SvqNeojHg3/Ovb71MvI5L9qo/iSZDL5gjanMELEqANLZ3x0/7ulfLVjYaniRjbjr/aRcaIwdsfN3CgJF2PCvp0ys+ay6YNacBbur/9Nrakq3lrrRIPNzJjq4RbYIY5AMgkfmpkLBQoSElT/I2msC351sDA90TtIOpWQJWHDllf/9qRtuuH1D9vdF3JVexItkCM4agyBwT8yed8vzhWrTzJmLt0yqHXuzMfyzjFHfOQERXTJt2pgbZrYToC0isMZclB3qk5YKU6KkKiTt/+VEgFayHaSzG4jvB78q63foD2fPm5FXJj4RATGXe9bM7Ez/Pc8imXQ/B/CPro7jtInjrlKVR4komoki8Kw9xA+COQDORythWTNnLt4yefwllwnro8xUmnHt2Jlx1f6XA39jSu3YpQp6CdB3oWACHbGV5ETD5shMUsbsA8A510yKGehBGWVDlXAvw+zZv3lfgImaFSznnMDz7OCYif5P9ndray89Akwt8rWrKiC6oNCLUMnc6vvBB9k2GGttuUtidEe/dc7B94OWnyBAEAQInIOIoLXsMMYwPGuhIitE9Kuz5y28dsaMGZ1KG5rJONrZDwp0kzZz7sK/OydzW6iGQQBjzOhJteP+u63fzVlw8zPq3FWqkF3JPyWNUtQYe2LE2qsinvfTSMT7ifXsGGY+0rmWyf0yKW6ccz+aPX/h0pBOQsLqEubMu/n3Irq4hUOpH4B28ZJmdeM8a/vsrIZjEASuvqz/5kcK3abUTZbemb3RdoTrTC9MuE4mF5hnLQwzRGSlH/i18NyJc+Yv/L//lPmNB9GfJpN+/a6VigzRr2prLzqizcNs/qJbBHIplJqzf5v5vXMOfrCTZIMg2C0/V4as/CCYPWfB4lkhlezlhOX7AREQs9Yg8yHSWBAEeXt3KxBNZa3MPMtCFSan3xq+1veDtZGIB2sNjDWIeB6D6aZpV445ZPLkmv0YuDxj28m8R4luLFalFHXmN74fJD3PpseFEItGj9m6qW92Tbxd+tzWJ53N00t9TOqiICGqr/jO3axwX968nY+bPW/R/Jl55gRTwOTWhlw/FkRkW6qJjrDLOgGQ0zq58cYbt0L5SlXnZ8aSmRCLRg40am+aftFFsTYPs7mLFgrkK6qywvMssrN+dGhHsQZESPi+f+2ceQunhjTyH2DDEok2K5L3BYHrJaJgJkC5ORajvKqO/PjHP9YpEy/5k+/7rzqXyUMEwFBOQbpz5tR9MHnCmJrAyRUurfL5cLDWGlH3KavuLRj7t0TCFyAVU+cHwZZIjIsWpjLn+rpXJ08Y+1MVrfbTbVJrSZ0cAQDDhg3TrRvfedj3/ZWZPrd53KgKQNuIdAPA61TRBMerNmxJ/Cuds7zzxCr0lu8HD7QRU9kpyU8Uy1sebNGtgH9vELjIjnUCipfFTE7rZM6Cm5+ZPH7cFCY9OTOWfiqNMW/ZV48C0Kb/3Oy5Cx+/+uqaz/jx4DIiGsvMg1O+aZK5YNg51EwgYohIEATuSVU3Y878W54OKaR7QeEQhAgBXHP55fv4seAMgp4JwXEKHAqgDCkXq21KeJOI/g7Fkl59D3k8rJqzZ/D/ATFVjNfKiPX8AAAAAElFTkSuQmCC';
+
+if(CFG.url&&CFG.token){$('cUrl').value=CFG.url;$('cTok').value=CFG.token;
+  $('cWho').value=CFG.who;$('cPo').value=localStorage.getItem('vtf_po')||'';start();}
+$('cSave').onclick=function(){
+  var u=$('cUrl').value.trim(),t=$('cTok').value.trim(),w=$('cWho').value.trim();
+  if(!u||!t){$('cMsg').textContent='URL and token are required';return;}
+  CFG.url=u;CFG.token=t;CFG.who=w;
+  localStorage.setItem('vtf_url',u);localStorage.setItem('vtf_tok',t);
+  localStorage.setItem('vtf_who',w);
+  $('cMsg').textContent='Connecting...';start();
+};
+$('btnConn').onclick=function(){$('ovConn').className='ov on'};
+$('dX').onclick=function(){$('ovDet').className='ov'};
+$('capX').onclick=function(){$('ovCap').className='ov'};
+$('lb').onclick=function(){this.className='lb'};
+
+function start(){
+  api('init',{},function(d){
+    var f=$('fcat');f.length=1;
+    d.categories.forEach(function(c){var o=document.createElement('option');
+      o.value=c;o.textContent=c;f.appendChild(o);});
+    $('ovConn').className='ov';$('app').style.display='flex';
+    drawHome();loadBadges();
+    loadCatalog(false);
+    setTimeout(fillFilters,1200);
+  },function(e){$('cMsg').textContent=e;});
+}
+
+var tabs=document.querySelectorAll('.tab');
+for(var i=0;i<tabs.length;i++){
+  tabs[i].onclick=function(){
+    for(var j=0;j<tabs.length;j++)tabs[j].className='tab';
+    this.className='tab on';
+    VIEW=this.getAttribute('data-v');
+    $('vHome').style.display=VIEW==='home'?'block':'none';
+    if(VIEW==='home')drawHome();
+    $('vFind').style.display=VIEW==='find'?'block':'none';
+    if(VIEW==='find')setTimeout(function(){var q=$('q');if(q)q.focus()},60);
+    $('vBrowse').style.display=VIEW==='browse'?'block':'none';
+    $('vQuote').style.display=VIEW==='quote'?'block':'none';
+    $('vAlert').style.display=VIEW==='alert'?'block':'none';
+    if(VIEW==='browse')drawBrowse();
+    if(VIEW==='quote')drawQuote();
+    $('vLog').style.display=VIEW==='log'?'block':'none';
+    $('vCount').style.display=VIEW==='count'?'block':'none';
+    if(VIEW==='alert')loadAlerts();
+    if(VIEW==='log')loadLog();
+    if(VIEW==='count')loadCount();
+  };
+}
+
+var ST=null;
+$('q').oninput=function(){
+  if(CIX){ search(); return; }          /* local — no debounce, no wait */
+  if(ST)clearTimeout(ST); ST=setTimeout(search,300);
+};
+$('fcat').onchange=search;$('fstock').onchange=search;
+if($('fbrand'))$('fbrand').onchange=search;
+if($('fsub'))$('fsub').onchange=search;
+if($('btnRefreshCat'))$('btnRefreshCat').onclick=function(){
+  this.textContent='…'; loadCatalog(true);
+  var b=this; setTimeout(function(){b.textContent='refresh'},1500);
+};
+$('stockBtn').onclick=refreshStock;
+$('poTop').onclick=function(){
+  var base=(localStorage.getItem('vtf_po')||'').trim();
+  if(!base){ toast('Add the PO request app link in settings',true);
+    $('ovConn').className='ov on'; return; }
+  window.open(base,'_blank');   /* the real PO app, in its own tab */
+};
+
+function search(){
+  var q=$('q').value.trim(), c=$('fcat').value;
+  var b=$('fbrand')?$('fbrand').value:'', sb=$('fsub')?$('fsub').value:'';
+  if(q.length<1&&!c&&!b&&!sb){
+    $('res').innerHTML='<div class="empty">Type to search.</div>';return;}
+  var local=localSearch(q,c,b,sb,$('fstock').checked);
+  if(local){ drawResults(local); return; }
+  /* the catalogue has not arrived yet — fall back to the server once */
+  api('search',{q:q,cat:c,stock:$('fstock').checked?'1':''},function(d){
+    drawResults({items:(d.items||[]).map(function(x){
+      return [x.code,x.name,x.cat,'',x.brand,x.qty,x.w,x.wo,0,x.movement||'',
+        x.cover||'',0,x.coming||0,x.due||''];
+    }), total:d.total});
+  },function(e){$('res').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+}
+
+function drawResults(d){
+  if(!d.items.length){
+    $('res').innerHTML='<div class="empty">Nothing found.<br><br>'+
+      '<button class="act pri" style="max-width:260px;margin:0 auto" onclick="askFree()">'+
+      'Log what the customer asked for</button></div>';
+    return;
+  }
+  var h='';
+  d.items.forEach(function(r){
+    var has=Number(r[C.QTY])>0;
+    h+='<div class="p" data-c="'+esc(r[C.CODE])+'">'+
+      '<span class="dot '+(has?'y':'n')+'"></span>'+
+      '<div class="mid"><div class="nm">'+esc(r[C.NAME])+'</div>'+
+      '<div class="cd">'+esc(r[C.CODE])+
+        (r[C.BRAND]?'  ·  '+esc(r[C.BRAND]):'')+
+        (r[C.SUB]?'  ·  '+esc(r[C.SUB]):'')+'</div>'+
+      '<div class="pricebox">'+priceTags(r[C.W],r[C.WO],r[C.GST])+'</div></div>'+
+      '<div class="rt">'+
+      '<div class="st '+(has?'y':'n')+'">'+
+        (has?qn(r[C.QTY])+(Number(r[C.COVER])>0?'  ·  '+Math.round(r[C.COVER])+'d':''):'no stock')+
+      '</div>'+
+      (Number(r[C.COMING])>0?'<div class="st y" style="font-size:11px;font-weight:600">'+
+        qn(r[C.COMING])+' coming'+(r[C.DUE]?'<br>'+esc(r[C.DUE]):'')+'</div>':'')+
+      '</div></div>';
+  });
+  if(d.total>d.items.length)h+='<div class="empty">'+d.total+
+    ' matches, showing '+d.items.length+'. Narrow the search.</div>';
+  $('res').innerHTML=h;
+  each(document.querySelectorAll('.p[data-c]'),function(el){
+    el.onclick=function(){openP(this.getAttribute('data-c'))}});
+}
+
+function openP(code){
+  $('ovDet').className='ov on';$('dT').textContent=code;
+  $('dB').innerHTML='<div class="empty"><div class="spin"></div>Loading...</div>';
+  api('product',{code:code},function(p){
+    CUR=p;$('dT').textContent=p.name;
+    var th=p.images.length?p.images.map(function(u){
+      return '<div class="th" data-img="'+esc(u)+'"><img src="'+esc(u)+'" alt=""></div>';
+    }).join(''):'<div class="noimg">no image</div>';
+    var alts='';
+    if(!p.has&&p.alternatives.length){
+      alts='<div class="alts"><div class="sec">In stock in the same category</div>'+
+        p.alternatives.map(function(a){
+          return '<div class="alt" data-alt="'+esc(a.code)+'">'+
+            '<span class="dot y"></span><div class="mid"><div class="nm">'+esc(a.name)+
+            '</div><div class="cd">'+esc(a.code)+'</div></div>'+
+            '<div class="rt"><div class="pr" style="font-size:15px">'+rs(a.w)+'</div>'+
+            '<div class="st y">'+qn(a.qty)+'</div></div></div>';
+        }).join('')+'</div>';
+    }
+    $('dB').innerHTML=
+      '<div class="dh"><div class="thumbs">'+th+'</div>'+
+      '<div style="flex:1;min-width:0"><div class="cd" style="font-family:ui-monospace;'+
+      'font-size:12px;color:var(--ink3)">'+esc(p.code)+'</div>'+
+      (p.cat?'<div style="font-size:13px;color:var(--ink2);margin-top:3px">'+esc(p.cat)+
+        (p.brand?' · '+esc(p.brand):'')+'</div>':'')+'</div></div>'+
+      '<div class="stock '+(p.has?'y':'n')+'">'+
+      (p.has?'<span class="big">'+qn(p.qty)+'</span> in stock':'Out of stock')+
+      (p.cover!==''&&p.cover>0?'<span style="font-weight:600;font-size:13.5px;opacity:.85">'+
+        '  ·  about '+Math.round(p.cover)+' days'+'</span>':'')+
+      (p.movement?'<span style="font-weight:600;font-size:12.5px;opacity:.7">'+
+        '  ·  '+esc(p.movement)+'</span>':'')+
+      '</div>'+
+      (p.po&&p.po.on_order>0?
+        '<div class="stock y" style="margin-top:-8px">'+
+        '<span class="big">'+qn(p.po.on_order)+'</span> on the way'+
+        (p.po.next_due?'  ·  due '+esc(p.po.next_due):'')+
+        (p.po.in_transit>0?'  ·  '+qn(p.po.in_transit)+' in transit':'')+
+        '</div>':'')+
+      '<div class="prices">'+
+      '<div class="pc w"><div class="l">W · with GST</div><div class="v">'+rs(p.w)+'</div>'+
+        (exGst(p.w,p.gst)?'<div style="font-size:12px;color:var(--w);opacity:.8">'+
+          'ex GST '+rs(exGst(p.w,p.gst))+(p.gst?'  ·  '+p.gst+'%':'')+'</div>':'')+'</div>'+
+      '<div class="pc wo"><div class="l">WO · non GST</div><div class="v">'+rs(p.wo)+'</div>'+
+        '<div style="font-size:12px;color:var(--brand);opacity:.8">no tax component</div></div>'+
+      '</div>'+
+      demandBlock(p.demand)+
+      poBlock(p.po)+
+      (p.short||p.long?'<div class="desc">'+esc(p.short)+(p.long?'<br>'+esc(p.long):'')+'</div>':'')+
+      '<div class="acts">'+
+      (p.has?'':'<button class="act pri" onclick="poRequestCur()">Request this</button>')+
+      (p.has?'':'<button class="act" onclick="cap(\'no_stock\')">Customer wanted it</button>')+
+      '<button class="act" onclick="cap(\'enquiry\')">Enquiry only</button>'+
+      '<button class="act" onclick="cap(\'feedback\')">Feedback</button>'+
+      (p.has?'<button class="act" onclick="cap(\'no_stock\')">Not enough stock</button>':'')+
+      '</div>'+alts;
+    var t=document.querySelectorAll('.th[data-img]');
+    for(var i=0;i<t.length;i++)t[i].onclick=function(){
+      $('lbimg').src=this.getAttribute('data-img');$('lb').className='lb on';};
+    var a=document.querySelectorAll('.alt[data-alt]');
+    for(var j=0;j<a.length;j++)a[j].onclick=function(){openP(this.getAttribute('data-alt'))};
+  },function(e){$('dB').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+}
+
+var LABELS={no_stock:'Customer wanted this',request:'Product we do not stock',
+  enquiry:'Enquiry',feedback:'Feedback'};
+function cap(type){ openCap(type, CUR?CUR.code:'', CUR?CUR.name:''); }
+function askFree(){ openCap('request','',''); }
+$('btnAsk').onclick=function(){openCap('request','','')};
+
+function openCap(type,code,name){
+  $('ovCap').className='ov on';
+  $('capT').textContent=LABELS[type]||type;
+  $('capB').innerHTML=
+    (name?'<div style="font-weight:650;margin-bottom:12px">'+esc(name)+'</div>':
+      '<div class="fld"><label>What did they ask for?</label>'+
+      '<input id="cpText" placeholder="describe it in your own words"></div>')+
+    '<div class="fld"><label>Quantity wanted</label>'+
+    '<input id="cpQty" inputmode="numeric" placeholder="optional"></div>'+
+    '<div class="fld"><label>Customer</label>'+
+    '<input id="cpCust" placeholder="name or shop, optional"></div>'+
+    '<div class="fld"><label>Phone</label>'+
+    '<input id="cpPh" inputmode="tel" placeholder="optional"></div>'+
+    '<div class="fld"><label>Note</label>'+
+    '<textarea id="cpNote" placeholder="anything worth remembering"></textarea></div>'+
+    '<button class="btn p" id="cpGo">Save</button>';
+  $('cpGo').onclick=function(){
+    var text=$('cpText')?$('cpText').value.trim():'';
+    if(!code&&!text){toast('Describe what they asked for',true);return;}
+    this.disabled=true;this.textContent='Saving...';
+    api('capture',{type:type,code:code,text:text,
+      qty:$('cpQty').value.trim(),customer:$('cpCust').value.trim(),
+      phone:$('cpPh').value.trim(),note:$('cpNote').value.trim(),by:CFG.who},
+      function(){$('ovCap').className='ov';$('ovDet').className='ov';
+        toast('Saved — thank you');loadBadges();},
+      function(e){toast(e,true);var b=$('cpGo');if(b){b.disabled=false;b.textContent='Save'}});
+  };
+}
+
+function loadBadges(){
+  api('captures',{status:'open'},function(d){
+    $('nLog').textContent=(d.counts.open||0)||'';
+  },function(){});
+  api('counts',{},function(d){
+    CNT=d;
+    $('nCount').textContent=d.items.length||'';
+  },function(){});
+  loadAlertBadge();
+}
+
+function loadLog(){
+  $('vLog').innerHTML='<div class="empty"><div class="spin"></div>Loading...</div>';
+  api('captures',{status:'open'},function(d){
+    if(!d.items.length){
+      $('vLog').innerHTML='<div class="empty">Nothing logged yet.<br><br>'+
+        'Every time a customer asks for something you cannot supply, log it here. '+
+        'That is the only record of demand we are missing.</div>';return;}
+    var h='<div class="sec">Logged requests</div>';
+    d.items.forEach(function(x){
+      h+='<div class="cap"><div class="t t-'+esc(x.type)+'">'+
+        esc(LABELS[x.type]||x.type)+'</div>'+
+        '<div class="m">'+esc(x.name||x.text)+'</div>'+
+        '<div class="s">'+esc(x.at)+(x.qty?'  ·  qty '+x.qty:'')+
+        (x.customer?'  ·  '+esc(x.customer):'')+
+        (x.by?'  ·  '+esc(x.by):'')+'</div></div>';
+    });
+    $('vLog').innerHTML=h;
+  },function(e){$('vLog').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+}
+
+function loadCount(){
+  $('vCount').innerHTML='<div class="empty"><div class="spin"></div>Loading...</div>';
+  api('counts',{},function(d){ CNT=d; drawCount(); },
+    function(e){$('vCount').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+}
+
+/* Counting is not only the assigned list. Somebody standing in front of a
+   shelf wants to count what is in front of them — by category, by brand, or
+   just by typing the name. Both paths are here, and either one records the
+   count the same way. */
+var CMODE='todo';
+function drawCount(){
+  var h='<div class="sortbar">'+
+    '<div class="seg" style="display:flex;gap:3px">'+
+      '<button class="act'+(CMODE==='todo'?' pri':'')+'" id="cmTodo" style="padding:8px 14px">'+
+        'To count'+(CNT&&CNT.items?' ('+CNT.items.length+')':'')+'</button>'+
+      '<button class="act'+(CMODE==='any'?' pri':'')+'" id="cmAny" style="padding:8px 14px">'+
+        'Count anything</button>'+
+    '</div></div>';
+
+  if(CMODE==='todo'){
+    if(!CNT||!CNT.items.length){
+      h+='<div class="empty">Nothing assigned right now.<br><br>'+
+        'Use <b>Count anything</b> to check a shelf on your own.</div>';
+    } else {
+      h+='<div class="res"><div class="sec">Assigned — '+CNT.items.length+' items</div>';
+      CNT.items.forEach(function(x){
+        h+='<div class="p" data-cc="'+esc(x.code)+'" data-nm="'+esc(x.name)+
+          '" data-sq="'+esc(x.system_qty)+'">'+
+          '<div class="mid"><div class="nm">'+esc(x.name)+'</div>'+
+          '<div class="cd">'+esc(x.code)+'  ·  '+esc(x.reason)+'</div></div>'+
+          '<div class="rt"><div class="st">system '+qn(x.system_qty)+'</div></div></div>';
+      });
+      h+='</div>';
+    }
+    $('vCount').innerHTML=h;
+    wireCountMode();
+    each($('vCount').querySelectorAll('[data-cc]'),function(el){
+      el.onclick=function(){openCount(this.getAttribute('data-cc'),
+        this.getAttribute('data-nm'),this.getAttribute('data-sq'))}});
+    return;
+  }
+
+  /* count anything — the whole catalogue, filtered */
+  h+='<div class="sortbar">'+
+    '<input type="text" id="cq" placeholder="Type a product name or code" '+
+      'style="flex:1;min-width:140px;padding:9px 12px;border:1px solid var(--line);border-radius:9px">'+
+    '<select id="ccat"><option value="">All categories</option></select>'+
+    '<select id="csub"><option value="">All subcategories</option></select>'+
+    '<select id="cbr"><option value="">All brands</option></select>'+
+    '</div><div id="cres"></div>';
+  $('vCount').innerHTML=h;
+  wireCountMode();
+  fillSel('ccat',C.CAT,''); fillSel('csub',C.SUB,''); fillSel('cbr',C.BRAND,'');
+  ['cq','ccat','csub','cbr'].forEach(function(id){
+    var el=$(id); if(!el)return;
+    el[id==='cq'?'oninput':'onchange']=function(){
+      var v=$('cq')?$('cq').value:'';
+      drawCountResults();
+      var n=$('cq'); if(n&&id==='cq'){n.value=v;n.focus();n.setSelectionRange(v.length,v.length)}
+    };
+  });
+  drawCountResults();
+}
+function wireCountMode(){
+  if($('cmTodo'))$('cmTodo').onclick=function(){CMODE='todo';drawCount()};
+  if($('cmAny'))$('cmAny').onclick=function(){CMODE='any';drawCount()};
+}
+function drawCountResults(){
+  if(!CAT){ $('cres').innerHTML='<div class="empty">Loading products…</div>'; return; }
+  var q=$('cq')?$('cq').value.trim():'';
+  var c=$('ccat')?$('ccat').value:'', s=$('csub')?$('csub').value:'',
+      b=$('cbr')?$('cbr').value:'';
+  if(!q&&!c&&!s&&!b){
+    $('cres').innerHTML='<div class="empty">Search for a product, or pick a '+
+      'category or brand to count a whole shelf.</div>';
+    return;
+  }
+  var res=localSearch(q,c,b,s,false);
+  var items=res?res.items:[];
+  if(!items.length){ $('cres').innerHTML='<div class="empty">Nothing found.</div>'; return; }
+  var h='<div class="res"><div class="sec">'+
+    (res.total>items.length?items.length+' of '+res.total:items.length)+' products</div>';
+  items.forEach(function(r){
+    h+='<div class="p" data-cc="'+esc(r[C.CODE])+'" data-nm="'+esc(r[C.NAME])+
+      '" data-sq="'+esc(r[C.QTY])+'">'+
+      '<div class="mid"><div class="nm">'+esc(r[C.NAME])+'</div>'+
+      '<div class="cd">'+esc(r[C.CODE])+(r[C.BRAND]?'  ·  '+esc(r[C.BRAND]):'')+'</div></div>'+
+      '<div class="rt"><div class="st '+(Number(r[C.QTY])>0?'y':'n')+'">system '+
+        qn(r[C.QTY])+'</div></div></div>';
+  });
+  h+='</div>';
+  $('cres').innerHTML=h;
+  each($('cres').querySelectorAll('[data-cc]'),function(el){
+    el.onclick=function(){openCount(this.getAttribute('data-cc'),
+      this.getAttribute('data-nm'),this.getAttribute('data-sq'))}});
+}
+
+function openCount(code,name,sysq){
+  $('ovCap').className='ov on';
+  $('capT').textContent='Count';
+  $('capB').innerHTML='<div style="font-weight:650">'+esc(name)+'</div>'+
+    '<div style="font-size:12.5px;color:var(--ink3);margin-bottom:14px">'+esc(code)+
+    '  ·  system shows '+qn(sysq)+'</div>'+
+    '<div class="fld"><label>Counted quantity</label>'+
+    '<input id="ctQty" inputmode="decimal" placeholder="what you actually counted"></div>'+
+    '<div class="fld"><label>Note</label><input id="ctNote" placeholder="optional"></div>'+
+    '<div style="font-size:12.5px;color:var(--ink3);margin-bottom:12px">'+
+    'Correct it in Vasy too — that is the record that counts.</div>'+
+    '<button class="btn p" id="ctGo">Save count</button>';
+  $('ctGo').onclick=function(){
+    var q=$('ctQty').value.trim();
+    if(q===''){toast('Enter the counted quantity',true);return;}
+    this.disabled=true;this.textContent='Saving...';
+    api('countdone',{code:code,qty:q,by:CFG.who,note:$('ctNote').value.trim()},
+      function(r){$('ovCap').className='ov';
+        toast('Saved. System '+r.system+', counted '+r.counted);
+        loadCount();loadBadges();},
+      function(e){toast(e,true);var b=$('ctGo');if(b){b.disabled=false;b.textContent='Save count'}});
+  };
+}
+
+/* ══════════════════ ALERTS ══════════════════
+   The floor's own worklist. Everything here is actionable without knowing
+   what anything cost — velocity and cover make a counter person better at
+   the job and reveal nothing about buying. */
+var ALERT_KIND='stockout', ALERTS=null;
+var AKINDS=[
+  {k:'stockout', t:'Out of stock', s:'still selling', cls:'r'},
+  {k:'low',      t:'Running low',  s:'under 14 days', cls:'a'},
+  {k:'reorder',  t:'Below reorder',s:'nothing on order', cls:'a'},
+  {k:'negative', t:'Negative',     s:'impossible — count it', cls:'r'},
+  {k:'dead',     t:'Dead stock',   s:'on the shelf', cls:''}
+];
+
+function loadAlerts(){
+  $('vAlert').innerHTML='<div class="empty"><div class="spin"></div>Loading...</div>';
+  api('alerts',{kind:'all'},function(d){ALERTS=d;drawAlerts()},
+    function(e){$('vAlert').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+}
+function loadAlertBadge(){
+  api('alerts',{kind:'all'},function(d){
+    ALERTS=d;
+    var n=(d.counts.stockout||0)+(d.counts.low||0);
+    $('nAlert').textContent=n||'';
+    if(VIEW==='home') drawHome();
+  },function(){});
+}
+function drawAlerts(){
+  if(!ALERTS){loadAlerts();return}
+  var c=ALERTS.counts||{};
+  var h='<div class="sbar" style="padding:12px 14px 8px"><div class="srow" style="margin:0">';
+  AKINDS.forEach(function(a){
+    var n=c[a.k]||0;
+    h+='<button class="act akind'+(ALERT_KIND===a.k?' pri':'')+'" data-k="'+a.k+'" '+
+      'style="padding:8px 12px;flex:0 0 auto">'+esc(a.t)+
+      (n?' <b>'+n+'</b>':' <span style="opacity:.5">0</span>')+'</button>';
+  });
+  h+='</div></div>';
+
+  var kd=null;AKINDS.forEach(function(a){if(a.k===ALERT_KIND)kd=a});
+  var list=ALERTS[ALERT_KIND]||[];
+  h+='<div class="res">';
+  h+='<div class="sec">'+esc(kd.t)+' — '+esc(kd.s)+'  ('+(c[ALERT_KIND]||0)+')</div>';
+
+  if(!list.length){
+    h+='<div class="empty">Nothing here. Good.</div>';
+  } else {
+    list.forEach(function(x){
+      var right, sub=[];
+      if(x.sold365)sub.push(qn(x.sold365)+' sold in 12m');
+      if(x.cover!==''&&x.cover!==null&&x.cover>0)sub.push(Math.round(x.cover)+'d cover');
+      if(x.coming>0)sub.push('<b style="color:var(--green)">'+qn(x.coming)+' coming'+
+        (x.due?' '+esc(x.due):'')+'</b>');
+      if(ALERT_KIND==='negative')right='<span class="st n">'+qn(x.qty)+'</span>';
+      else right='<span class="st '+(x.qty>0?'y':'n')+'">'+qn(x.qty)+' left</span>';
+
+      var btn = (ALERT_KIND==='negative')
+        ? '<button class="act" style="padding:8px 12px;flex:0 0 auto" data-cnt="'+esc(x.code)+
+          '" data-nm="'+esc(x.name)+'" data-sq="'+esc(x.qty)+'">Count</button>'
+        : (x.coming>0
+            ? '<span class="st y" style="font-size:11px">on order</span>'
+            : '<button class="act pri" style="padding:8px 12px;flex:0 0 auto" data-req="'+
+              esc(x.code)+'" data-nm="'+esc(x.name)+'">Request</button>');
+
+      h+='<div class="p" data-c="'+esc(x.code)+'">'+
+        '<div class="mid"><div class="nm">'+esc(x.name)+'</div>'+
+        '<div class="cd">'+esc(x.code)+(sub.length?'  ·  '+sub.join('  ·  '):'')+'</div></div>'+
+        '<div class="rt">'+right+'</div>'+btn+'</div>';
+    });
+  }
+  h+='</div>';
+  $('vAlert').innerHTML=h;
+
+  each($('vAlert').querySelectorAll('.akind'),function(b){
+    b.onclick=function(ev){ev.stopPropagation();ALERT_KIND=this.getAttribute('data-k');drawAlerts()}});
+  each($('vAlert').querySelectorAll('[data-req]'),function(b){
+    b.onclick=function(ev){ev.stopPropagation();
+      poRequest(this.getAttribute('data-req'),this.getAttribute('data-nm'))}});
+  each($('vAlert').querySelectorAll('[data-cnt]'),function(b){
+    b.onclick=function(ev){ev.stopPropagation();
+      openCount(this.getAttribute('data-cnt'),this.getAttribute('data-nm'),
+        this.getAttribute('data-sq'))}});
+  each($('vAlert').querySelectorAll('.p[data-c]'),function(el){
+    el.onclick=function(){openP(this.getAttribute('data-c'))}});
+  $('nAlert').textContent=((c.stockout||0)+(c.low||0))||'';
+}
+
+/* ══════════════════ PO REQUEST ══════════════════
+   Opens the real PO request app with the product prefilled. We deliberately
+   do NOT rebuild that app here — it works, it took nine versions to get
+   right, and two copies of it would drift apart. */
+function poRequest(code,name,qty,type){
+  var base=(localStorage.getItem('vtf_po')||'').trim();
+  if(!base){
+    toast('Add the PO request app link in settings first',true);
+    $('ovConn').className='ov on';
+    return;
+  }
+  var u=base+(base.indexOf('?')<0?'?':'&')+
+    'code='+encodeURIComponent(code||'')+
+    '&name='+encodeURIComponent(name||'')+
+    '&qty='+encodeURIComponent(qty||1)+
+    '&type='+encodeURIComponent(type||'No Stock')+
+    '&by='+encodeURIComponent(CFG.who||'');
+  window.open(u,'_blank');
+  /* log it here too, so lost demand is captured even if the PO is never raised */
+  api('capture',{type:'no_stock',code:code,text:'',qty:qty||'',by:CFG.who,
+    note:'sent to PO request app'},function(){loadBadges()},function(){});
+}
+
+function poRequestCur(){ if(CUR) poRequest(CUR.code,CUR.name,1,"No Stock"); }
+
+/* ══════════════════ LOCAL CATALOGUE ══════════════════
+   The counter cannot wait for a round trip per keystroke. The PO request app
+   feels instant for one reason: it holds every product in the browser and
+   searches locally. This does the same.
+
+   Loaded once, kept in localStorage, refreshed in the background. After the
+   first visit, typing is instant — and it keeps working if the line drops. */
+var CAT=null, CIX=null, CATLOADING=false;
+var C={CODE:0,NAME:1,CAT:2,SUB:3,BRAND:4,QTY:5,W:6,WO:7,GST:8,MV:9,COVER:10,SOLD:11,COMING:12,DUE:13};
+
+function catKey(){ return 'vtf_cat_'+(CFG.token||'').slice(-8); }
+function loadCatalog(force){
+  if(CATLOADING) return;
+  if(!force){
+    try{
+      var raw=localStorage.getItem(catKey());
+      if(raw){ var o=JSON.parse(raw);
+        if(o&&o.rows&&o.rows.length){ CAT=o.rows; buildIndex(); setCatMeta(o.at,true); } }
+    }catch(e){}
+  }
+  CATLOADING=true;
+  var acc=[], page=0;
+  function next(){
+    api('catalog',{page:page},function(d){
+      acc=acc.concat(d.rows||[]);
+      if(page+1<d.pages){ page++; next(); return; }
+      CAT=acc; buildIndex(); CATLOADING=false;
+      if(d.stock){ STOCKMETA=d.stock; paintStockBtn(); }
+      var stamp=new Date().toISOString();
+      try{ localStorage.setItem(catKey(),JSON.stringify({at:stamp,v:d.version,rows:acc})); }
+      catch(e){ /* over quota — memory only, still instant this session */ }
+      setCatMeta(stamp,false);
+      if(VIEW==='find') search();
+      if(VIEW==='home') drawHome();
+    },function(e){ CATLOADING=false; if(!CAT) toast(e,true); });
+  }
+  next();
+}
+function setCatMeta(at,cached){
+  var el=$('catMeta'); if(!el) return;
+  el.textContent=(CAT?CAT.length.toLocaleString('en-IN'):'0')+' products'+
+    (cached?' · from this device':' · just refreshed');
+}
+/* the same normalisation the PO app uses: strip everything but letters and
+   digits, so 25*32 and 25 32 and 25x32 all match */
+/* Descriptions are mostly sizes, so punctuation is noise: 14*30/35*45 must
+   match "14 30 45", "14303545" and "35*45" alike. Strip everything but
+   letters and digits on both sides, then require every token as a substring
+   in ANY order. Verified against 4 PEL 14*30/35*45 MM COUPLING AQA for
+   "4 pel 35 mm", "45 mm", "14303545", "14 30 45 pel", "aqa coupling 4 pel". */
+function norm(s){ return String(s==null?'':s).toLowerCase().replace(/[^a-z0-9]/g,''); }
+function toks(q){ return String(q||'').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean); }
+function buildIndex(){
+  CIX=CAT.map(function(r){
+    return {r:r,c:norm(r[C.CODE]+' '+r[C.NAME]+' '+r[C.BRAND]+' '+r[C.CAT]+' '+r[C.SUB])};
+  });
+}
+function localSearch(q,cat,brand,sub,stockOnly){
+  if(!CIX) return null;
+  var tk=toks(q);
+  var out=[];
+  for(var i=0;i<CIX.length;i++){
+    var it=CIX[i], r=it.r;
+    if(cat && r[C.CAT]!==cat) continue;
+    if(brand && r[C.BRAND]!==brand) continue;
+    if(sub && r[C.SUB]!==sub) continue;
+    if(stockOnly && !(Number(r[C.QTY])>0)) continue;
+    if(tk.length){
+      var ok=true;
+      for(var t=0;t<tk.length;t++){
+        if(it.c.indexOf(tk[t])<0){ ok=false; break; }
+      }
+      if(!ok) continue;
+      /* rank by where the tokens land — an earlier match is a better match */
+      var sc=0;
+      for(var u=0;u<tk.length;u++) sc += it.c.indexOf(tk[u]);
+      sc += String(r[C.NAME]).length*0.02;
+      out.push({r:r,s:sc});
+    } else out.push({r:r,s:String(r[C.NAME]).length*0.02});
+    if(!tk.length && out.length>400) break;
+  }
+  out.sort(function(a,b){
+    var ah=Number(a.r[C.QTY])>0?0:1, bh=Number(b.r[C.QTY])>0?0:1;
+    if(ah!==bh) return ah-bh;
+    return a.s-b.s;
+  });
+  return {items:out.slice(0,60).map(function(x){return x.r}), total:out.length};
+}
+
+/* ══════════════════ FILTERS ══════════════════ */
+var FBRAND='', FSUB='';
+function fillFilters(){
+  if(!CAT) return;
+  var b={},s={};
+  CAT.forEach(function(r){ if(r[C.BRAND])b[r[C.BRAND]]=1; if(r[C.SUB])s[r[C.SUB]]=1; });
+  var bs=$('fbrand'), ss=$('fsub');
+  if(bs&&bs.options.length<2){
+    Object.keys(b).sort().forEach(function(x){
+      var o=document.createElement('option');o.value=x;o.textContent=x;bs.appendChild(o)});
+  }
+  if(ss&&ss.options.length<2){
+    Object.keys(s).sort().forEach(function(x){
+      var o=document.createElement('option');o.value=x;o.textContent=x;ss.appendChild(o)});
+  }
+}
+
+
+/* what customers have asked for — the case for a PO, in evidence */
+function demandBlock(d){
+  if(!d||!d.total) return '';
+  var chips='';
+  [['no_stock','asked, no stock'],['request','not stocked'],
+   ['enquiry','enquiry'],['feedback','feedback']].forEach(function(p){
+    if(d[p[0]]>0) chips+='<span class="dchip d-'+p[0]+'">'+d[p[0]]+' '+p[1]+'</span>';
+  });
+  var recent=(d.items||[]).slice(0,4).map(function(x){
+    return '<div class="why">'+esc(x.at)+' · '+esc(x.type.replace('_',' '))+
+      (x.qty?' · qty '+x.qty:'')+(x.customer?' · '+esc(x.customer):'')+
+      (x.note?' · "'+esc(x.note)+'"':'')+'</div>';
+  }).join('');
+  return '<div class="stock" style="background:var(--stone-l);border:1px solid var(--line);'+
+    'color:var(--ink)"><div style="font-size:11px;font-weight:750;letter-spacing:.5px;'+
+    'text-transform:uppercase;color:var(--ink3)">Customers have asked '+d.total+
+    ' time'+(d.total===1?'':'s')+
+    (d.qty?' · '+qn(d.qty)+' units wanted':'')+
+    (d.customer_count?' · '+d.customer_count+' customer'+(d.customer_count===1?'':'s'):'')+
+    '</div><div style="margin-top:6px">'+chips+'</div>'+recent+'</div>';
+}
+
+/* what is coming, and WHY it was ordered — a customer-order quantity is
+   spoken for the moment it lands, so the counter must not promise it twice */
+function poBlock(po){
+  if(!po) return '';
+  if(po.is_new && !po.on_order){
+    return '<div class="stock" style="background:#EDE8FA;border:1px solid #D6CBF2;color:#4A3585">'+
+      '<b>Added through a PO request</b> — this product was created at the counter, '+
+      'not from the catalogue.'+
+      (po.last_received?'<div class="why">last received '+esc(po.last_received)+'</div>':'')+
+      '</div>';
+  }
+  if(!po.on_order) return '';
+  var lines=(po.lines||[]).map(function(l){
+    var why=l.reason?('<b>'+esc(l.reason)+'</b>'):'';
+    return '<div class="why">'+esc(l.lane||'')+' PO '+esc(l.po)+' · '+esc(l.status)+
+      ' · '+qn(l.ordered-l.received)+' due'+(l.due?' '+esc(l.due):'')+
+      (l.part&&l.received_on?' · '+qn(l.received)+' received '+esc(l.received_on):'')+
+      (why?' · for '+why:'')+'</div>';
+  }).join('');
+  var spoken=(po.reasons&&po.reasons['Customer Order'])?po.reasons['Customer Order']:0;
+  return '<div class="stock y">'+
+    (po.is_new?'<span class="newtag">added in PO</span> ':'')+
+    '<span class="big">'+qn(po.on_order)+'</span> on the way'+
+    (po.last_received?'  ·  part received '+esc(po.last_received):'')+
+    (po.next_due?'  ·  due '+esc(po.next_due):'')+
+    (po.in_transit>0?'  ·  '+qn(po.in_transit)+' in transit':'')+
+    (spoken>0?'<div style="font-weight:750;margin-top:5px;color:var(--red)">'+
+      '\u26A0 '+qn(spoken)+' of these are for a customer order — already spoken for'+
+      '</div>':'')+
+    lines+'</div>';
+}
+
+/* ══════════════════ BROWSE ALL ══════════════════
+   The whole catalogue, sorted and filtered. Runs entirely on the cached
+   copy, so it is instant even at 7,000 rows. */
+var BSORT='az', BPAGE=0, BSIZE=100;
+function drawBrowse(){
+  if(!CAT){ $('vBrowse').innerHTML='<div class="empty"><div class="spin"></div>'+
+    'Loading catalogue…</div>'; setTimeout(drawBrowse,600); return; }
+  var rows=CAT.slice();
+  var c=$('bcat')?$('bcat').value:'', b=$('bbrand')?$('bbrand').value:'',
+      s=$('bsub')?$('bsub').value:'', q=$('bq')?$('bq').value.trim():'',
+      st=$('bstock')?$('bstock').checked:false;
+  if(c)rows=rows.filter(function(r){return r[C.CAT]===c});
+  if(b)rows=rows.filter(function(r){return r[C.BRAND]===b});
+  if(s)rows=rows.filter(function(r){return r[C.SUB]===s});
+  if(st)rows=rows.filter(function(r){return Number(r[C.QTY])>0});
+  if(q){var t=norm(q);rows=rows.filter(function(r){
+    return norm(r[C.CODE]+' '+r[C.NAME]).indexOf(t)>=0});}
+
+  var SORTS={
+    az:function(x,y){return String(x[C.NAME]).localeCompare(String(y[C.NAME]))},
+    za:function(x,y){return String(y[C.NAME]).localeCompare(String(x[C.NAME]))},
+    stock:function(x,y){return Number(y[C.QTY])-Number(x[C.QTY])},
+    low:function(x,y){return Number(x[C.QTY])-Number(y[C.QTY])},
+    sold:function(x,y){return Number(y[C.SOLD])-Number(x[C.SOLD])},
+    cover:function(x,y){return (Number(x[C.COVER])||99999)-(Number(y[C.COVER])||99999)},
+    price:function(x,y){return Number(y[C.W])-Number(x[C.W])},
+    cheap:function(x,y){return Number(x[C.W])-Number(y[C.W])},
+    coming:function(x,y){return Number(y[C.COMING])-Number(x[C.COMING])}
+  };
+  rows.sort(SORTS[BSORT]||SORTS.az);
+  var total=rows.length;
+  var page=rows.slice(BPAGE*BSIZE,BPAGE*BSIZE+BSIZE);
+
+  var h='<div class="sortbar">'+
+    '<input type="text" id="bq" placeholder="filter…" value="'+esc(q)+'" style="flex:1;min-width:120px;padding:7px 10px;border:1px solid var(--line);border-radius:8px">'+
+    '<select id="bsort">'+
+      opt('az','Name A–Z')+opt('za','Name Z–A')+opt('stock','Most stock')+
+      opt('low','Least stock')+opt('sold','Best selling')+opt('cover','Least cover')+
+      opt('price','Price high')+opt('cheap','Price low')+opt('coming','Most on order')+
+    '</select>'+
+    '<select id="bcat"><option value="">All categories</option></select>'+
+    '<select id="bsub"><option value="">All subcategories</option></select>'+
+    '<select id="bbrand"><option value="">All brands</option></select>'+
+    '<label class="tog"><input type="checkbox" id="bstock"'+(st?' checked':'')+'> In stock</label>'+
+    '<span class="muted" style="margin-left:auto;font-size:12px">'+total.toLocaleString('en-IN')+' products</span>'+
+    '</div><div class="res">';
+  page.forEach(function(r){
+    var has=Number(r[C.QTY])>0;
+    h+='<div class="p" data-c="'+esc(r[C.CODE])+'">'+
+      '<span class="dot '+(has?'y':'n')+'"></span>'+
+      '<div class="mid"><div class="nm">'+esc(r[C.NAME])+'</div>'+
+      '<div class="cd">'+esc(r[C.CODE])+(r[C.BRAND]?'  ·  '+esc(r[C.BRAND]):'')+
+        (r[C.SUB]?'  ·  '+esc(r[C.SUB]):'')+'</div>'+
+      '<div class="pricebox">'+priceTags(r[C.W],r[C.WO],r[C.GST])+'</div></div>'+
+      '<div class="rt"><div class="st '+(has?'y':'n')+'">'+
+        (has?qn(r[C.QTY]):'no stock')+'</div>'+
+      (Number(r[C.COMING])>0?'<div class="st y" style="font-size:11px">'+
+        qn(r[C.COMING])+' coming</div>':'')+'</div></div>';
+  });
+  if(total>BSIZE){
+    h+='<div class="srow" style="justify-content:center;padding:14px 0">'+
+      '<button class="act" id="bPrev"'+(BPAGE?'':' disabled')+'>‹ prev</button>'+
+      '<span class="muted">'+(BPAGE*BSIZE+1)+'–'+Math.min((BPAGE+1)*BSIZE,total)+'</span>'+
+      '<button class="act" id="bNext"'+((BPAGE+1)*BSIZE>=total?' disabled':'')+'>next ›</button></div>';
+  }
+  h+='</div>';
+  $('vBrowse').innerHTML=h;
+  fillSel('bcat',C.CAT,c); fillSel('bsub',C.SUB,s); fillSel('bbrand',C.BRAND,b);
+  $('bsort').value=BSORT;
+  $('bsort').onchange=function(){BSORT=this.value;BPAGE=0;drawBrowse()};
+  ['bcat','bsub','bbrand','bstock'].forEach(function(id){
+    if($(id))$(id).onchange=function(){BPAGE=0;drawBrowse()}});
+  var bq=$('bq'); if(bq){ bq.oninput=function(){var v=this.value;BPAGE=0;drawBrowse();
+    var n=$('bq'); if(n){n.value=v;n.focus();n.setSelectionRange(v.length,v.length)}}; }
+  if($('bPrev'))$('bPrev').onclick=function(){if(BPAGE){BPAGE--;drawBrowse()}};
+  if($('bNext'))$('bNext').onclick=function(){BPAGE++;drawBrowse()};
+  each($('vBrowse').querySelectorAll('.p[data-c]'),function(el){
+    el.onclick=function(){openP(this.getAttribute('data-c'))}});
+}
+function opt(v,l){return '<option value="'+v+'">'+l+'</option>'}
+function fillSel(id,ix,cur){
+  var el=$(id); if(!el||!CAT)return;
+  var seen={};
+  CAT.forEach(function(r){ if(r[ix])seen[r[ix]]=1 });
+  Object.keys(seen).sort().forEach(function(x){
+    var o=document.createElement('option');o.value=x;o.textContent=x;
+    if(x===cur)o.selected=true; el.appendChild(o)});
+}
+
+/* ══════════════════ QUOTE ══════════════════
+   What this customer paid last time, beside what it sells for now. Both are
+   shown because an old rate can quietly be below today's cost, and the
+   counter should see that before repeating it. */
+var QCUST=null, QLIST=[], QLANE='W', QEDIT={}, QCUSTS=null;
+/* which rate each line is quoting from, any extra discount, and one set of
+   additional charges for the whole quote */
+var QSRC={}, QDISC={}, QCHARGE={label:'',amount:0};
+/* VT-020c — the quote data never changes during a session and nothing here
+   writes to a sheet, so it is cached on the device. First open pays for it;
+   after that the customer list and every history is instant. A background
+   refresh keeps it current without anyone waiting. */
+function qKey(n){ return 'vtq_'+n+'_'+(CFG.token||'').slice(-8); }
+function qCacheGet(n,maxAgeMin){
+  try{
+    var raw=localStorage.getItem(qKey(n)); if(!raw) return null;
+    var o=JSON.parse(raw);
+    if(!o||!o.at) return null;
+    if(maxAgeMin && (Date.now()-o.at)/60000 > maxAgeMin) return o.d;  /* stale but usable */
+    return o.d;
+  }catch(e){ return null; }
+}
+function qCacheSet(n,d){
+  try{ localStorage.setItem(qKey(n),JSON.stringify({at:Date.now(),d:d})); }catch(e){}
+}
+
+function drawQuote(){
+  if(!QCUSTS){
+    var cached=qCacheGet('custs');
+    if(cached && cached.length){
+      QCUSTS=cached;
+      /* refresh quietly behind the screen already on show */
+      api('customers',{},function(d){
+        if(d.items&&d.items.length){ QCUSTS=d.items; qCacheSet('custs',d.items);
+          if(VIEW==='quote'&&!QCUST) drawQuote(); }
+      },function(){});
+    } else {
+      $('vQuote').innerHTML='<div class="empty"><div class="spin"></div>Loading customers…</div>';
+      api('customers',{},function(d){QCUSTS=d.items||[];qCacheSet('custs',QCUSTS);drawQuote()},
+        function(e){$('vQuote').innerHTML='<div class="empty">'+esc(e)+'</div>'});
+      return;
+    }
+  }
+  var h='<div class="qbar">'+
+    '<input type="text" id="qcust" placeholder="Customer…" value="'+
+      esc(QCUST?QCUST.name:'')+'" style="flex:1;min-width:160px" autocomplete="off">'+
+    '<div class="seg" style="display:flex;gap:3px">'+
+      '<button class="act'+(QLANE==='W'?' pri':'')+'" id="qlw" style="padding:8px 14px"'+
+        ((QCUST&&!QCUST.w)?' disabled title="no GST ledger for this customer"':'')+
+        '>With GST</button>'+
+      '<button class="act'+(QLANE==='WO'?' pri':'')+'" id="qlwo" style="padding:8px 14px"'+
+        ((QCUST&&!QCUST.wo)?' disabled title="no non-GST ledger for this customer"':'')+
+        '>Without GST</button>'+
+    '</div>'+
+    (QLIST.length?'<button class="act" id="qclear" style="padding:8px 12px">Clear</button>':'')+
+    '</div><div id="qsug"></div>';
+
+  if(!QCUST){
+    h+='<div class="res"><div class="sec">Recent customers</div>';
+    QCUSTS.slice(0,40).forEach(function(c){ h+=custRow(c); });
+    h+='</div>';
+    $('vQuote').innerHTML=h;
+    wireQuoteBar();
+    each($('vQuote').querySelectorAll('.p[data-ck]'),function(el){
+      el.onclick=function(){ pickFirm(this.getAttribute('data-ck')); }});
+    return;
+  }
+
+  h+='<div class="qbar" style="border-top:none">'+
+    '<input type="text" id="qadd" placeholder="Add a product…" style="flex:1;min-width:160px" autocomplete="off">'+
+    '<span class="muted" style="font-size:12px">'+QLIST.length+' line'+(QLIST.length===1?'':'s')+'</span>'+
+    '</div><div id="qaddsug"></div>';
+
+  h+='<div id="qhist"></div>';
+
+  if(QLIST.length){
+    var tot=0, totTax=0;
+    h+='<div class="sec" style="padding:10px 14px 4px">Quote for '+esc(QCUST.name)+
+      '  <span class="lanetag '+(QLANE==='W'?'w">WITH GST':'wo">WITHOUT GST')+'</span></div>';
+    QLIST.forEach(function(l,i){
+      var was=QLANE==='W'?l.last_w:l.last_wo;
+      var wasDate=QLANE==='W'?l.last_w_date:l.last_wo_date;
+      var now=QLANE==='W'?l.now_w:l.now_wo;
+      var src=QSRC[l.code]||(was?'theirs':'list');
+      var base=(src==='theirs'&&was)?was:(now||was||0);
+      var rate=(QEDIT[l.code]!==undefined)?QEDIT[l.code]:base;
+      var disc=Number(QDISC[l.code]||0);
+      var net=Number(rate)*(1-disc/100);
+      var line=net*Number(l.qty||1);
+      tot+=line;
+      var gst=Number(l.gst)||0;
+      if(QLANE==='W'&&gst) totTax += line - (line/(1+gst/100));
+
+      var delta='';
+      if(was&&now){
+        var d=Math.round((now-was)/was*1000)/10;
+        delta=(d>0?'<span class="qup">list +'+d+'%</span>':
+               (d<0?'<span class="qdn">list '+d+'%</span>':''));
+      }
+      h+='<div class="qrow">'+
+        '<div class="qn"><b>'+esc(l.name)+'</b>'+
+          '<span>'+esc(l.code)+
+          (l.qty_available>0?'  ·  '+qn(l.qty_available)+' in stock':
+            '  ·  <span style="color:var(--red)">no stock</span>')+
+          (l.times?'  ·  bought '+l.times+'\u00d7, last '+esc(l.last):'  ·  first time')+
+          '</span></div>'+
+
+        '<div class="qcell was'+(src==='theirs'?' pick':'')+'" data-src="theirs" data-c="'+esc(l.code)+'">'+
+          '<div class="l">their rate</div>'+
+          '<div class="v">'+(was?rs(was):'\u2014')+'</div>'+
+          (wasDate?'<div style="font-size:9.5px;color:var(--ink3)">'+esc(wasDate)+'</div>':'')+'</div>'+
+
+        '<div class="qcell now'+(src==='list'?' pick':'')+'" data-src="list" data-c="'+esc(l.code)+'">'+
+          '<div class="l">vasy rate</div>'+
+          '<div class="v">'+(now?rs(now):'\u2014')+'</div>'+delta+'</div>'+
+
+        '<div class="qcell"><div class="l">qty</div>'+
+          '<input class="qin" data-q="'+i+'" value="'+(l.qty||1)+'"></div>'+
+        '<div class="qcell"><div class="l">rate</div>'+
+          '<input class="qin'+(QEDIT[l.code]!==undefined?' edited':'')+'" data-r="'+
+            esc(l.code)+'" value="'+(Math.round(rate*100)/100)+'"></div>'+
+        '<div class="qcell"><div class="l">disc %</div>'+
+          '<input class="qin'+(disc?' edited':'')+'" data-d="'+esc(l.code)+
+            '" value="'+disc+'"></div>'+
+        '<div class="qcell"><div class="l">amount</div><div class="v">'+rs(line)+'</div>'+
+          (QLANE==='W'&&gst?'<div style="font-size:9.5px;color:var(--ink3)">'+
+            'ex '+rs(line/(1+gst/100))+'</div>':'')+'</div>'+
+        '<button class="act" data-x="'+i+'" style="padding:6px 10px">\u2715</button>'+
+        '</div>';
+    });
+
+    /* additional charges — freight, packing, anything else on the bill */
+    h+='<div class="qrow" style="background:var(--stone-l)">'+
+      '<div class="qn"><b>Additional charges</b>'+
+        '<span>freight, packing, or anything else</span></div>'+
+      '<div class="qcell"><div class="l">label</div>'+
+        '<input class="qin" id="qchl" style="width:120px;text-align:left" value="'+
+        esc(QCHARGE.label||'')+'" placeholder="freight"></div>'+
+      '<div class="qcell"><div class="l">amount</div>'+
+        '<input class="qin" id="qcha" value="'+(QCHARGE.amount||0)+'"></div>'+
+      '</div>';
+    var charge=Number(QCHARGE.amount)||0;
+    var grand=tot+charge;
+
+    h+='<div class="qtot">'+
+      '<span>'+QLIST.length+' item'+(QLIST.length===1?'':'s')+'</span>'+
+      '<span style="opacity:.75">goods '+rs(tot)+
+        (charge?'  +  '+esc(QCHARGE.label||'charges')+' '+rs(charge):'')+
+        (QLANE==='W'&&totTax?'  ·  incl GST '+rs(totTax):'')+'</span>'+
+      '<div class="spacer" style="flex:1"></div>'+
+      '<b>'+rs(grand)+'</b>'+
+      '<button class="act" id="qcopy" style="padding:10px 16px">Copy</button>'+
+      '<button class="act pri" id="qwa" style="padding:10px 16px">WhatsApp</button></div>';
+  }
+  $('vQuote').innerHTML=h;
+  wireQuoteBar();
+  wireQuoteRows();
+  if(QPAIR) renderHistory();
+}
+
+
+/* ── one firm, two ledgers ──
+   Vasy holds a customer twice: "AADHI PUMPS" and ". AADHI PUMPS", the dot
+   marking the non-GST ledger. Same firm, so search finds them once — but the
+   ledgers stay apart, because a quote is either GST or it is not, and the
+   rates differ. The toggle switches ledger; each builds its own quote. */
+function custRow(c){
+  var tags='';
+  if(c.w) tags+='<span class="lanetag w">W</span> ';
+  if(c.wo) tags+='<span class="lanetag wo">WO</span> ';
+  return '<div class="p" data-ck="'+esc(c.firm)+'">'+
+    '<div class="mid"><div class="nm">'+esc(c.name)+'</div>'+
+    '<div class="cd">'+tags+c.products+' products  ·  last '+esc(c.last)+
+      (c.whatsapp?'  ·  '+esc(c.whatsapp):'')+'</div></div></div>';
+}
+function pickFirm(firm){
+  QCUSTS.forEach(function(c){ if(c.firm===firm) QCUST=c; });
+  if(!QCUST) return;
+  QLIST=[];QEDIT={};QSRC={};QDISC={};QCHARGE={label:'',amount:0};
+  /* open on whichever ledger they actually use */
+  QLANE = QCUST.w ? 'W' : 'WO';
+  QHIST=null; QHIST2=null;
+  drawQuote();
+  loadHistory();
+}
+
+function wireQuoteBar(){
+  if($('qlw'))$('qlw').onclick=function(){
+    if(QCUST&&!QCUST.w)return; QLANE='W';
+    if(QHIST2)QHIST=QHIST2.w; drawQuote();};
+  if($('qlwo'))$('qlwo').onclick=function(){
+    if(QCUST&&!QCUST.wo)return; QLANE='WO';
+    if(QHIST2)QHIST=QHIST2.wo; drawQuote();};
+  if($('qclear'))$('qclear').onclick=function(){QLIST=[];QEDIT={};QSRC={};QDISC={};
+    QCHARGE={label:'',amount:0};drawQuote()};
+  var ci=$('qcust');
+  if(ci)ci.oninput=function(){
+    var t=this.value.toLowerCase().trim();
+    if(!t){QCUST=null;QHIST=null;drawQuote();return}
+    var hits=QCUSTS.filter(function(c){return c.name.toLowerCase().indexOf(t)>=0}).slice(0,12);
+    $('qsug').innerHTML=hits.map(custRow).join('');
+    each($('qsug').querySelectorAll('[data-ck]'),function(el){
+      el.onclick=function(){ $('qsug').innerHTML=''; pickFirm(this.getAttribute('data-ck')); }});
+  };
+  var ai=$('qadd');
+  if(ai)ai.oninput=function(){
+    var v=this.value;
+    var res=localSearch(v,'','','',false);
+    if(!res||!v.trim()){$('qaddsug').innerHTML='';return}
+    $('qaddsug').innerHTML=res.items.slice(0,8).map(function(r){
+      return '<div class="p" data-add="'+esc(r[C.CODE])+'"><div class="mid">'+
+        '<div class="nm">'+esc(r[C.NAME])+'</div><div class="cd">'+esc(r[C.CODE])+'</div></div>'+
+        '<div class="rt"><div class="pr">'+rs(QLANE==='W'?r[C.W]:r[C.WO])+'</div></div></div>'}).join('');
+    each($('qaddsug').querySelectorAll('[data-add]'),function(el){
+      el.onclick=function(){addQuote(this.getAttribute('data-add'))}});
+  };
+}
+function wireQuoteRows(){
+  each($('vQuote').querySelectorAll('[data-q]'),function(el){
+    el.onchange=function(){QLIST[Number(this.getAttribute('data-q'))].qty=
+      Math.max(1,Number(this.value)||1);drawQuote()}});
+  each($('vQuote').querySelectorAll('[data-r]'),function(el){
+    el.onchange=function(){QEDIT[this.getAttribute('data-r')]=Number(this.value)||0;drawQuote()}});
+  each($('vQuote').querySelectorAll('[data-x]'),function(el){
+    el.onclick=function(){QLIST.splice(Number(this.getAttribute('data-x')),1);drawQuote()}});
+  each($('vQuote').querySelectorAll('[data-d]'),function(el){
+    el.onchange=function(){
+      QDISC[this.getAttribute('data-d')]=Math.max(0,Math.min(100,Number(this.value)||0));
+      drawQuote();}});
+  /* tap either rate cell to quote from it */
+  each($('vQuote').querySelectorAll('[data-src]'),function(el){
+    el.style.cursor='pointer';
+    el.onclick=function(){
+      QSRC[this.getAttribute('data-c')]=this.getAttribute('data-src');
+      delete QEDIT[this.getAttribute('data-c')];
+      drawQuote();}});
+  if($('qchl'))$('qchl').onchange=function(){QCHARGE.label=this.value;drawQuote()};
+  if($('qcha'))$('qcha').onchange=function(){QCHARGE.amount=Number(this.value)||0;drawQuote()};
+  if($('qcopy'))$('qcopy').onclick=function(){copyQuote(false)};
+  if($('qwa'))$('qwa').onclick=function(){copyQuote(true)};
+}
+function addQuote(code){
+  if(!QCUST)return;
+  for(var i=0;i<QLIST.length;i++)if(QLIST[i].code===code){QLIST[i].qty=(QLIST[i].qty||1)+1;drawQuote();return}
+  /* build the line locally — the catalogue and the history are both already
+     on the device, so adding a product needs no round trip at all */
+  var hist=null;
+  if(QPAIR&&QPAIR.items){
+    for(var j=0;j<QPAIR.items.length;j++) if(QPAIR.items[j].code===code) hist=QPAIR.items[j];
+  }
+  var cat=null;
+  if(CAT){ for(var k=0;k<CAT.length;k++) if(CAT[k][C.CODE]===code) cat=CAT[k]; }
+  if(cat||hist){
+    QLIST.push({
+      code:code, name:cat?cat[C.NAME]:(hist?hist.name:code), qty:1,
+      qty_available:cat?Number(cat[C.QTY])||0:0,
+      gst:cat?Number(cat[C.GST])||0:0,
+      now_w:cat?Number(cat[C.W])||'':'', now_wo:cat?Number(cat[C.WO])||'':'',
+      last_w:hist?hist.w:'', last_w_date:hist?hist.w_date:'',
+      last_wo:hist?hist.wo:'', last_wo_date:hist?hist.wo_date:'',
+      times:hist?(hist.w_times||hist.wo_times||0):0, last:hist?hist.last:''
+    });
+    $('qadd').value='';$('qaddsug').innerHTML='';drawQuote();
+    return;
+  }
+  var lk=(QLANE==='WO'&&QCUST.wo)?QCUST.wo.key:(QCUST.w?QCUST.w.key:'');
+  api('quote',{key:lk,codes:code},function(d){
+    if(d.lines&&d.lines[0]){var l=d.lines[0];l.qty=1;QLIST.push(l);
+      $('qadd').value='';$('qaddsug').innerHTML='';drawQuote();}
+  },function(e){toast(e,true)});
+}
+var QHIST=null, QHIST2=null, QPAIR=null;
+function loadHistory(){
+  if(!QCUST)return;
+  var ck='hist_'+QCUST.firm;
+  var cached=qCacheGet(ck);
+  if(cached){ QPAIR=cached; renderHistory(); }
+  api('historypair',{w:QCUST.w?QCUST.w.key:'',wo:QCUST.wo?QCUST.wo.key:''},
+    function(d){
+      QPAIR=d; qCacheSet(ck,d);
+      if(QCUST&&QCUST.firm===ck.slice(5)) renderHistory();
+    }, function(){});
+}
+/* VT-020: one row per product with BOTH rates, and a button to add either.
+   The same product is often bought on both ledgers at different rates —
+   seeing the pair beats holding two lists in your head. */
+function renderHistory(){
+  var el=$('qhist'); if(!el||!QPAIR)return;
+  var items=QPAIR.items||[];
+  if(!items.length){el.innerHTML='<div class="empty">No purchase history for this customer.</div>';return}
+  var h='<div class="sec" style="padding:10px 14px 4px">'+
+    'What '+esc(QPAIR.customer)+' has bought  ('+QPAIR.total+
+    (QPAIR.both?'  ·  '+QPAIR.both+' on both lanes':'')+')</div>'+
+    '<div class="res">';
+  items.slice(0,60).forEach(function(x){
+    h+='<div class="p" style="align-items:stretch">'+
+      '<div class="mid"><div class="nm">'+esc(x.name)+'</div>'+
+      '<div class="cd">'+esc(x.code)+'  ·  '+qn(x.qty)+' units  ·  last '+esc(x.last)+'</div></div>'+
+      '<div style="display:flex;gap:6px;align-items:center">'+
+
+      (x.w?'<button class="act histbtn" data-add="'+esc(x.code)+'" data-lane="W" '+
+        'style="padding:7px 11px;text-align:right">'+
+        '<span class="lanetag w">W</span><br><b>'+rs(x.w)+'</b>'+
+        (x.w_date?'<br><span style="font-size:9.5px;opacity:.6">'+esc(x.w_date)+'</span>':'')+
+        '</button>':'<span class="qcell" style="opacity:.3;min-width:70px">'+
+        '<div class="l">W</div><div class="v">—</div></span>')+
+
+      (x.wo?'<button class="act histbtn" data-add="'+esc(x.code)+'" data-lane="WO" '+
+        'style="padding:7px 11px;text-align:right">'+
+        '<span class="lanetag wo">WO</span><br><b>'+rs(x.wo)+'</b>'+
+        (x.wo_date?'<br><span style="font-size:9.5px;opacity:.6">'+esc(x.wo_date)+'</span>':'')+
+        '</button>':'<span class="qcell" style="opacity:.3;min-width:70px">'+
+        '<div class="l">WO</div><div class="v">—</div></span>')+
+
+      '</div></div>';
+  });
+  if(items.length>60)h+='<div class="empty">Showing 60 of '+items.length+
+    ' — use the search box above.</div>';
+  h+='</div>';
+  el.innerHTML=h;
+  /* adding from a lane button switches the quote to that lane */
+  each(el.querySelectorAll('.histbtn'),function(b){
+    b.onclick=function(){
+      var lane=this.getAttribute('data-lane');
+      if(lane!==QLANE){
+        if(lane==='W'&&!QCUST.w)return;
+        if(lane==='WO'&&!QCUST.wo)return;
+        QLANE=lane;
+      }
+      addQuote(this.getAttribute('data-add'));
+    }});
+}
+function copyQuote(wa){
+  if(!QLIST.length)return;
+  var L=[], tot=0, gstTot=0;
+  L.push('VITHYA TRADERS');
+  L.push(QCUST.name);
+  L.push(QLANE==='W'?'Rates include GST':'Rates without GST');
+  L.push('');
+  QLIST.forEach(function(l,i){
+    var was=QLANE==='W'?l.last_w:l.last_wo, now=QLANE==='W'?l.now_w:l.now_wo;
+    var src=QSRC[l.code]||(was?'theirs':'list');
+    var base=(src==='theirs'&&was)?was:(now||was||0);
+    var rate=(QEDIT[l.code]!==undefined)?QEDIT[l.code]:base;
+    var disc=Number(QDISC[l.code]||0);
+    var net=Number(rate)*(1-disc/100);
+    var amt=net*Number(l.qty||1);
+    tot+=amt;
+    var g=Number(l.gst)||0;
+    if(QLANE==='W'&&g) gstTot += amt-(amt/(1+g/100));
+    L.push((i+1)+'. '+l.name);
+    L.push('   '+l.qty+' x '+net.toFixed(2)+
+      (disc?'  (after '+disc+'% off '+Number(rate).toFixed(2)+')':'')+
+      '  =  '+amt.toFixed(2));
+  });
+  var charge=Number(QCHARGE.amount)||0;
+  if(charge){ L.push(''); L.push((QCHARGE.label||'Additional charges')+': '+charge.toFixed(2)); }
+  L.push('');
+  L.push('TOTAL: '+(tot+charge).toFixed(2));
+  if(QLANE==='W'&&gstTot){
+    L.push('   (taxable '+((tot+charge)-gstTot).toFixed(2)+
+      '  +  GST '+gstTot.toFixed(2)+')');
+  }
+  var txt=L.join('\n');
+  if(wa){
+    var no=String((QCUST&&QCUST.whatsapp)||'').replace(/[^0-9]/g,'');
+    if(no && no.length===10) no='91'+no;
+    window.open('https://wa.me/'+(no||'')+'?text='+encodeURIComponent(txt),'_blank');
+    return;
+  }
+  var ta=document.createElement('textarea');
+  ta.value=txt; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); toast('Quote copied'); }
+  catch(e){ toast('Could not copy — select the text manually',true); }
+  document.body.removeChild(ta);
+}
+
+
+
+/* ══════════════════ HOME ══════════════════
+   The counter is a busy place and not everyone here reads English easily.
+   Six equal tabs make someone stop and choose; one big search box and a few
+   large tiles do not. Everything is one tap from here, labelled in plain
+   words, with the count on it so nobody has to go looking. */
+function drawHome(){
+  var a=ALERTS?ALERTS.counts:null;
+  var urgent=a?((a.stockout||0)+(a.low||0)):0;
+  var hour=new Date().getHours();
+  var greet=hour<12?'Good morning':(hour<17?'Good afternoon':'Good evening');
+  var who=(CFG.who||'').trim();
+
+  var h='<div class="hero"><div class="hi">'+greet+(who?', '+esc(who.split(' ')[0]):'')+
+    '</div><div class="sub">What do you need?</div></div>'+
+
+    '<div class="bigsearch"><span class="mag">&#128269;</span>'+
+    '<input type="text" id="hq" placeholder="Type a product name or code" autocomplete="off"></div>'+
+
+    '<div class="tiles">'+
+    tile('all','&#128230;','All items','Look through everything',
+      CAT?CAT.length.toLocaleString('en-IN')+' products':'loading')+
+    tile('todo','&#9888;&#65039;','To do','Things needing attention',
+      urgent?urgent+' now':'nothing urgent', urgent>0)+
+    tile('price','&#128179;','Price list','A customer&rsquo;s own rates','')+
+    tile('count','&#128203;','Counting','Check stock on the shelf',
+      CNT&&CNT.items?CNT.items.length+' to do':'')+
+    tile('note','&#128172;','Tell the office','Somebody asked for something','')+
+    tile('po','&#128221;','Order request','Ask for a product to be bought','')+
+    '</div>';
+
+  if(CAT){
+    var inStock=0,out=0,coming=0;
+    CAT.forEach(function(r){
+      if(Number(r[C.QTY])>0)inStock++; else out++;
+      if(Number(r[C.COMING])>0)coming++;
+    });
+    h+='<div class="hstat">'+
+      '<div><div class="n">'+inStock.toLocaleString('en-IN')+'</div><div class="l">on the shelf</div></div>'+
+      '<div><div class="n">'+out.toLocaleString('en-IN')+'</div><div class="l">out of stock</div></div>'+
+      '<div><div class="n">'+coming.toLocaleString('en-IN')+'</div><div class="l">on the way</div></div>'+
+      '</div>'+
+      (STOCKMETA&&STOCKMETA.at?
+        '<div style="text-align:center;font-size:11.5px;color:var(--ink3);'+
+        'margin:-8px 0 16px">stock as at '+stockAge()+
+        '  ·  <button class="act" id="hRefresh" style="padding:3px 10px;'+
+        'font-size:11px">refresh now</button></div>':'');
+  }
+  $('vHome').innerHTML=h;
+
+  var hq=$('hq');
+  hq.oninput=function(){
+    var v=this.value;
+    if(!v.trim())return;
+    goTab('find');
+    var q=$('q'); if(q){ q.value=v; search(); q.focus(); }
+  };
+  hq.onkeydown=function(e){ if(e.key==='Enter'){ this.oninput(); } };
+
+  if($('hRefresh'))$('hRefresh').onclick=refreshStock;
+  each($('vHome').querySelectorAll('[data-go]'),function(el){
+    el.onclick=function(){
+      var g=this.getAttribute('data-go');
+      if(g==='all')      goTab('browse');
+      else if(g==='todo')  goTab('alert');
+      else if(g==='price') goTab('quote');
+      else if(g==='count') goTab('count');
+      else if(g==='note')  { goTab('find'); askFree(); }
+      else if(g==='po')    $('poTop').onclick();
+    };
+  });
+}
+function tile(k,ic,title,sub,cnt,urgent){
+  return '<div class="tile'+(urgent?' urgent':'')+'" data-go="'+k+'">'+
+    '<div class="ic">'+ic+'</div><div class="tl">'+title+'</div>'+
+    '<div class="ts">'+sub+'</div>'+
+    (cnt?'<div class="cnt">'+esc(cnt)+'</div>':'')+'</div>';
+}
+/* move to a tab as if it had been tapped, so the bar stays in step */
+function goTab(name){
+  var t=document.querySelectorAll('.tab');
+  for(var i=0;i<t.length;i++){
+    if(t[i].getAttribute('data-v')===name){ t[i].click(); return; }
+  }
+}
+
+
+/* ══════════════════ LIVE STOCK ══════════════════
+   Stock is the only figure here that cannot be a day old. It refreshes hourly
+   on its own; this button closes even that gap when somebody is standing at
+   the counter and needs to be sure. */
+var STOCKMETA=null;
+function stockAge(){
+  if(!STOCKMETA||!STOCKMETA.at) return '';
+  var m=STOCKMETA.age_min;
+  if(m===null||m===undefined) return esc(STOCKMETA.at);
+  if(m<2) return 'just now';
+  if(m<60) return m+' min ago';
+  var hr=Math.round(m/60);
+  return hr+(hr===1?' hour ago':' hours ago');
+}
+function paintStockBtn(){
+  var b=$('stockBtn'); if(!b) return;
+  var m=STOCKMETA?STOCKMETA.age_min:null;
+  var stale=(m!==null&&m!==undefined&&m>90);
+  b.innerHTML='&#8635; '+(STOCKMETA&&STOCKMETA.at?stockAge():'Stock');
+  b.style.background=stale?'var(--red-bg)':'';
+  b.style.color=stale?'var(--red)':'';
+  b.title=stale?'Stock is more than an hour and a half old — tap to refresh'
+                :'Stock as at '+(STOCKMETA?STOCKMETA.at:'—')+' — tap to refresh';
+}
+function refreshStock(){
+  var b=$('stockBtn'); if(b){b.innerHTML='&#8635; …';b.disabled=true}
+  toast('Refreshing stock from Vasy — about a minute');
+  api('restock',{},function(d){
+    if(b)b.disabled=false;
+    if(d.error){ toast(d.error,true); paintStockBtn(); return; }
+    STOCKMETA=d.meta||null;
+    /* fold the new quantities into the copy already on the device */
+    if(d.map&&CAT){
+      var n=0;
+      CAT.forEach(function(r){
+        var s=d.map[r[C.CODE]];
+        if(s){ r[C.QTY]=s.total; n++; }
+      });
+      try{ localStorage.setItem(catKey(),
+        JSON.stringify({at:new Date().toISOString(),rows:CAT})); }catch(e){}
+      toast('Stock updated — '+n.toLocaleString('en-IN')+' products');
+    } else {
+      toast('Stock refreshed');
+    }
+    paintStockBtn();
+    if(VIEW==='find')search();
+    if(VIEW==='home')drawHome();
+    if(VIEW==='browse')drawBrowse();
+    if(VIEW==='alert')loadAlerts();
+  },function(e){ if(b)b.disabled=false; toast(e,true); paintStockBtn(); });
+}
+</script>
+</body>
+</html>

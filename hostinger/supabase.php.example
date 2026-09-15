@@ -1,0 +1,368 @@
+<?php
+/**********************************************************************
+ * VITHYA TRADERS — VASY FTP → SUPABASE SYNC              [VT-DW-052]
+ *
+ * Replaces the previous insert-only pipeline.
+ *
+ * WHY THIS CHANGED
+ *   Vasy's daily CSV contains a ROLLING WINDOW of recent documents, not
+ *   just the previous day. The old script inserted every row with no key,
+ *   so every overlapping document was duplicated on every run. sales_data
+ *   had grown 299 duplicate pairs (Rs 4.7 lakh of phantom sales) in weeks.
+ *
+ * HOW IT WORKS NOW — three modes
+ *   UPSERT   keyed on a real unique id            (product, vendor, bank/cash)
+ *   REPLACE  delete-then-insert per document      (sales, purchase, inward...)
+ *   REPLACE  delete-then-insert per date          (stock adjustment only,
+ *                                                  it has no document number)
+ *
+ *   REPLACE is what makes edits work: if an invoice is corrected in Vasy,
+ *   tomorrow's file carries the corrected version and it fully overwrites
+ *   the old one. Added lines appear, removed lines disappear, duplicates
+ *   become structurally impossible.
+ *
+ * SAFETY (this script deletes — read this)
+ *   1. It only ever deletes documents/dates PRESENT IN THE FILE IT JUST READ.
+ *   2. It aborts the whole table if the file is empty or unparseable.
+ *   3. It aborts if incoming rows are less than SHRINK_GUARD of what is
+ *      already stored for those same documents — catches a truncated export
+ *      before it wipes good data.
+ *   4. It aborts if the document list exceeds MAX_GROUPS.
+ *   5. The .csv is renamed .processed ONLY on full success, so a failure
+ *      leaves the file for the next run.
+ *
+ * ACCESS
+ *   Runs freely from cron (CLI). Over the web it demands ?key=RUN_TOKEN,
+ *   so a stray visitor cannot trigger a sync.
+ **********************************************************************/
+
+// ─────────── 1. CONFIGURATION ───────────
+
+$SUPABASE_URL = "https://kssydapdfmkfufrqhwzp.supabase.co";
+
+// ROTATE THIS KEY. The previous one was shared and must be considered public.
+// Better still: put it in /home/u631621082/supabase_key.txt (OUTSIDE the web
+// folder) and this script will read it from there instead.
+$SUPABASE_KEY = "PASTE_YOUR_NEW_SERVICE_ROLE_KEY_HERE";
+
+$KEY_FILE = "/home/u631621082/supabase_key.txt";
+if (is_readable($KEY_FILE)) {
+    $SUPABASE_KEY = trim(file_get_contents($KEY_FILE));
+}
+
+// Any random string. Needed only when running from a browser.
+$RUN_TOKEN = "REPLACE_WITH_RUN_TOKEN";
+
+$BATCH_SIZE   = 500;   // rows per insert call
+$GROUP_CHUNK  = 40;    // documents per delete call (keeps the URL short)
+$MAX_GROUPS   = 5000;  // refuse a file claiming more documents than this
+$SHRINK_GUARD = 0.40;  // abort if incoming < 40% of stored for same documents
+
+$LOG_FILE = "/home/u631621082/supabase_sync.log";
+
+// ─────────── 2. ACCESS GUARD ───────────
+
+if (php_sapi_name() !== 'cli') {
+    if (!isset($_GET['key']) || !hash_equals($RUN_TOKEN, $_GET['key'])) {
+        http_response_code(403);
+        exit("Forbidden.\n");
+    }
+    header('Content-Type: text/plain; charset=utf-8');
+}
+
+// ─────────── 3. LOGGING ───────────
+
+$SUMMARY = [];
+
+function say($msg) {
+    global $LOG_FILE;
+    $line = date('Y-m-d H:i:s') . "  " . $msg;
+    echo $line . "\n";
+    @file_put_contents($LOG_FILE, $line . "\n", FILE_APPEND);
+}
+
+// ─────────── 4. HEADER CLEANER (unchanged) ───────────
+
+/** the handle is already closed by the caller; this keeps the intent clear */
+function fclose_safe($h) { if (is_resource($h)) @fclose($h); }
+
+function clean_header($c) {
+    // Was: preg_replace('/[\(\)\.\/\\-]/', ' ', $c)
+    //
+    // That named the punctuation to remove, so anything NOT on the list
+    // survived. Vasy has headers like
+    //     Ingredients [Seprated by pipe sign]
+    //     Type (Manufacturer || Stockiest || Trader || Other)
+    // and the brackets and pipes came through, producing column names the
+    // table does not have:
+    //     ingredients_[seprated_by_pipe_sign]
+    //     type_manufacturer_||_stockiest_||_trader_||_other
+    // Every ProductData and VendorData file has failed on that since 2 Sep.
+    //
+    // Now it keeps only letters and digits, so a header Vasy invents
+    // tomorrow cannot break it the same way.
+    $c = trim($c);
+    $c = preg_replace('/[^A-Za-z0-9]+/', ' ', $c);
+    $c = preg_replace('/\s+/', '_', $c);
+    $c = trim($c, '_');
+    return strtolower($c);
+}
+
+// ─────────── 5. HTTP HELPERS ───────────
+
+function sb_headers($extra = []) {
+    global $SUPABASE_KEY;
+    return array_merge([
+        "apikey: " . $SUPABASE_KEY,
+        "Authorization: Bearer " . $SUPABASE_KEY,
+        "Content-Type: application/json"
+    ], $extra);
+}
+
+function sb_call($method, $url, $headers, $body = null) {
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HEADER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+    if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+
+    $raw  = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $hlen = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+    $err  = curl_error($ch);
+    curl_close($ch);
+
+    if ($raw === false) return ['code' => 0, 'head' => '', 'body' => $err];
+    return [
+        'code' => $code,
+        'head' => substr($raw, 0, $hlen),
+        'body' => substr($raw, $hlen)
+    ];
+}
+
+/** PostgREST in.() needs each value double-quoted — voucher numbers contain "/" */
+function in_list($values) {
+    $q = array_map(function ($v) {
+        return '"' . str_replace('"', '\"', $v) . '"';
+    }, $values);
+    return 'in.(' . rawurlencode(implode(',', $q)) . ')';
+}
+
+/** how many rows already stored for this set of documents */
+function count_existing($table, $column, $values) {
+    global $SUPABASE_URL;
+    $url = $SUPABASE_URL . "/rest/v1/" . $table
+         . "?" . rawurlencode($column) . "=" . in_list($values)
+         . "&select=" . rawurlencode($column);
+    $r = sb_call('GET', $url, sb_headers(['Prefer: count=exact', 'Range: 0-0']));
+    if ($r['code'] >= 400 || $r['code'] == 0) return -1;
+    if (preg_match('#content-range:\s*[^/]*/(\d+)#i', $r['head'], $m)) {
+        return (int)$m[1];
+    }
+    return -1;
+}
+
+function delete_groups($table, $column, $values) {
+    global $SUPABASE_URL;
+    $url = $SUPABASE_URL . "/rest/v1/" . $table
+         . "?" . rawurlencode($column) . "=" . in_list($values);
+    $r = sb_call('DELETE', $url, sb_headers(['Prefer: return=minimal']));
+    return ($r['code'] >= 200 && $r['code'] < 300)
+        ? true
+        : "HTTP {$r['code']} " . substr($r['body'], 0, 200);
+}
+
+function insert_rows($table, $rows, $upsert_col = null) {
+    global $SUPABASE_URL;
+    $url = $SUPABASE_URL . "/rest/v1/" . $table;
+    $extra = ['Prefer: return=minimal'];
+    if ($upsert_col) {
+        $url  .= "?on_conflict=" . rawurlencode($upsert_col);
+        $extra = ['Prefer: resolution=merge-duplicates,return=minimal'];
+    }
+    $r = sb_call('POST', $url, sb_headers($extra), json_encode($rows));
+    return ($r['code'] >= 200 && $r['code'] < 300)
+        ? true
+        : "HTTP {$r['code']} " . substr($r['body'], 0, 300);
+}
+
+// ─────────── 6. THE PIPELINE ───────────
+
+/**
+ * $mode  'upsert'  → $key_col is a unique column
+ *        'replace' → $key_col is the document/date column to replace on
+ */
+function sync_table($file_prefix, $table, $mode, $key_col) {
+    global $BATCH_SIZE, $GROUP_CHUNK, $MAX_GROUPS, $SHRINK_GUARD, $SUMMARY;
+
+    $paths = ["/home/u631621082/", __DIR__ . "/../", __DIR__ . "/"];
+    $files = [];
+    foreach ($paths as $p) {
+        $files = glob($p . $file_prefix . "*.csv");
+        if (!empty($files)) break;
+    }
+    if (empty($files)) {
+        say("  $table: no file");
+        return;
+    }
+
+    foreach ($files as $file) {
+        say("  $table: reading " . basename($file));
+
+        $handle = fopen($file, "r");
+        if ($handle === false) { say("  $table: ABORT cannot open"); continue; }
+
+        $headers = fgetcsv($handle);
+        if (!$headers) { fclose($handle); say("  $table: ABORT empty file"); continue; }
+        $cols = array_map('clean_header', $headers);
+
+        // GUARD: the key column must exist in the file
+        if ($mode === 'replace' && !in_array($key_col, $cols, true)) {
+            fclose($handle);
+            say("  $table: ABORT '$key_col' not in file. Columns: " . implode(',', $cols));
+            $SUMMARY[] = "$table ABORTED (missing $key_col)";
+            continue;
+        }
+
+        $rows = [];
+        $skipped = 0;
+        while (($data = fgetcsv($handle)) !== false) {
+            if (count($cols) !== count($data)) { $skipped++; continue; }
+            $rows[] = array_combine($cols, $data);
+        }
+        fclose($handle);
+
+        if (empty($rows)) {
+            // A header with no data rows is a NORMAL day — no vendors were
+            // added, no credit notes raised. Treating it as a failure kept
+            // the file forever, so every run re-read the same empty files
+            // and the log filled with ABORTs that meant nothing.
+            //
+            // A file with no header at all was already caught above, so
+            // reaching here means the file parsed and simply had nothing in
+            // it. Mark it done.
+            fclose_safe($handle);
+            rename($file, $file . ".processed");
+            say("  $table: no rows in " . basename($file) . " — nothing to do, marked processed");
+            $SUMMARY[] = "$table  empty file, skipped";
+            continue;
+        }
+        if ($skipped > count($rows) * 0.2) {
+            say("  $table: ABORT $skipped malformed vs " . count($rows) . " good — file looks corrupt");
+            $SUMMARY[] = "$table ABORTED (malformed)";
+            continue;
+        }
+
+        // ---------- UPSERT MODE ----------
+        if ($mode === 'upsert') {
+            $ok = true;
+            foreach (array_chunk($rows, $BATCH_SIZE) as $chunk) {
+                $r = insert_rows($table, $chunk, $key_col);
+                if ($r !== true) { say("  $table: ERROR $r"); $ok = false; break; }
+            }
+            if ($ok) {
+                rename($file, $file . ".processed");
+                say("  $table: upserted " . count($rows) . " rows");
+                $SUMMARY[] = "$table  upsert  " . count($rows);
+            } else {
+                $SUMMARY[] = "$table FAILED (file kept)";
+            }
+            continue;
+        }
+
+        // ---------- REPLACE MODE ----------
+        $groups = [];
+        $blank = 0;
+        foreach ($rows as $r) {
+            $g = trim((string)$r[$key_col]);
+            if ($g === '') { $blank++; continue; }
+            $groups[$g] = true;
+        }
+        $groups = array_keys($groups);
+
+        if ($blank > 0) {
+            say("  $table: ABORT $blank rows have a blank $key_col — cannot replace safely");
+            $SUMMARY[] = "$table ABORTED (blank $key_col)";
+            continue;
+        }
+        if (count($groups) > $MAX_GROUPS) {
+            say("  $table: ABORT " . count($groups) . " groups exceeds MAX_GROUPS");
+            $SUMMARY[] = "$table ABORTED (too many groups)";
+            continue;
+        }
+
+        // GUARD: would this shrink the data for these documents?
+        $existing = 0;
+        $countable = true;
+        foreach (array_chunk($groups, $GROUP_CHUNK) as $gc) {
+            $n = count_existing($table, $key_col, $gc);
+            if ($n < 0) { $countable = false; break; }
+            $existing += $n;
+        }
+        if ($countable && $existing > 0 && count($rows) < $existing * $SHRINK_GUARD) {
+            say("  $table: ABORT incoming " . count($rows) .
+                " rows vs " . $existing . " stored for the same " . count($groups) .
+                " documents — export looks truncated");
+            $SUMMARY[] = "$table ABORTED (shrink guard)";
+            continue;
+        }
+
+        // delete the documents present in this file
+        $ok = true;
+        foreach (array_chunk($groups, $GROUP_CHUNK) as $gc) {
+            $d = delete_groups($table, $key_col, $gc);
+            if ($d !== true) { say("  $table: DELETE ERROR $d"); $ok = false; break; }
+        }
+        if (!$ok) {
+            say("  $table: stopped before insert. File kept, nothing lost — rerun.");
+            $SUMMARY[] = "$table FAILED (delete)";
+            continue;
+        }
+
+        // insert the fresh version
+        foreach (array_chunk($rows, $BATCH_SIZE) as $chunk) {
+            $r = insert_rows($table, $chunk);
+            if ($r !== true) { say("  $table: INSERT ERROR $r"); $ok = false; break; }
+        }
+
+        if ($ok) {
+            rename($file, $file . ".processed");
+            say("  $table: replaced " . count($groups) . " documents, " .
+                $existing . " old rows -> " . count($rows) . " new rows");
+            $SUMMARY[] = "$table  replace  " . count($groups) . " docs, " . count($rows) . " rows";
+        } else {
+            say("  $table: INSERT FAILED AFTER DELETE — RERUN THIS FILE NOW");
+            $SUMMARY[] = "$table *** INSERT FAILED AFTER DELETE — RERUN ***";
+        }
+    }
+}
+
+// ─────────── 7. RUN ───────────
+
+say("========== SYNC START ==========");
+
+// masters — real unique ids, plain upsert
+sync_table("ProductData",  "product_data", 'upsert', "product_id");
+sync_table("VendorData",   "vendor_data",  'upsert', "supplier_id");
+
+// bank & cash — real voucher ids, plain upsert
+sync_table("CashReceiptData", "cash_receipt_data", 'upsert', "voucher_id_db");
+sync_table("CashPaymentData", "cash_payment_data", 'upsert', "voucher_id_db");
+sync_table("BankReceiptData", "bank_receipt_data", 'upsert', "voucher_id_db");
+
+// documents — replace whole document each time
+sync_table("SalesInvoiceData",  "sales_data",           'replace', "voucher_no");
+sync_table("CreditNoteData",    "credit_note_data",     'replace', "voucher_no");
+sync_table("PurchaseBillData",  "purchase_bill_data",   'replace', "voucher_no");
+sync_table("PurchaseReturnData","purchase_return_data", 'replace', "voucher_no");
+sync_table("MaterialInwardData","material_inward_data", 'replace', "inward_no");
+sync_table("ProductConsumptionAndWastageData",
+                                "product_consumption_data", 'replace', "consumption_no");
+
+// stock adjustment has no document number — replace by transaction date
+sync_table("StockAdjustmentData","stock_adjustment_data",'replace', "stock_transaction_date");
+
+say("========== SYNC END ==========");
+foreach ($SUMMARY as $s) say("  " . $s);

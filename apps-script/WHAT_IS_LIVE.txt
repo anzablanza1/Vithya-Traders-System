@@ -1,0 +1,67 @@
+════════ WHICH CODE IS ACTUALLY RUNNING ════════
+
+   NEW  refreshSalesRecent   (the year-tab fix)
+   NEW  refreshInvoicesRecent   (the year-tab fix)
+   NEW  sautTargets_   (header fallback after a split)
+   NEW  flrNorm_   (punctuation-blind search)
+   NEW  flrSearch_   (token search)
+   NEW  buildProductAnalytics   (the honest cost flag)
+   OLD  ofcActions_   (the split action group)
+   OLD  buildPoStatus   (PO request reason)
+   NEW  pullCustomers   (page-size negotiation)
+
+── duplicate definitions ──
+   Apps Script keeps only ONE definition per name across all files.
+   If a job misbehaves, an older file is probably redefining it.
+      refreshSalesRecent: defined
+      refreshInvoicesRecent: defined
+      nightlyAnalytics: defined
+      installAllTriggers: defined
+      installSalesTriggers: defined
+      doGet: defined
+      each: missing
+
+── installed triggers ──
+   nightlyAnalytics   CLOCK
+   nightlyDetectCounts   CLOCK
+   refreshPurchaseRegister   CLOCK
+   refreshErpSnapshot   CLOCK
+   nightlyCustomers   CLOCK
+   rebuildDashData   CLOCK
+   nightlyStock   CLOCK
+   refreshInvoicesRecent   CLOCK
+   refreshCostCurrent   CLOCK
+   nightlyModels   CLOCK
+   rebuildBatchCost   CLOCK
+   nightlyRollup   CLOCK
+   pullStock   CLOCK
+   refreshSalesRecent   CLOCK
+   ftpFailoverCheck   CLOCK
+   nightlyInvoiceSync   CLOCK
+
+── sales tabs ──
+   Sales_Items: NOT FOUND
+   Sales_Items_2526: 132,341 rows in VT_Sales_2526
+   Sales_Items_2627: 67,431 rows in VT_Sales_2627
+   Sales_Invoices: NOT FOUND
+   Sales_Invoices_2526: 22,575 rows in VT_Sales_2526
+   Sales_Invoices_2627: 13,474 rows in VT_Sales_2627
+
+── what Product_Analytics actually says ──
+   columns: 63   (has the new cost columns)
+   flagged LOSS       : 56
+   flagged CHECK COST : 11
+   first word of each action:
+      fix: 3079
+      liquidate: 71
+      order: 136
+      reprice: 34
+      review: 1069
+      stop: 1454
+      verify: 9
+
+── read models ──
+   floor: 22 cells, built Sat Sep 12 2026 23:54:00 GMT+0530 (India Standard Time)
+   office: 54 cells, built Sat Sep 12 2026 23:54:00 GMT+0530 (India Standard Time)
+   office_raw: 65 cells, built Sat Sep 12 2026 23:54:00 GMT+0530 (India Standard Time)
+   pricing: 68 cells, built Sat Sep 12 2026 23:54:00 GMT+0530 (India Standard Time)
