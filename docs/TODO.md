@@ -1,5 +1,7 @@
 # TODO
 
+> **Purchase Intelligence V2 is active.** Its active work queue is `docs/v2/ROADMAP.md` plus `docs/v2/CURRENT_WORK.md`. This file remains the broader V1 system handover list and must not be used as the Purchase V2 work queue.
+
 Pending work and planned improvements. Grouped by owner. This reflects the
 state at the Version-1 handover snapshot (11 Sep 2026).
 
