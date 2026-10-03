@@ -16,7 +16,8 @@ lives.
   `purchase_bill_data`, `material_inward_data`, `stock_adjustment_data`,
   `cash_receipt_data`, `bank_receipt_data`, `cash_payment_data`,
   `credit_note_data`, `purchase_return_data`, `product_consumption_data`,
-  `vendor_data`, `product_data`. Each carries `source` + `loaded_at`.
+  `expense_register_data`, `vendor_data`, `product_data`. Each carries
+  `source` + `loaded_at` where supported by the feed.
 - **API / backfill** — written by Apps Script: `sales_history`,
   `sales_invoice`, `sales_ftp_gap`, `stock_live`, `erp_snapshot`,
   `customer_master`.
@@ -64,9 +65,12 @@ All writes are **upserts** on a conflict key, so re-running is safe.
 
 ## Scheduled processes inside Supabase
 
-At snapshot there are **no pg_cron / Supabase Edge Function schedules** — all
-scheduling is in Apps Script and the Hostinger cron. VERIFY: check
-`cron.job` and Edge Functions in the dashboard before assuming none exist.
+At the 2026-10-03 freeze audit there were **no pg_cron jobs**, but there was
+one live Edge Function: `pp-planner-list`. It belonged to pre-freeze
+Purchase/Inventory planning work, not the main V1 dashboard architecture.
+Its sanitized source is preserved under
+`supabase/pre-v2-scaffolding/edge-functions/`. Do not treat that function
+as approved Platform V2 design.
 
 ---
 
@@ -95,12 +99,16 @@ See `SECURITY.md` for the full credential map.
 
 ## Recreating the database
 
-To rebuild Supabase from scratch you need the **SQL definitions of every
-table and every view**. These have been created incrementally via migrations
-during the build. **They are NOT yet all collected into this repo** — see
-`FILES_TO_COLLECT.md`. Until they are, the live database is the only complete
-copy of the view logic.
+The main V1 database structure is preserved in `supabase/schema.sql`
+(a real pg_dump snapshot). During the 2026-10-03 freeze audit, live Supabase
+contained newer pre-V2 Purchase/Inventory objects plus newer main-system
+objects that were not in that older dump.
 
-The fastest way to export them: from the Supabase SQL editor,
-`pg_get_viewdef()` for each view and the table DDL from the dashboard, or use
-`supabase db dump`. This is a priority collection task.
+Those deltas are now preserved under
+`supabase/pre-v2-scaffolding/schema_delta_2026-10-03.sql`, with classification
+and cautions in the accompanying README.
+
+For a clean future rebuild, the preferred maintenance step is still to take a
+fresh full `supabase db dump` and replace/consolidate the point-in-time
+snapshots. The immediate "DDL exists only in live Supabase" freeze risk has
+been closed.
