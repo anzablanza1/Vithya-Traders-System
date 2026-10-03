@@ -1,7 +1,9 @@
 # DATA_DICTIONARY
 
-Read directly from the live Supabase database on **11 September 2026**. Row
-counts are as of that date and will have moved. Column lists are exact.
+Originally read from the live Supabase database on **11 September 2026**.
+Row counts in this document are historical/indicative and will have moved.
+A 2026-10-03 freeze audit found newer objects; exact newer DDL is preserved in
+`supabase/pre-v2-scaffolding/`.
 
 Every object also carries a `COMMENT` in the database itself — visible on
 hover in the Supabase Table Editor. This file is the readable copy.
@@ -88,6 +90,12 @@ status, created_by, fy, source, loaded_at`
 - `receipt_type` includes "Against Bill", "On Account", "Advance Payment".
 
 **`cash_payment_data`** — RAW FTP. ~38 rows. Payments OUT. Sparse.
+
+**`expense_register_data`** — RAW FTP expense-register feed, added after the
+original 11-Sep snapshot. Live on 2026-10-03 with 18 rows. Key fields include
+expense number, invoice number, vendor, GST/tax breakdown, totals, payment
+data, source and loaded_at. Exact DDL is preserved in
+`supabase/pre-v2-scaffolding/schema_delta_2026-10-03.sql`.
 
 ### Customers and reconciliation
 
@@ -249,3 +257,25 @@ that must see history (e.g. `v_customer_360`).
    wrongly. Date parsing must handle multiple shapes.
 7. **Purchase history before Apr 2026 is sparse** because entry started then —
    a fact about the records, not a fault.
+
+
+---
+
+## 2026-10-03 PRE-V2 / NEWER LIVE OBJECTS
+
+The freeze audit found newer PO, SKU-master, purchase-analytics and
+inventory-analytics tables/views created in a separate pre-freeze chat.
+They are **not automatically approved V2 architecture**.
+
+Exact schema definitions and classifications are preserved under:
+
+`supabase/pre-v2-scaffolding/`
+
+Main-system objects among that delta include:
+- `expense_register_data`
+- newer definitions of `v_customer_360`
+- `v_customer_fy2627`
+
+The remaining PO/SKU/Purchase/Inventory objects are preserved as experimental
+or pre-V2 scaffolding for later review. Do not infer future source-of-truth
+decisions from their existence.
