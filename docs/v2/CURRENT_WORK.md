@@ -3,7 +3,9 @@
 Last updated: 2026-10-03
 
 ## Active phase
-V2 memory bootstrap and cold-start validation. No V2 production code should be written yet.
+Cold-start validation PASSED. The project is ready for V2 architecture/design
+decisions. Do not write V2 production code until O1 persistence architecture
+and O2 product-master authority are explicitly resolved.
 
 ## Completed
 - V1 source/frontends frozen in Git.
@@ -12,6 +14,11 @@ V2 memory bootstrap and cold-start validation. No V2 production code should be w
 - Post-freeze live dependency verification recorded.
 - Original Purchase Dashboard chat performed a memory-gap audit.
 - Audit conclusion: substantive Purchase knowledge survived; discoverability/routing was the main gap.
+- Brand-new-chat cold-start test PASSED.
+- A separate System-V1 freeze audit found older pre-freeze Purchase/Inventory
+  Supabase scaffolding. Its DDL and sanitized legacy Edge Function source are
+  now preserved under `supabase/pre-v2-scaffolding/`. This does not count as
+  official V2 implementation.
 
 ## Current objective
 Prove a brand-new chat can understand the project from Git alone.
@@ -27,8 +34,9 @@ It must explain:
 8. what must not be changed/assumed.
 
 ## Next
-1. Run cold-start test.
-2. Fix docs if the new chat misunderstands anything.
-3. Resolve O1 persistence architecture and O2 product-master authority.
-4. Review V2-01.
-5. Only then begin V2-01 implementation.
+1. Resolve O1 persistence architecture.
+2. Resolve O2 product-master authority.
+3. Review V2-01 against the archived pre-V2 prototype and decide what, if
+   anything, is reusable.
+4. Document the approved schema before any writes are enabled.
+5. Only then begin official V2-01 implementation.
