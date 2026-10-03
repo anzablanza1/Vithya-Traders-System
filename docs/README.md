@@ -10,6 +10,9 @@ A brand-new AI or developer working on Purchase Intelligence must begin at the r
 
 The system-wide documentation below remains useful background for the wider Vithya Traders platform, but it is not the active Purchase V2 handoff.
 
+The broader Vithya Traders System V1 freeze status is recorded in
+`SYSTEM_V1_FREEZE_VERIFICATION.md`.
+
 **Version 1 · handover snapshot · 11 September 2026**
 
 This folder is the permanent, AI-readable record of the Vithya Traders data
@@ -43,7 +46,8 @@ Start with `PROJECT_CONTEXT.md`. Then, depending on what you need:
 | `TODO.md` | pending work |
 | `SECURITY.md` | where credentials live (not the credentials themselves) |
 | `AI_INSTRUCTIONS.md` | **required reading for any AI touching this repo** |
-| `FILES_TO_COLLECT.md` | checklist of source files still needed for a complete repo |
+| `FILES_TO_COLLECT.md` | recovery-artifact checklist and remaining cleanup |
+| `SYSTEM_V1_FREEZE_VERIFICATION.md` | verified status of the broader System V1 freeze |
 
 ---
 
