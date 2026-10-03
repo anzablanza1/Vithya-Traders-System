@@ -92,10 +92,14 @@ The project holds many old probe and superseded files (see `APPS_SCRIPT.md`).
 At least one is shadowing a live function (K1). They should be deleted in
 small batches with `whatIsLive()` run after each. **Not yet done.**
 
-### K13. Supabase view/table SQL not yet exported to the repo
-The view definitions live only in the database. Until exported (see
-`FILES_TO_COLLECT.md`), the live DB is the single copy of the view logic — a
-recovery risk.
+### K13. Supabase schema snapshots need periodic consolidation — PARTLY RESOLVED
+The main V1 schema is committed in `supabase/schema.sql`. The 2026-10-03
+freeze audit found newer live objects that were missing from that older dump;
+their DDL and newer view/function definitions are now preserved in
+`supabase/pre-v2-scaffolding/`.
+
+A later fresh full pg_dump should consolidate these point-in-time snapshots,
+but live Supabase is no longer the only copy of the missing DDL.
 
 ### K14. "Security Definer" linter warnings
 Every view is flagged CRITICAL by the Supabase linter. Not currently
@@ -115,8 +119,9 @@ GitHub is the first step to fixing it.
   `whatIsLive()` and the editor — the docs describe the intended set.
 - **VERIFY** exact Vasy endpoint query params against the live callers before
   reusing them.
-- **VERIFY** whether any pg_cron / Edge Function schedule exists in Supabase
-  (assumed none).
+- **VERIFY** Supabase runtime additions before future releases. As of the
+  2026-10-03 freeze audit: no pg_cron jobs; one legacy/pre-V2 Edge Function
+  `pp-planner-list` existed and has a sanitized recovery copy in Git.
 - **VERIFY** which HTML dashboards are served from the Apps Script project vs
   opened as local files vs hosted, and where each hosted copy lives.
 - **VERIFY** the exact Google Sheet workbook IDs and names (held in Script
