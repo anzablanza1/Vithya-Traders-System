@@ -69,3 +69,20 @@ service key.**
 - Document the Script Property names (done here) but never their values.
 - If using GitHub Actions or any CI later, put secrets in the platform's
   secret store, not the repo.
+
+
+---
+
+## 2026-10-03 legacy/pre-V2 Edge Function finding
+
+The System V1 freeze audit found one live Supabase Edge Function named
+`pp-planner-list` created during earlier Purchase/Inventory experimentation.
+
+The live source had JWT verification disabled and contained a hard-coded access
+token. The token value is intentionally not stored in Git. A sanitized source
+copy is preserved under:
+
+`supabase/pre-v2-scaffolding/edge-functions/pp-planner-list/index.ts`
+
+Treat the old token as exposed/legacy security debt and do not reuse this
+authentication pattern in Platform V2.
