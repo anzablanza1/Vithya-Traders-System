@@ -1,4 +1,15 @@
 # Vithya Traders — System Knowledge Base
+
+## Active Purchase Intelligence V2
+
+Purchase Intelligence V2 is now active on branch `v2-development`.
+
+A brand-new AI or developer working on Purchase Intelligence must begin at the repository root `AGENTS.md`, then read `docs/v2/START_HERE.md`. The active V2 state, current work, roadmap, decisions, tests and work-item specifications live under `docs/v2/`.
+
+`archive/purchase-intelligence-v1/` is an immutable historical V1 snapshot and must not be edited. Where archived V1 docs still contain an unresolved note that is later resolved by `docs/PURCHASE_V1_FREEZE_VERIFICATION.md`, use the newer verified record.
+
+The system-wide documentation below remains useful background for the wider Vithya Traders platform, but it is not the active Purchase V2 handoff.
+
 **Version 1 · handover snapshot · 11 September 2026**
 
 This folder is the permanent, AI-readable record of the Vithya Traders data
