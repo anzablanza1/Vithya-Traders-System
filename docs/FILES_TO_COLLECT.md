@@ -14,7 +14,7 @@ in plain steps.
 
 ---
 
-## 1. Apps Script code — ALL `.gs` files  ⬜ highest priority
+## 1. Apps Script code — ALL `.gs` files  ✅ captured
 
 The single Apps Script project ("product database") contains ~60+ `.gs` files.
 The repository needs **every one, exactly as it is live** (not the working
@@ -43,7 +43,7 @@ exists live but is not described, and any described file that is not live.
 
 ---
 
-## 2. HTML dashboards  ⬜
+## 2. HTML dashboards  ✅ captured
 
 Each dashboard, the live version:
 - ⬜ `VT_Floor.html`
@@ -59,10 +59,11 @@ somewhere, collect that exact copy and **note where it is hosted**.
 
 ---
 
-## 3. Supabase — schema and logic  ⬜ highest priority
+## 3. Supabase — schema and logic  ✅ captured as freeze snapshots
 
-This is the biggest recovery risk: the view logic exists **only** in the live
-database.
+The main V1 pg_dump is in `supabase/schema.sql`. A later live delta found
+during the 2026-10-03 freeze is preserved under
+`supabase/pre-v2-scaffolding/`. A future fresh full dump can consolidate both.
 
 - ⬜ **Every table's DDL** (`CREATE TABLE ...`). From the Supabase dashboard,
   or `supabase db dump --schema public`.
@@ -84,7 +85,7 @@ policies together.
 
 ---
 
-## 4. Hostinger FTP pipeline  ⬜
+## 4. Hostinger FTP pipeline  ✅ core recovery files captured
 
 - ⬜ `supabase.php` — the live version from Hostinger
   (`/home/u631621082/` or the web directory). **Commit a sanitised copy**
@@ -142,13 +143,12 @@ README.md         <- points at /docs/README.md
 
 ## Priority order
 
-1. **Supabase `db dump`** (tables + views + functions) — the highest recovery
-   risk, and one command for a developer.
-2. **`clasp clone` the Apps Script project** — every `.gs` + the HTML +
-   manifest in one go.
-3. **`supabase.php`** (sanitised) + cron note.
-4. **Sheets structure notes** and **CONFIG.md**.
-5. Everything else.
+1. **Google Sheets structure/manual-config recovery** — still the weakest area.
+2. **Consolidated fresh Supabase pg_dump** — useful maintenance; immediate
+   missing-DDL risk is already covered by schema.sql + the 2026-10-03 delta.
+3. **CONFIG.md / recovery map** — useful cleanup; Script Property names are
+   already captured.
+4. Everything else.
 
 Once 1–3 are in the repo, Version 1 is genuinely recoverable, and the system
 no longer depends on any chat conversation — which was the goal.
