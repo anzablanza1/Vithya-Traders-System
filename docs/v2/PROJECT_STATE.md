@@ -1,6 +1,6 @@
 # Purchase Intelligence V2 — PROJECT STATE
 
-Last updated: 2026-10-03
+Last updated: 2026-10-05
 Branch: `v2-development`
 
 ## Status
@@ -13,6 +13,11 @@ Branch: `v2-development`
   implementation.
 - Active phase: V2 architecture/design after successful cold-start validation.
 - Next implementation item: V2-01 Data model + server.
+
+## V1 UI/runtime clarification
+- The Purchase Intelligence dashboard is a self-contained/local HTML frontend. It **calls** the Apps Script web app/API; Apps Script does not host that dashboard.
+- The PO Request UI is served by the Apps Script web app.
+- The same Purchase Apps Script project provides the LiveApi/RegisterApi/GoodsCheck server functions used by the Purchase workflow.
 
 ## Verified V1 facts
 - Exact live Purchase Apps Script source was cloned and privately preserved.
