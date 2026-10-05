@@ -1,6 +1,6 @@
 # Purchase Intelligence V2 — CURRENT WORK
 
-Last updated: 2026-10-03
+Last updated: 2026-10-05
 
 ## Active phase
 Cold-start validation PASSED. The project is ready for V2 architecture/design
@@ -21,17 +21,20 @@ and O2 product-master authority are explicitly resolved.
   official V2 implementation.
 
 ## Current objective
-Prove a brand-new chat can understand the project from Git alone.
+Resolve **O1 — V2 persistence architecture** before any V2-01 coding.
 
-It must explain:
-1. where V1 is preserved;
-2. current V1 Purchase architecture;
-3. what V2 solves;
-4. active work item;
-5. approved V2 decisions;
-6. unresolved decisions;
-7. next safe action;
-8. what must not be changed/assumed.
+The cold-start test is complete and passed. The next design decision is whether
+the new Shipment/Bill/Allocation/Receipt objects should be primarily persisted
+in Supabase or primarily in Google Sheets during V2.
+
+The decision must account for:
+- reliability and recoverability while V2 is still being developed;
+- employee-friendly operational visibility;
+- auditability and correction of workflow data;
+- performance and long-term scale;
+- live synchronization/failure handling;
+- compatibility with the existing V1 system during migration;
+- the role Google Sheets should retain after Supabase becomes the durable store.
 
 ## Next
 1. Resolve O1 persistence architecture.
