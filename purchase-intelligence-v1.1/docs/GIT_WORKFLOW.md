@@ -10,7 +10,7 @@ During V1.1 development there are three different things:
 
 The frozen V1 archive is never edited.
 
-After a V1.1 change is proven live, Git must be updated to match the exact working source.
+After a V1.1 change is proven live, Git must be updated to match the exact working source **except secret values**. Secrets must remain in Script Properties/private recovery locations, never committed.
 
 ## Development cycle
 
@@ -32,7 +32,7 @@ After a V1.1 change is proven live, Git must be updated to match the exact worki
 
 Never rely on the AI's generated code as proof of what is live.
 
-Git must ultimately contain the **exact tested/deployed source**, not merely the draft that the AI originally suggested.
+Git must ultimately contain the **exact tested/deployed functional source**, not merely the draft that the AI originally suggested. The only allowed difference is secret material: hard-coded secret values must be redacted or, preferably, moved to Script Properties before the Git copy is committed.
 
 If the owner manually changes a line while testing, that final live line must also be reflected in Git.
 
