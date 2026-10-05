@@ -1,5 +1,32 @@
 # AGENTS.md — Vithya Traders repository operating instructions
 
+## Purchase Intelligence V1.1 transitional release
+
+Branch: `purchase-v1.1-transition`.
+
+For V1.1 live-maintenance work, read first:
+1. `purchase-intelligence-v1.1/README.md`
+2. `purchase-intelligence-v1.1/docs/PROJECT_STATE.md`
+3. `purchase-intelligence-v1.1/docs/CHANGE_REGISTER_V1_1.md`
+4. `purchase-intelligence-v1.1/docs/TEST_PLAN.md`
+5. `purchase-intelligence-v1.1/docs/GIT_WORKFLOW.md`
+6. `docs/PURCHASE_V1_FREEZE_VERIFICATION.md`
+7. relevant frozen V1 source for comparison only.
+
+V1.1 is a transitional production upgrade. Prefer the smallest safe,
+backward-compatible implementation that delivers the required business
+behaviour. Do not force clean-V2 architecture into V1.1.
+
+The frozen archive `archive/purchase-intelligence-v1/` and tag
+`purchase-v1-v8.6` are immutable.
+
+When a V1.1 change is proven live, copy/pull the exact tested source back into
+`purchase-intelligence-v1.1/`, update the V1.1 change register, then commit
+code and documentation together.
+
+Do not merge V1.1 wholesale into clean V2. Promote validated behaviour and
+lessons deliberately through V2 documentation.
+
 This repository is the persistent project memory. Do not depend on any previous chat conversation to understand or change the system.
 
 ## Platform V2 governance
