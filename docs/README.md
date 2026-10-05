@@ -1,5 +1,13 @@
 # Vithya Traders — System Knowledge Base
 
+## Platform V2
+
+Platform V2 is a clean redesign, not a refactor of V1. Start at `platform-v2/START_HERE.md` and `platform-v2/PRINCIPLES.md` for cross-system V2 work.
+
+For Purchase↔Inventory work, `shared/PURCHASE_INVENTORY_CONTRACT.md` is the authoritative business-semantics boundary. Inventory analytical scope lives in `inventory/ANALYTICS_TARGET.md`.
+
+Pre-V2 Supabase objects under `../supabase/pre-v2-scaffolding/` are reference/design candidates only.
+
 ## Active Purchase Intelligence V2
 
 Purchase Intelligence V2 is now active on branch `v2-development`.

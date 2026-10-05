@@ -17,3 +17,8 @@ Check duplicate invoice, missing item code, bill total mismatch, invalid W/WO sp
 
 ## Acceptance
 Invalid cases are blocked with a clear reason; valid Bill reaches Ready for Vasy and produces expected format. TEST_PLAN B and I pass.
+
+## Cross-system stock boundary
+Generating or uploading a Bill/Material-Inward document is not automatically the same business event as physical Receipt/Goods Check.
+
+The relationship between Vasy MI posting/upload and ERP stock mutation remains Platform V2 O3/O4 and must be verified before implementation assumes it.

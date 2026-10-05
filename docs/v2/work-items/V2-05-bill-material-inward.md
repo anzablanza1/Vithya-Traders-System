@@ -21,3 +21,8 @@ Make Bill a first-class object separate from physical shipment and PO.
 - Totals reconcile by lane and overall.
 - Shipment quantities remain unchanged by bill edits.
 - TEST_PLAN B, C and G pass.
+
+## Cross-system terminology guard
+Bill/Material-Inward preparation is **not** physical receipt and must not by itself increase Inventory stock.
+
+Platform V2 O4 remains open: supplier Bill, Bill/MI preparation, physical Receipt, Goods Check/acceptance, Vasy Material Inward posting and upload completion need distinct durable terminology.

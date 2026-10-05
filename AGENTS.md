@@ -2,6 +2,13 @@
 
 This repository is the persistent project memory. Do not depend on any previous chat conversation to understand or change the system.
 
+## Platform V2 governance
+For Platform V2 work, first read `docs/platform-v2/START_HERE.md` and `docs/platform-v2/PRINCIPLES.md`.
+
+For any work touching both Purchase Intelligence and Inventory, also read `docs/shared/PURCHASE_INVENTORY_CONTRACT.md`. For Inventory analytical work, also read `docs/inventory/ANALYTICS_TARGET.md`.
+
+Pre-V2 Supabase objects under `supabase/pre-v2-scaffolding/` are reference/design candidates only unless an active V2 decision explicitly approves their concept.
+
 ## Active Purchase Intelligence project
 Purchase Intelligence V2 is developed on branch `v2-development`.
 

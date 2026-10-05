@@ -8,6 +8,14 @@ A 2026-10-03 freeze audit found newer objects; exact newer DDL is preserved in
 Every object also carries a `COMMENT` in the database itself — visible on
 hover in the Supabase Table Editor. This file is the readable copy.
 
+## Platform V2 semantic note
+
+This file primarily documents V1/live data objects. It does **not** make an existing table/view the Platform V2 schema.
+
+For V2: Parent SKU is the shared analytical identity while Product Master authority remains OPEN; Purchase Event is not PO Count; Ordered/In Transit/Received/Pending are distinct; Bill/MI preparation is not physical Receipt; and current stock is not reliable for stock-dependent replenishment until the owner later approves a reliability-verification system and reliable scope.
+
+See `docs/shared/PURCHASE_INVENTORY_CONTRACT.md` and `docs/platform-v2/OPEN_DECISIONS.md`.
+
 ---
 
 ## PRIMARY IDENTIFIERS (the join keys)

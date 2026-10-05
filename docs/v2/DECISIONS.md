@@ -58,3 +58,29 @@ The archived plan starts with new Google Sheet tabs + LiveApi endpoints, while b
 
 ## D-V2-019 — Secrets stay out of Git
 Record secret names/locations only, never secret values.
+
+## D-V2-020 — Purchase Register history and PO lifecycle are separate
+Purchase Register data records procurement/billing history. PO lifecycle records operational ordering, shipment, receipt and cancellation. Purchase Event count is not PO count.
+
+## D-V2-021 — New demand planning is sales-derived
+Purchase quantities describe procurement history, not customer demand. New V2 demand/replenishment planning must use sales-derived demand.
+
+## D-V2-022 — Inventory and Purchase have distinct analytical ownership
+Inventory owns demand/replenishment intelligence. Purchase owns supplier/commercial/procurement intelligence. Purchase consumes Inventory demand/replenishment context rather than calculating a competing version.
+
+Inventory-facing Purchase information should remain supplier-neutral and cost-free where commercial identity is unnecessary.
+
+## D-V2-023 — Parent SKU is the shared analytical identity
+GST and Non-GST variants represent one physical product for consolidated Purchase/Inventory analysis while exact ERP code/lane remains preserved for billing/upload. Product Master authority remains OPEN under D-V2-017/O2.
+
+## D-V2-024 — Exceptional demand preserves raw history
+Exceptional/project demand must be reviewable. Raw demand remains visible; normalized/baseline demand is a separate auditable interpretation.
+
+## D-V2-025 — Confirmed supplier constraints override inferred values
+Confirmed/manual MOQ, pack size and supplier commitments take precedence over statistical inference.
+
+## D-V2-026 — Sparse purchase history is not zero purchasing
+Missing history outside a known-complete period must not be interpreted as proof of zero purchasing.
+
+## D-V2-027 — Purchase Register fallback remains during migration
+Existing Purchase Register fallback capability remains available until the replacement path is explicitly validated. This is a migration requirement, not a permanent architecture decision.

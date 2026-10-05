@@ -2,6 +2,8 @@
 
 This directory is the active, AI-readable memory for Purchase Intelligence V2.
 
+Purchase V2 sits inside the wider Platform V2 clean redesign. Read `docs/platform-v2/PRINCIPLES.md` first. Any Purchase work involving Inventory, demand, stock, replenishment or shared product identity must also read `docs/shared/PURCHASE_INVENTORY_CONTRACT.md`.
+
 ## Purpose
 The repo must let a completely new chat continue safely without relying on prior conversation memory. Git is the durable memory; chats are temporary.
 

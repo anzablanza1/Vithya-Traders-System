@@ -23,3 +23,6 @@ Accepted is derived from Received minus Rejected when needed.
 
 ## Acceptance
 Known sample POs reconcile across V1-representable and new multi-PO cases. TEST_PLAN B, D and E pass.
+
+## Shared Inventory contract
+These quantities are cross-system semantics. Inventory may consume supplier-neutral Open/In-Transit/Pending/Receipt context, but this work item does not decide when physical or ERP stock changes. That remains Platform V2 O3.

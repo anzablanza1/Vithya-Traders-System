@@ -78,3 +78,12 @@ not proof that V2-01 has begun.
 
 In particular, the old PO prototype must not override the approved many-to-many
 Shipment↔PO and Bill↔Shipment allocation model.
+
+## Platform V2 cross-system governance
+
+Purchase V2 is part of a clean Platform V2 redesign. Cross-system approved requirements live in `docs/shared/PURCHASE_INVENTORY_CONTRACT.md`.
+
+### Open decision O3 — stock-state authority and mutation timing
+Current stock is **not reliable for stock-dependent replenishment**. The owner will explicitly approve reliability later after a system verifies which stock is reliable and which is not.
+
+Before Purchase↔Inventory implementation assumes stock movement, resolve physical on-hand timing, accepted/usable timing, rejected/returned treatment, Vasy/ERP stock timing and analytical inventory-position semantics.

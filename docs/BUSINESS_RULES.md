@@ -129,7 +129,9 @@ read model is constructed without those fields by design.
 
 ---
 
-## 7. Inventory classification
+## 7. Inventory classification (V1 behaviour; not Platform V2 methodology)
+
+The formulas below describe V1 behaviour only. Platform V2 requires the analytical capabilities but their methodology/thresholds remain OPEN. Do not copy these V1 thresholds into V2 without an explicit decision.
 
 - **ABC** by 12-month revenue share: A = top 80%, B = next 15%, C = last 5%.
 - **XYZ** by demand steadiness: X = active in ≥9 months, Y = 4–8, Z = ≤3.
@@ -160,3 +162,16 @@ sides, require every typed token as a substring in any order. So
 - Customer names that are just `.` or blank are resolved via `contact_id` →
   `customer_master`, so the team's slow renaming effort flows through
   automatically.
+
+---
+
+## 10. Platform V2 cross-domain requirements
+
+These requirements govern future Purchase↔Inventory planning and do not alter frozen V1 behaviour.
+
+- Purchase quantities are procurement history, not demand; new planning uses sales-derived demand.
+- Purchase Event count is not PO count.
+- Sparse purchase history is not zero history.
+- Current stock is not reliable for authoritative stock-dependent reorder calculations. The owner will explicitly approve reliability later after a verification system establishes reliable scope.
+- Confirmed/manual MOQ, pack/order multiple and supplier commitments override inferred values.
+- See `docs/shared/PURCHASE_INVENTORY_CONTRACT.md`.
