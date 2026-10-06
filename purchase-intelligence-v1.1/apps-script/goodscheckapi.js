@@ -3,35 +3,56 @@
  * PO/transit/received/pending quantities and the four dates (promised ship, shipped,
  * expected delivery, received). No supplier/rate/amount — quantity & status only.
  * Reuses the same sheet tabs the dashboard writes (PO Tracking, Receipts, Lots, Lot Lines, PO Meta).
+ *
+ * [V1.1-04a "Vaigai"] (2026-10) — received & shipped quantities now come from shpQtyByPoCode_()
+ *   (ShipmentApi.gs): received = V1 lots marked received (qty − return); shipped = V1 lots + V1.1
+ *   PO allocations. The Receipts tab is NO LONGER used here — it repeats rows on every lot save and
+ *   logs shipped qty as received. If ShipmentApi.gs is missing, the old V1 behaviour is used.
+ *   In-transit = shipped − TRUE received (not the received figure capped at the PO qty), so
+ *   over-shipped goods that have arrived no longer show as "in transit".
+ *   Closed POs (PO Meta "Closed At" set, on the PO or its split parent) are hidden, matching
+ *   the main dashboard.
+ * [V1.1 server 2.1] ship / expected / arrival dates also come from V1.1 shipments (shpDatesByPoCode_).
  ****************************************************************************************/
 function getGoodsCheck() {
   var track = (typeof readTrack_ === 'function') ? readTrack_() : [];
   var recv  = (typeof readRecv_  === 'function') ? readRecv_()  : [];
   if (!track.length) return [];
 
-  // received qty per (PO + canonical code)
+  // [V1.1-04a] true shipped / received per (PO + canonical code); old Receipts path only as fallback
+  var Q = (typeof shpQtyByPoCode_ === 'function') ? shpQtyByPoCode_() : null;
   var recvBy = {};
-  recv.forEach(function (r) {
+  if (!Q) recv.forEach(function (r) {
     var k = String(r.poNumber || '') + '|' + String(r.code || '').replace(/\/+$/, '');
     recvBy[k] = (recvBy[k] || 0) + (Number(r.recvQty) || 0);
   });
 
   var LL = readLotsFull_();          // shipped qty + lot dates per (PO|code)
   var META = readMetaLite_();        // promised (ship) date per PO number
+  var SD = (typeof shpDatesByPoCode_ === 'function') ? shpDatesByPoCode_() : {};   // [2.1] V1.1 shipment dates
 
   // group tracking rows by PO number (skip split parents — children hold the real qty)
   var byPo = {};
   track.forEach(function (t) {
     if (String(t.poStatus || '') === 'PO Split') return;
     var po = String(t.poNumber || '');
+    var par = String(t.parentPo || '');                                          // [V1.1-04a] hide closed POs
+    if ((META[po] && META[po].closed) || (par && META[par] && META[par].closed)) return;
     var canon = String(t.code || '').replace(/\/+$/, '');
     var k = po + '|' + canon;
     var ordered  = Number(t.poQty) || 0;
-    var received = Math.min(recvBy[k] || 0, ordered);
-    var shipped  = (LL.ship[k] || 0);
-    var transit  = Math.max(0, shipped - received);
+    var q = Q ? (Q[k] || { shipped: 0, received: 0 }) : null;                 // [V1.1-04a]
+    var trueRecv = q ? q.received : (recvBy[k] || 0);                        // [V1.1-04a]
+    var received = Math.min(trueRecv, ordered);
+    var shipped  = q ? q.shipped : (LL.ship[k] || 0);
+    var transit  = Math.max(0, shipped - trueRecv);                            // [V1.1-04a] uncapped
     var pending  = Math.max(0, ordered - shipped);
     var lotDates = LL.dates[k] || { shipped: '', expected: '', received: '' };
+    var sd = SD[k];                                                              // [2.1] merge V1.1 shipment dates
+    if (sd) lotDates = {
+      shipped:  (sd.shipped  && (!lotDates.shipped  || sd.shipped  > lotDates.shipped))  ? sd.shipped  : lotDates.shipped,
+      expected: (sd.expected && (!lotDates.expected || sd.expected < lotDates.expected)) ? sd.expected : lotDates.expected,
+      received: (sd.received && (!lotDates.received || sd.received > lotDates.received)) ? sd.received : lotDates.received };
     if (!byPo[po]) byPo[po] = {
       poNumber: po, realNo: String(t.realNo || ''), status: String(t.poStatus || ''),
       promisedShip: (META[po] && META[po].promised) || '',
@@ -102,21 +123,21 @@ function readLotsFull_() {
   return out;
 }
 
-// PO Meta reader — promised (ship) date per PO number
+// PO Meta reader — promised (ship) date + closed flag per PO number   [V1.1-04a: closed added]
 function readMetaLite_() {
   var out = {};
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var m = ss.getSheetByName('PO Meta');
     if (!m || m.getLastRow() < 2) return out;
-    var v = m.getRange(2, 1, m.getLastRow() - 1, Math.max(5, m.getLastColumn())).getValues();
+    var v = m.getRange(2, 1, m.getLastRow() - 1, Math.max(10, m.getLastColumn())).getValues();
     v.forEach(function (r) {
       if (!r[0]) return;
       var d = r[4];   // Promised (col 5)
       var ds = (Object.prototype.toString.call(d) === '[object Date]')
         ? (d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2))
         : String(d || '');
-      out[String(r[0])] = { promised: ds };
+      out[String(r[0])] = { promised: ds, closed: String(r[9] || '').trim() !== '' };   // col 10 = Closed At
     });
   } catch (e) {}
   return out;

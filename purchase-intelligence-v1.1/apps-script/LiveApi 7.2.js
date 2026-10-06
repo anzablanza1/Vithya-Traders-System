@@ -23,6 +23,20 @@
  *  6. Deploy > Manage deployments > (your web app) > Edit > Version: New version > Deploy.
  *     The /exec URL stays the same.
  *  7. Test:  …/exec?api=ping&token=YOUR_TOKEN   then   …/exec?api=data&token=YOUR_TOKEN
+ *
+ * [V1.1-01 "Vaigai"] (2026-10) — additive only, nothing removed:
+ *  - handleApi_: new routes api=shipment and api=shipmentDelete (code lives in ShipmentApi.gs)
+ *  - ping: also returns v11 (the V1.1 server label)
+ *  - apiData_: also returns shipments[] and shipAllocs[] (older dashboards ignore them)
+ * [V1.1 server 2.1] (2026-10) — additive only:
+ *  - routes: shipmentArrive, bill, billStage, billUnassign, billDelete (BillApi.gs / ShipmentApi.gs)
+ *  - apiData_: also returns bills[] and billLines[]
+ *  - apiLot_: when Script Property V11_LOT_LOCK = on, NEW V1 lots are refused (edits to existing
+ *    lots still work) — protects against old dashboard files after the V1.1 go-live
+ * [V1.1 server 2.2] (2026-10):
+ *  - route poDelete → apiPoDelete_ (ShipmentApi.gs): deleting a PO now removes its PO Tracking rows too
+ *  - apiRecord_: removePoNumbers is refused for a PO carried by a V1.1 shipment
+ * [V1.1 server 2.3] route v11data → only the V1.1 data, for a fast refresh after a save
  */
 
 /* ── SECRET TOKEN ──────────────────────────────────────────────────────────────
@@ -145,7 +159,8 @@ function handleApi_(api, params, body){
       hint:'The token in the dashboard does not match VT_API_TOKEN in this script. Run setupLiveApi() once, or set it under Project Settings > Script properties.' });
   }
   try {
-    if (api === 'ping') return json_({ ok:true, version:APP_VERSION, time:new Date(), hasRegisterApi:(typeof apiRegister_==='function') });
+    if (api === 'ping') return json_({ ok:true, version:APP_VERSION, time:new Date(), hasRegisterApi:(typeof apiRegister_==='function'),
+      v11:(typeof V11_VERSION!=='undefined'?V11_VERSION:'') });   // [V1.1-01]
     if (api === 'data' || api === 'requests') return json_(apiData_());
     if (api === 'record') return json_(apiRecord_(body));
     if (api === 'receive') return json_(apiReceive_(body));
@@ -157,6 +172,17 @@ function handleApi_(api, params, body){
     if (api === 'lotDelete') return json_(apiLotDelete_(body));
     if (api === 'audit') return json_(apiAudit_(body));
     if (api === 'archive') return json_(apiArchive_());
+    if (api === 'shipment') return json_((typeof apiShipment_==='function')?apiShipment_(body):{ok:false,error:'ShipmentApi.gs not installed'});             // [V1.1-01]
+    if (api === 'shipmentArrive') return json_((typeof apiShipmentArrive_==='function')?apiShipmentArrive_(body):{ok:false,error:'ShipmentApi.gs not installed'}); // [2.1]
+    if (api === 'bill') return json_((typeof apiBill_==='function')?apiBill_(body):{ok:false,error:'BillApi.gs not installed'});                         // [2.1]
+    if (api === 'billStage') return json_((typeof apiBillStage_==='function')?apiBillStage_(body):{ok:false,error:'BillApi.gs not installed'});          // [2.1]
+    if (api === 'billUnassign') return json_((typeof apiBillUnassign_==='function')?apiBillUnassign_(body):{ok:false,error:'BillApi.gs not installed'}); // [2.1]
+    if (api === 'billDelete') return json_((typeof apiBillDelete_==='function')?apiBillDelete_(body):{ok:false,error:'BillApi.gs not installed'});       // [2.1]
+    if (api === 'v11data') return json_({ ok:true, v11:(typeof V11_VERSION!=='undefined'?V11_VERSION:''),                                    // [2.3] fast V1.1-only refresh
+      shipments:(typeof shpReadShipments_==='function'?shpReadShipments_():[]), shipAllocs:(typeof shpReadAllocs_==='function'?shpReadAllocs_():[]),
+      bills:(typeof billReadBills_==='function'?billReadBills_():[]), billLines:(typeof billReadLines_==='function'?billReadLines_():[]) });
+    if (api === 'poDelete') return json_((typeof apiPoDelete_==='function')?apiPoDelete_(body):{ok:false,error:'ShipmentApi.gs not installed'});        // [2.2]
+    if (api === 'shipmentDelete') return json_((typeof apiShipmentDelete_==='function')?apiShipmentDelete_(body):{ok:false,error:'ShipmentApi.gs not installed'}); // [V1.1-01]
     if (api === 'register') return json_((typeof apiRegister_==='function')?apiRegister_(params):{ok:false,error:'RegisterApi.gs not installed'});
     return json_({ ok:false, error:'unknown api: '+api });
   } catch(err){ return json_({ ok:false, error:String(err && err.message || err) }); }
@@ -187,7 +213,11 @@ function apiData_(){
   return { ok:true, version:APP_VERSION, time:new Date(),
     products:getProducts(), statuses:getStatuses(),
     requests:requests, tracking:tracking, receipts:receipts, closedLineIds:closedIds,
-    poMeta:readMeta_(), security:getSecurity_(), suppliers:readSuppliers_(), lots:readLots_(), lotLines:readLotLines_() };
+    poMeta:readMeta_(), security:getSecurity_(), suppliers:readSuppliers_(), lots:readLots_(), lotLines:readLotLines_(),
+    shipments:(typeof shpReadShipments_==='function'?shpReadShipments_():[]),     // [V1.1-01]
+    shipAllocs:(typeof shpReadAllocs_==='function'?shpReadAllocs_():[]),           // [V1.1-01]
+    bills:(typeof billReadBills_==='function'?billReadBills_():[]),                // [2.1]
+    billLines:(typeof billReadLines_==='function'?billReadLines_():[]) };          // [2.1]
 }
 
 function readTrack_(){
@@ -235,6 +265,10 @@ function apiRecord_(body){
   var tr = trackSheet_();
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
+    if (removeList.length && typeof shpPoUse_ === 'function') {                 // [V1.1 2.2] protect shipped POs
+      var use = shpPoUse_(), bl = removeList.filter(function (po) { return use[String(po)]; });
+      if (bl.length) return { ok:false, error:'PO ' + bl.join(', ') + ' is on a V1.1 shipment — it cannot be removed or split.' };
+    }
     var n = TRACK_HEADERS.length;
     // 1) delete rows whose PO Number is in removeList (split parent replacement)
     if (removeList.length && tr.getLastRow() > 1){
@@ -440,6 +474,8 @@ function apiLot_(body){
         if(String(keys[i][1])===String(lot.poNumber)){var nn=parseInt(keys[i][2],10);if(nn>maxNo)maxNo=nn;}
       }
     }
+    if(!rowIx&&typeof v11LotLocked_==='function'&&v11LotLocked_())   // [V1.1 2.1] old-lot lock
+      return {ok:false,locked:true,error:'New lots are switched off. Please use the new V1.1 dashboard file and record shipments in the Shipments tab. (Existing lots can still be edited.)'};
     if(!rowIx&&(!lotNo||lot.localNo))lotNo=('0'+(maxNo+1)).slice(-2);   // [v4.2] server-assigned 2-digit, in sync order
     if(rowIx&&!lotNo){lotNo=String(s.getRange(rowIx,3).getValue()||('0'+(maxNo+1)).slice(-2));}
     var vals=[lot.lotId,lot.poNumber,lotNo,String(lot.date||''),String(lot.transport||''),String(lot.lr||''),

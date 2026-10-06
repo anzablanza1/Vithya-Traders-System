@@ -3,6 +3,10 @@
  * ───────────────────────────────────────────
  * VERSION:  VT-PO v9 "Thamirabarani"   (2026-07)
  * CHANGELOG (newest first):
+ *   V1.1-04a "Vaigai" (2026-10) - getLineProgress(): received & shipped now come from
+ *                shpQtyByPoCode_() (ShipmentApi.gs) — true received from V1 lots, not the
+ *                Receipts tab (which repeats rows and logs shipped qty). Falls back to the old
+ *                V1 path if ShipmentApi.gs is missing. Nothing else in this file changed.
  *   v9 Thamirabarani - [v4-D] w/wo chips; real shipped/lot data in progress bars
  *                (reads Lots + Lot Lines tabs when present); excess segment.
  *   v8 Narmada - [VT-016] getLineProgress(): per request line, the live order &
@@ -245,9 +249,11 @@ function getLineProgress() {
   var track = (typeof readTrack_ === 'function') ? readTrack_() : [];
   var recv  = (typeof readRecv_  === 'function') ? readRecv_()  : [];
   if (!track.length) return {};
+  // [V1.1-04a] true shipped / received per (PO + canonical code); old Receipts path only as fallback
+  var Q = (typeof shpQtyByPoCode_ === 'function') ? shpQtyByPoCode_() : null;
   // received qty per (PO number + canonical code)
   var recvBy = {};
-  recv.forEach(function (r) {
+  if (!Q) recv.forEach(function (r) {
     var k = String(r.poNumber || '') + '|' + String(r.code || '').replace(/\/+\s*$/, '');
     recvBy[k] = (recvBy[k] || 0) + (Number(r.recvQty) || 0);
   });
@@ -258,7 +264,8 @@ function getLineProgress() {
     var lid = String(t.lineId || ''); if (!lid) return;
     if (String(t.poStatus || '') === 'PO Split') return;   // split parents carry no real qty; children do
     var canon = String(t.code || '').replace(/\/+\s*$/, '');
-    var received = recvBy[String(t.poNumber || '') + '|' + canon] || 0;
+    var qk = String(t.poNumber || '') + '|' + canon;                                       // [V1.1-04a]
+    var received = Q ? ((Q[qk] && Q[qk].received) || 0) : (recvBy[qk] || 0);
     if (!byLine[lid]) byLine[lid] = { ordered: 0, received: 0, status: '', _rank: 99, pos: [] };
     var e = byLine[lid];
     e.ordered += Number(t.poQty) || 0;
@@ -267,7 +274,7 @@ function getLineProgress() {
     e.pos.push({ poNumber: String(t.poNumber || ''), realNo: String(t.realNo || ''),
       status: String(t.poStatus || ''), lane: String(t.lane || ''), expected: String(t.expected || ''),
       ordered: Number(t.poQty) || 0, received: received,
-      shipped: LL.ship[lk] || 0, lots: LL.lots[lk] || [] });
+      shipped: Q ? ((Q[lk] && Q[lk].shipped) || 0) : (LL.ship[lk] || 0), lots: LL.lots[lk] || [] });   // [V1.1-04a]
     var rnk = RANK[String(t.poStatus || '')] || 1;
     if (rnk < e._rank) { e._rank = rnk; e.status = String(t.poStatus || ''); }
   });
