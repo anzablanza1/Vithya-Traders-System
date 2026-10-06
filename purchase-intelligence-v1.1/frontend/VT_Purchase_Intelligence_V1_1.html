@@ -562,6 +562,28 @@ html[data-theme="dark"]{--fn-pending:#C97F6C;--fn-created:#7194CC;--fn-sent:#5F7
 html[data-theme="dark"] .mode-chip.followup{background:#332b17}
 html[data-theme="dark"] .mode-chip.mgmt{background:#3b211d}
 nav#mainnav{align-items:center}
+/* [V1.1 R18] Shipments / Bills visual contrast */
+.v11-band{background:linear-gradient(90deg,#0F766E,#14968a);color:#fff;border-radius:10px;padding:10px 14px;margin:0 0 12px}
+.v11-band h3,.v11-band .mono{color:#fff}
+.v11-band.bill{background:linear-gradient(90deg,#B45309,#d97706)}
+.v11-band.mi{background:linear-gradient(90deg,#1d4ed8,#3b82f6)}
+.v11-band .btn.ghost{color:#fff;border-color:rgba(255,255,255,.65);background:transparent}
+.v11-band .chip{border-color:rgba(255,255,255,.5)!important}
+#scr-ships>.card:first-child{border-top:4px solid #0F766E}
+#scr-ships.bills-on>.card:first-child{border-top-color:#B45309}
+#ships-list table thead th{background:#0F766E;color:#fff}
+#ships-list.bills table thead th{background:#B45309}
+#ships-list tbody tr:nth-child(even){background:rgba(15,118,110,.06)}
+#ships-list.bills tbody tr:nth-child(even){background:rgba(180,83,9,.06)}
+#ships-list tbody tr:hover{background:rgba(37,99,235,.08)}
+.s11-row{border-left:5px solid #9ca3af!important}
+.s11-row.ok{border-left-color:#16a34a!important;background:rgba(22,163,74,.05)}
+.s11-row.ex{border-left-color:#d97706!important;background:rgba(217,119,6,.07)}
+.s11-row.off,.s11-row.bad{border-left-color:#dc2626!important;background:rgba(220,38,38,.06)}
+.s11-sec{background:rgba(15,118,110,.07);border:1px solid rgba(15,118,110,.18);border-radius:10px;padding:9px 11px;margin:8px 0}
+#bill11-modal .s11-sec{background:rgba(180,83,9,.06);border-color:rgba(180,83,9,.2)}
+#ships-view button.active[data-v="ships"]{background:#0F766E;color:#fff}
+#ships-view button.active[data-v="bills"]{background:#B45309;color:#fff}
 .nav-right{margin-left:auto;display:inline-flex;align-items:center;gap:10px;flex-shrink:0;position:relative;z-index:5;padding-left:10px;background:var(--card)}
 .nav-ver{align-self:center;font-size:.66rem;color:var(--grey);font-family:var(--mono);padding:0 6px}
 #btn-settings-top{pointer-events:auto!important;cursor:pointer!important;position:relative;z-index:60}
@@ -612,7 +634,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
     <button data-s="ships" disabled title="V1.1 — shipments that can carry several POs">Shipments <span id="ships-badge" class="po-badge" style="display:none;background:#0F766E">0</span></button>
 
     <span class="nav-right"><span id="mode-chip" class="mode-chip ops" title="Your current access level">PO Tracking</span>
-    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1 · Vaigai</span></span>
+    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.1 · Vaigai</span></span>
   </nav>
 </header>
 
@@ -910,7 +932,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
 <!-- ===== [V1.1 2.3] SHIPMENT ENTRY ===== -->
 <div class="modal-bg" id="ship11-modal">
   <div class="modal" style="max-width:980px">
-    <div style="display:flex;align-items:center;gap:10px;margin:0 0 8px"><h3 style="margin:0" id="s11-title">New shipment</h3><span style="flex:1"></span>
+    <div class="v11-band" style="display:flex;align-items:center;gap:10px"><h3 style="margin:0" id="s11-title">New shipment</h3><span style="flex:1"></span>
       <button class="btn ghost sm" onclick="mClose('ship11-modal')">✕ Close</button></div>
     <div id="s11-body"></div>
   </div>
@@ -918,14 +940,14 @@ html[data-theme="dark"] .live-conn{background:#23201c}
 <!-- ===== [V1.1 2.4] BILL ===== -->
 <div class="modal-bg" id="bill11-modal">
   <div class="modal" style="max-width:1180px">
-    <div style="display:flex;align-items:center;gap:10px;margin:0 0 8px"><h3 style="margin:0" id="b11-title">New bill</h3><span style="flex:1"></span>
+    <div class="v11-band bill" style="display:flex;align-items:center;gap:10px"><h3 style="margin:0" id="b11-title">New bill</h3><span style="flex:1"></span>
       <button class="btn ghost sm" onclick="mClose('bill11-modal')">✕ Close</button></div>
     <div id="b11-body"></div>
   </div>
 </div>
 <div class="modal-bg" id="mi11-modal">
   <div class="modal" style="max-width:760px">
-    <div style="display:flex;align-items:center;gap:10px;margin:0 0 8px"><h3 style="margin:0" id="mi11-title">Material Inward</h3><span style="flex:1"></span>
+    <div class="v11-band mi" style="display:flex;align-items:center;gap:10px"><h3 style="margin:0" id="mi11-title">Material Inward</h3><span style="flex:1"></span>
       <button class="btn ghost sm" onclick="mClose('mi11-modal')">✕ Close</button></div>
     <div id="mi11-body"></div>
   </div>
@@ -3592,6 +3614,10 @@ function poAddedTag(code){
     <span class="muted">${esc(hits.slice(0,3).map(h=>h.po).join(', '))}${hits.length>3?' +'+(hits.length-3):''}</span></div>`;
 }
 function poRunSearch(){
+  // [V1.1 R17] the search index was built only once (after a register load), so products that
+  // arrived later (master sync, live sync) were missing and search "sometimes" found nothing.
+  try{const sig=((typeof ITEMS!=='undefined'&&ITEMS.size)||0)+'/'+((typeof PRODUCTS!=='undefined'&&PRODUCTS&&PRODUCTS.size)||0)+'/'+((typeof SUPS!=='undefined'&&SUPS.size)||0);
+    if(!SIDX.length||SIDX._sig!==sig){buildSearchIndex();SIDX._sig=sig;}}catch(e){}
   poBuildMsFilters();
   const q=poQ.value.trim();const box=document.getElementById('po-results');
   const fActive=(MS.pocat&&MS.pocat.set.size)||(MS.posub&&MS.posub.set.size)||(MS.pobrand&&MS.pobrand.set.size);
@@ -3611,7 +3637,7 @@ function poRunSearch(){
     return {cat:r.m.cat||'',subcat:r.m.subcat||'',brand:r.m.brand||''};};
   let rows;
   if(q.length>=2){
-    rows=(SIDX.length?runSearch(q):[]).map(x=>rowFor(x.e)).filter(Boolean)
+    rows=(SIDX.length?runSearch(q):[]).filter(x=>x.e.type!=='sup').map(x=>rowFor(x.e)).filter(Boolean)
       .filter(r=>{const m=metaOf(r);return msMatch('pocat',m.cat)&&msMatch('posub',m.subcat)&&msMatch('pobrand',m.brand);})
       .slice(0,40);
   }else{
@@ -4165,7 +4191,6 @@ function poRender(){
         <input class="po-sup-input" id="po-reassign" placeholder="search supplier…" autocomplete="off"
           onfocus="poSupOpen('bulk')" oninput="poSupFilter('bulk',this.value)" onkeydown="poSupKey(event,'bulk')" onblur="poSupBlur('bulk')" style="width:100%"></div>
       <button class="btn red sm" onclick="poReassignSupplier()">Apply to ${PO_SEL.size}</button>
-      <span class="small muted">unit:</span>${uomSelect('po-bulk-uom','',`poBulkUom(this.value)`,90)}
       <span class="small muted">unit:</span>
       <select class="po-in" style="width:96px" onchange="poBulkUom(this.value);this.value=''">
         <option value="">set unit…</option>${uomOptions('')}</select>
@@ -4211,7 +4236,7 @@ function poRender(){
       // [FIX-CHEAP] only nudge when the *chosen* supplier is not the cheapest AND chosen has a comparable price
       const chosenLand=(it.sups.get(l.supplier)?(l.lane==='g'?it.sups.get(l.supplier).g:it.sups.get(l.supplier).n).lastLand:l.price)||l.price;
       const nudge=(cheap&&cheap.name!==l.supplier&&cheap.v<chosenLand-0.01)?`<div class="small" style="color:var(--ok);margin-top:2px">↓ cheaper: ${esc(cheap.name)} @ ${INR2(cheap.v)}</div>`:'';
-      html+=`<tr>${selCell}<td><div style="font-weight:600;font-size:.84rem">${esc(laneNameStr(it.disp,l.lane))}</div><div class="small muted">${esc(it.cat)} · ${esc(it.unit||'')}</div></td>
+      html+=`<tr>${selCell}<td><div style="font-weight:600;font-size:.84rem">${esc(laneNameStr(it.disp,l.lane))}</div><div class="small muted">${esc(it.cat)} · ${uomSelect('po-u-'+l.id,unitOf(l),`poSetUom('${l.id}',this.value)`,72)}</div></td>
        <td><span class="lane-pick"><button class="g ${l.lane==='g'?'active':''}" onclick="poSetLane(${l.id},'g')">GST</button><button class="n ${l.lane==='n'?'active':''}" onclick="poSetLane(${l.id},'n')">NON</button></span>
         <div class="mono small" style="margin-top:3px">${esc(laneCodeStr(l.code,l.lane))}</div></td>
        <td>${poSupCell(l)}${nudge}${lastBuy}</td>
@@ -4265,7 +4290,7 @@ function poDownloadBulk(laneFilter){
 function poDownloadAll(){poDownloadBulk(null);}
 function poSummaryXLSX(){if(!PO.length){toast('Cart is empty.');return;}
   dlXLSX([{name:'PO Summary',aoa:[['Lane','Supplier','Item Code','Product','Unit','Qty','Price','MRP','Line Total'],
-   ...poGroups().flatMap(g=>g.rows.map(l=>{const it=ITEMS.get(l.code);return [l.lane==='g'?'GST':'Non-GST',l.supplier,laneCodeStr(l.code,l.lane),laneNameStr(it?it.disp:(l.newName||l.code),l.lane),it?(it.unit||''):'',l.qty,l.price,l.mrp,+(l.qty*l.price).toFixed(2)];}))]}],
+   ...poGroups().flatMap(g=>g.rows.map(l=>{const it=ITEMS.get(l.code);return [l.lane==='g'?'GST':'Non-GST',l.supplier,laneCodeStr(l.code,l.lane),laneNameStr(it?it.disp:(l.newName||l.code),l.lane),unitOf(l),l.qty,l.price,l.mrp,+(l.qty*l.price).toFixed(2)];}))]}],
    'VT_PO_Summary_'+new Date().toISOString().slice(0,10)+'.xlsx');}
 function poSummaryPDF(){if(!PO.length){toast('Cart is empty.');return;}
   dlPDF('Purchase order summary',['Lane','Supplier','Code','Product','Qty','Price ₹','Total ₹'],
@@ -4629,7 +4654,7 @@ function v11SupplierOptions(cur){
 
 /* ---------- list ---------- */
 function v11ShipsRender(){
-  const el=document.getElementById('ships-list');if(!el)return;
+  const el=document.getElementById('ships-list');if(!el)return;el.classList.remove('bills');try{document.getElementById('scr-ships').classList.remove('bills-on');}catch(e){}
   if(!V11.loaded){el.innerHTML='<div class="card small muted">Sync with the live sheet to load shipments.</div>';return;}
   const q=S11_Q.trim().toLowerCase();
   let list=(V11.shipments||[]).slice();
@@ -4681,11 +4706,15 @@ async function v11PostRaw(body,label){
   toast(label+' — saving…');
   try{const r=await vtApiPost(Object.assign({by:vtBy()},body));
     if(!r||r.ok===false){alert(label+' — not saved.\n\n'+((r&&r.errors)?r.errors.join('\n'):((r&&r.error)||'unknown error')));return null;}
-    return r;}
+    v11TakeFresh(r);return r;}
   catch(e){alert(label+' — not saved (connection problem: '+e.message+'). Please try again.');return null;}
 }
+// [R19] server 2.5 sends the fresh V1.1 data inside the save reply — apply it and skip the second call
+let V11_FRESH=0;
+function v11TakeFresh(r){try{if(r&&r.v11data&&Array.isArray(r.v11data.shipments)){v11ApplyData(r.v11data);V11_PIDX=null;V11_FRESH=Date.now();
+  try{if(typeof posRender==='function'&&document.getElementById('scr-pos').classList.contains('on'))posRender();}catch(e){}}}catch(e){}}
 // [2.4b] after a V1.1 save, fetch only the V1.1 data (fast) instead of a full sync
-async function v11Refresh(){try{const d=await vtApiPost({api:'v11data'});if(d&&d.ok&&Array.isArray(d.shipments)){v11ApplyData(d);V11_PIDX=null;
+async function v11Refresh(){if(Date.now()-V11_FRESH<8000){V11_FRESH=0;return true;}try{const d=await vtApiPost({api:'v11data'});if(d&&d.ok&&Array.isArray(d.shipments)){v11ApplyData(d);V11_PIDX=null;
     try{if(typeof posRender==='function'&&document.getElementById('scr-pos').classList.contains('on'))posRender();}catch(e){}return true;}}catch(e){}
   try{await liveSync();}catch(e){}return false;}
 async function v11AfterSave(msg){toast(msg);v11Busy(true,'Updating…');try{await v11Refresh();}finally{v11Busy(false);}v11ShipsRefresh();}
@@ -4723,6 +4752,7 @@ function v11RowCalc(r){const c=v11RowCands(r);const sum=c.reduce((a,x)=>a+(+r.al
   if(!exPo&&own.length)exPo=own[own.length-1].poId;
   const off=(!exPo&&rest>0)?rest:0;                  // nothing to hang it on → Off-PO
   return {c,sum,excess:exPo&&rest>0?rest:0,offpo:off,over:rest<0?-rest:0,exPo,q};}
+function v11RowState(r){const z=v11RowCalc(r);if(!(z.q>0))return '';if(z.over>0)return 'bad';if(z.excess>0)return 'ex';if(z.offpo>0)return 'off';return 'ok';}
 function v11RowChip(r){const z=v11RowCalc(r);
   if(!(z.q>0))return '<span class="chip warn" style="font-size:.6rem">enter the shipped quantity</span>';
   if(z.over>0)return `<span class="chip" style="font-size:.6rem;background:var(--non);color:#fff;border-color:transparent">✖ split adds up to ${NUM(z.sum)} — more than the ${NUM(z.q)} shipped</span>`;
@@ -4742,7 +4772,7 @@ function v11ShipModal(){
         <td class="r small num">${NUM(x.eff)}</td><td class="r small num">${NUM(x.pending)}</td>
         <td class="r"><input class="po-in" type="number" min="0" style="width:80px" data-po="${esc(x.poId)}" value="${+r.alloc[x.poId]||0}" oninput="v11AllocSet('${k}','${esc(x.poId)}',this.value)"></td></tr>`).join('');
     const tail=v11RowChip(r);
-    return `<div class="card" style="padding:9px 11px;margin:8px 0" id="s11-row-${k}">
+    return `<div class="card s11-row ${v11RowState(r)}" style="padding:9px 11px;margin:8px 0" id="s11-row-${k}">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <b class="small">${esc(prodName(r.code,r.name))}</b><span class="mono small muted">${esc(r.canon)}</span>
         <span style="flex:1"></span>${uomSelect('s11-u-'+k,r.uom||unitOf(r.canon),`v11UomSet('${k}',this.value)`,78)}<label class="small"><b>Qty shipped</b> (as on the bill)</label>
@@ -4754,22 +4784,21 @@ function v11ShipModal(){
   const lock=S.sid&&v11ShipBills(S.sid).length;
   const billsLine=S.sid&&lock?`<div class="small" style="margin:0 0 8px"><b>Bills:</b> ${v11ShipBills(S.sid).map(b=>{const g=v11BillStage(b);return v11BillLink(b)+` <span class="chip" style="font-size:.55rem;background:${g.col};color:#fff;border-color:transparent">${esc(g.label)}</span>`;}).join(' · ')}</div>`:'';
   document.getElementById('s11-body').innerHTML=`${billsLine}
-    <div class="filters" style="align-items:flex-end;margin-bottom:6px">
+    <div class="s11-sec"><div class="filters" style="align-items:flex-end;margin-bottom:6px">
       <div class="f"><label>Supplier *</label>${supSel}</div>
       <div class="f"><label>Ship date</label><input class="po-in" type="date" id="s11-date" value="${esc(S.shipDate)}"></div>
       <div class="f"><label>Expected delivery</label><input class="po-in" type="date" id="s11-exp" value="${esc(S.expected)}"></div>
       <div class="f"><label>Transport <span class="muted">(optional)</span></label><input class="po-in" id="s11-tr" value="${esc(S.transport)}" style="width:150px"></div>
       <div class="f"><label>LR no. <span class="muted">(optional)</span></label><input class="po-in" id="s11-lr" value="${esc(S.lr)}" style="width:120px"></div>
     </div>
-    <div class="f" style="margin-bottom:8px"><label class="small muted">Note</label><input class="po-in" id="s11-note" value="${esc(S.note)}" style="width:100%"></div>
-    ${S.supplier?`<div class="filters" style="align-items:flex-end;margin:4px 0 2px">
-      <div class="f"><label>Add a <b>whole PO</b> (pending qty filled in)</label><div style="display:flex;gap:6px"><select class="po-in" id="s11-addpo" style="min-width:210px"><option value="">— PO —</option>${
+    <div class="f" style="margin-bottom:2px"><label class="small muted">Note</label><input class="po-in" id="s11-note" value="${esc(S.note)}" style="width:100%"></div></div>
+    ${S.supplier?`<div class="s11-sec"><b class="small" style="color:#0F766E">ADD PRODUCTS</b><div class="filters" style="align-items:flex-end;margin:4px 0 2px">
+      <div class="f"><label>Pick from a <b>PO</b> (pending qty filled in)</label><div style="display:flex;gap:6px"><select class="po-in" id="s11-addpo" style="min-width:210px" onchange="v11PoPickOpen(this.value)"><option value="">— PO —</option>${
         [...new Set((v11PendIdx().bySup.get(S.supplier)||[]).filter(e=>e.pending>0).map(e=>e.p.poId))].sort((a,b)=>v11PoAgeKey(podocFind(a)).localeCompare(v11PoAgeKey(podocFind(b))))
-          .map(po=>{const n=(v11PendIdx().bySup.get(S.supplier)||[]).filter(e=>e.p.poId===po&&e.pending>0).length;return `<option value="${esc(po)}">${esc(v11PoLabel(po))} · ${n} item(s) pending</option>`;}).join('')}</select>
-        <button class="btn ghost sm" onclick="v11AddPoUI()">＋ add PO</button></div></div>
+          .map(po=>{const n=(v11PendIdx().bySup.get(S.supplier)||[]).filter(e=>e.p.poId===po&&e.pending>0).length;return `<option value="${esc(po)}"${S11._poPick&&S11._poPick.po===po?' selected':''}>${esc(v11PoLabel(po))} · ${n} item(s) pending</option>`;}).join('')}</select></div></div>
       <div class="f" style="min-width:260px;flex:1"><label>…or add a <b>product</b> from this supplier's pending POs</label>${v11PickHTML('s11own','type product name…')}</div>
       <div class="f"><label>&nbsp;</label><button class="btn ghost sm" title="add every pending product of this supplier" onclick="v11AddAllPending()">＋ all pending</button></div>
-      <div class="f" style="min-width:280px;flex:1"><label class="small muted">…or <b>any product</b> — other suppliers' POs, or Off-PO</label>${v11PickHTML('s11any','type product name…')}</div></div>`
+      <div class="f" style="min-width:280px;flex:1"><label class="small muted">…or <b>any product</b> — other suppliers' POs, or Off-PO</label>${v11PickHTML('s11any','type product name…')}</div></div>${v11PoPickHTML()}</div>`
       :'<div class="small muted" style="margin:8px 0">Choose the supplier first.</div>'}
     <div id="s11-rows">${rows||(S.supplier?'<div class="small muted" style="margin:8px 0">No products yet.</div>':'')}</div>
     ${lock?`<div class="small" style="margin-top:6px;color:#B8893A">This shipment is on bill ${v11ShipBills(S.sid).map(b=>esc(b.billNo)).join(', ')} — billed products cannot be removed here, and it cannot be cancelled or deleted until it is unassigned from the bill.</div>`:''}
@@ -4834,6 +4863,32 @@ function v11AddPoLines(poId,only,ticked){const p=podocFind(poId);if(!p)return 0;
     if(!r){r={k:'r'+(S11_ROWN++),canon:c,code:c,name:prodName(l.code,l.name),qty:0,alloc:{},sugg:{},manual:true,uom:l.uom||unitOf(l)};S11.rows.push(r);}
     r.manual=true;r.alloc[p.poId]=(+r.alloc[p.poId]||0)+pend;r.sugg[p.poId]=r.alloc[p.poId];r.qty=(+r.qty||0)+pend;n++;});
   return n;}
+// [R11] PO picker: list the PO's pending products with tick boxes; add only the ticked ones (or all)
+function v11PoPickOpen(po){v11Capture();S11._poPick=po?{po,sel:new Set()}:null;v11ShipModal();}
+function v11PoPickItems(){const P=S11&&S11._poPick;if(!P)return [];const p=podocFind(P.po);if(!p)return [];
+  return (p.lines||[]).map((l,i)=>{const pend=Math.max(0,Math.max(0,(+l.qty||0)-(+l.cancelledQty||0))-shipForLine(p,i));
+    return {i,c:v11Canon(l.code),name:prodName(l.code,l.name),pend,on:S11.rows.some(r=>r.canon===v11Canon(l.code))};}).filter(x=>x.pend>0);}
+function v11PoPickHTML(){const P=S11&&S11._poPick;if(!P)return '';const it=v11PoPickItems();
+  const q=(P.q||'').toLowerCase();const shown=it.filter(x=>!q||x.name.toLowerCase().indexOf(q)>=0||x.c.toLowerCase().indexOf(q)>=0);
+  return `<div class="s11-sec" style="margin-top:6px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+    <b>${esc(v11PoLabel(P.po))}</b><span class="small muted">${it.length} pending item(s) · tick what came in this shipment</span>
+    <input class="po-in" placeholder="filter…" style="width:160px" value="${esc(P.q||'')}" oninput="S11._poPick.q=this.value;v11PoPickPaint()">
+    <span style="flex:1"></span>
+    <button class="btn ghost sm" onclick="v11PoPickAll(true)">tick all</button><button class="btn ghost sm" onclick="v11PoPickAll(false)">clear</button>
+    <button class="btn sm" onclick="v11PoPickAdd()">＋ add ${P.sel.size||'ticked'}</button><button class="btn ghost sm" onclick="v11PoPickOpen('')">✕</button></div>
+    <div id="s11-pick-list" style="max-height:260px;overflow:auto">${v11PoPickRows(shown)}</div></div>`;}
+function v11PoPickRows(list){const P=S11._poPick;return list.map(x=>`<label class="pk-opt" style="display:flex;gap:10px;align-items:center;cursor:pointer${x.on?';opacity:.55':''}">
+    <input type="checkbox"${P.sel.has(x.i)?' checked':''}${x.on?' disabled title="already on this shipment"':''} onchange="v11PoPickTick(${x.i},this.checked)">
+    <span style="flex:1"><b>${esc(x.name)}</b><div class="mono" style="font-size:.6rem;color:var(--grey)">${esc(x.c)}${x.on?' · already added':''}</div></span>
+    <b class="num" style="white-space:nowrap">${NUM(x.pend)} pending</b></label>`).join('')||'<div class="small muted" style="padding:6px">No match.</div>';}
+function v11PoPickPaint(){const P=S11._poPick;const q=(P.q||'').toLowerCase();const box=document.getElementById('s11-pick-list');
+  if(box)box.innerHTML=v11PoPickRows(v11PoPickItems().filter(x=>!q||x.name.toLowerCase().indexOf(q)>=0||x.c.toLowerCase().indexOf(q)>=0));}
+function v11PoPickTick(i,on){const P=S11._poPick;if(on)P.sel.add(i);else P.sel.delete(i);
+  const b=[...document.querySelectorAll('#s11-body button')].find(x=>/^＋ add /.test(x.textContent));if(b)b.textContent='＋ add '+(P.sel.size||'ticked');}
+function v11PoPickAll(on){const P=S11._poPick;v11PoPickItems().forEach(x=>{if(x.on)return;if(on)P.sel.add(x.i);else P.sel.delete(x.i);});v11Capture();v11ShipModal();}
+function v11PoPickAdd(){const P=S11._poPick;if(!P)return;if(!P.sel.size){toast('Tick at least one product (or "tick all").');return;}
+  v11Capture();const n=v11AddPoLines(P.po,new Set(P.sel),true);S11._poPick=null;v11ShipModal();
+  toast(n+' product(s) added from '+v11PoLabel(P.po)+' with their pending qty — change only what differs.');}
 function v11AddPoUI(){const el=document.getElementById('s11-addpo');if(!el||!el.value){toast('Pick a PO.');return;}v11Capture();
   const n=v11AddPoLines(el.value);v11ShipModal();toast(n?n+' product(s) added from '+v11PoLabel(el.value)+' with their pending qty — change only what differs.':'Nothing pending on that PO.');}
 function v11AddAllPending(){
@@ -4872,7 +4927,7 @@ function v11RowDrop(k){v11Capture();S11.rows=S11.rows.filter(r=>r.k!==k);v11Ship
 // repaint only the status chip (keeps the cursor in the box being typed in)
 function v11RowRepaint(k,chipOnly){if(!chipOnly){v11ShipModal();return;}
   const r=v11Row(k),box=document.getElementById('s11-row-'+k);if(!r||!box)return;const z=v11RowCalc(r);
-  const tail=box.lastElementChild;if(!tail)return;tail.innerHTML=v11RowChip(r);}
+  const tail=box.lastElementChild;if(!tail)return;tail.innerHTML=v11RowChip(r);box.className='card s11-row '+v11RowState(r);}
 function v11BuildAllocs(){
   const out=[],errs=[];
   S11.rows.forEach(r=>{const z=v11RowCalc(r);const nm=prodName(r.code,r.name);
@@ -4937,7 +4992,7 @@ function v11ShipsView(v){if(v==='bills'&&v11NoBills())v='ships';S11_VIEW=v;
   const nb=document.getElementById('ships-newbill');if(nb)nb.style.display=v11IsOps()?'none':'';
   if(v==='bills')v11BillsRender();else v11ShipsRender();}
 function v11BillsRender(){
-  const el=document.getElementById('ships-list');if(!el)return;
+  const el=document.getElementById('ships-list');if(!el)return;el.classList.add('bills');try{document.getElementById('scr-ships').classList.add('bills-on');}catch(e){}
   if(v11IsOps()){S11_VIEW='ships';v11ShipsRender();return;}
   const q=S11_Q.trim().toLowerCase();
   let list=(V11.bills||[]).slice();
@@ -5055,7 +5110,7 @@ function v11BillModal(){
     const mine=B.lines.filter(x=>x.shipmentId===l.shipmentId&&x.canon===l.canon).reduce((a,x)=>a+(+x.qtyG||0)+(+x.qtyN||0),0);
     const flag=Math.abs(billedOther+mine-shipQ)>0.0005?`<span class="chip" style="font-size:.52rem;background:var(--non);color:#fff;border-color:transparent" title="all bills: ${NUM(billedOther+mine)} · shipment: ${NUM(shipQ)}">recheck</span>`:'';
     const shSel=`<select class="po-in" style="max-width:230px;font-size:.7rem"${dis} onchange="v11BillLineShip('${k}',this.value)">${v11ShipsCarrying(l.canon).map(s=>`<option value="${esc(s.shipmentId)}"${s.shipmentId===l.shipmentId?' selected':''}>${esc(v11ShipLabel(s.shipmentId))}</option>`).join('')}</select>`;
-    const inp=(f,w,step)=>`<input class="po-in" type="number" min="0" step="${step||'any'}" style="width:${w}px" value="${l[f]===''||l[f]==null?'':l[f]}"${dis} oninput="v11BillSet('${k}','${f}',this.value)">`;
+    const inp=(f,w,step)=>`<input class="po-in" id="b11-${f}-${k}" type="number" min="0" step="${step||'any'}" style="width:${w}px" value="${l[f]===''||l[f]==null?'':l[f]}"${dis} oninput="v11BillSet('${k}','${f}',this.value)">`;
     return `<tr><td class="r small muted">${ix+1}</td>
       <td class="small" style="min-width:150px">${esc(prodName(l.code,l.name))}<div class="mono small muted">${esc(l.canon)} ${flag}</div></td>
       <td>${shSel}<div class="small muted">shipped ${NUM(shipQ)}${billedOther>0?' · on other bills '+NUM(billedOther):''}</div></td>
@@ -5067,7 +5122,7 @@ function v11BillModal(){
       <td class="small">${+l.qtyG>0?`<div>w ${inp('spG',62,'0.01')}</div>`:''}${+l.qtyN>0?`<div>wo ${inp('spN',62,'0.01')}</div>`:''}</td>
       <td>${B.locked?'':`<button class="btn ghost sm" title="remove this line" onclick="v11BillLineDrop('${k}')">✕</button>`}</td></tr>`;}).join('');
   const charges=(B.charges||[]).map((ch,ci)=>`<div style="display:flex;gap:6px;align-items:center;margin:3px 0">
-      <input class="po-in" style="width:160px" placeholder="e.g. Freight" value="${esc(ch.name||'')}"${dis} oninput="v11ChargeSet(${ci},'name',this.value)">
+      <input class="po-in" style="width:190px" list="b11-chg-list" placeholder="pick or type…" value="${esc(ch.name||'')}"${dis} oninput="v11ChargeSet(${ci},'name',this.value)">
       <input class="po-in" type="number" step="0.01" style="width:90px" placeholder="amount" value="${ch.amount==null?'':ch.amount}"${dis} oninput="v11ChargeSet(${ci},'amount',this.value)">
       <select class="po-in"${dis} onchange="v11ChargeSet(${ci},'lane',this.value)"><option value="g"${ch.lane!=='n'?' selected':''}>on w bill</option><option value="n"${ch.lane==='n'?' selected':''}>on wo bill</option></select>
       ${ch.lane!=='n'?`<label class="small">GST %</label><input class="po-in" type="number" step="0.5" style="width:56px" value="${ch.gst==null?18:ch.gst}"${dis} oninput="v11ChargeSet(${ci},'gst',this.value)">`:''}
@@ -5093,6 +5148,7 @@ function v11BillModal(){
       <th>GST%</th><th title="upload the w side under the / code">/ name</th><th title="filled from the last purchase / master / PO — change if needed">MRP</th><th title="filled from the last purchase / master / PO — change if needed (before GST; the file adds GST on w)">Selling</th><th></th></tr></thead>
       <tbody>${rows||'<tr><td colspan="12" class="small muted" style="padding:10px">No lines yet — assign a shipment.</td></tr>'}</tbody></table></div>
     ${assigned.length?`<div class="small" style="margin:6px 0"><b>Shipments on this bill:</b> ${assigned.map(sid=>`<span class="chip lite" style="font-size:.62rem">${esc(v11ShipLabel(sid))}${B.billId&&!B.locked?` · <a class="linky" title="unassign this shipment from the bill (the shipment is NOT deleted)" onclick="v11BillUnassign('${esc(sid)}')">unassign</a>`:''}</span>`).join(' ')}</div>`:''}
+    <datalist id="b11-chg-list">${['Freight','Transport / Lorry hire','Packing & Forwarding','Loading / Unloading','Hamali','Courier','Insurance','Handling charges','Door delivery','Cartage','Octroi / Entry tax','Other'].map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist>
     <div class="card" style="padding:9px 11px;margin-top:10px"><b class="small">Additional charges</b> <span class="small muted">— saved here, but NOT in the upload file: enter them manually in Vasy.</span>
       ${charges}${B.locked?'':`<div style="margin-top:4px"><button class="btn ghost sm" onclick="v11ChargeAdd()">＋ charge</button></div>`}
       <div style="display:flex;gap:10px;margin-top:8px;align-items:center;flex-wrap:wrap"><b class="small">Round-off</b>
@@ -5110,8 +5166,15 @@ function v11BillModal(){
 function v11BillTot(){const el=document.getElementById('b11-tot');if(el)el.innerHTML=v11BillTotalsHTML();}
 function v11BillLine(k){return B11&&B11.lines.find(l=>l.k===k);}
 function v11BillSet(k,f,v){const l=v11BillLine(k);if(!l)return;const ms=/^(mrp|sp)[GN]$/.test(f);
+  if(f==='qtyG'||f==='qtyN'){
+    // [R14] like the old lot split: the line total stays, typing one side fills the other with the rest
+    const T=(l._tot!=null)?l._tot:((+l.qtyG||0)+(+l.qtyN||0));const nv=Math.max(0,+v||0);const o=(f==='qtyG')?'qtyN':'qtyG';
+    const before=[+l.qtyG>0,+l.qtyN>0];l._tot=Math.max(T,nv);l[f]=nv;l[o]=r3(Math.max(0,l._tot-nv));
+    const oi=document.getElementById('b11-'+o+'-'+k);if(oi)oi.value=l[o]||'';
+    v11FillMS(l);
+    if(before[0]!==(+l.qtyG>0)||before[1]!==(+l.qtyN>0)){v11BillModal();const el=document.getElementById('b11-'+f+'-'+k);if(el){el.focus();try{const L=String(el.value).length;el.setSelectionRange&&el.type!=='number'&&el.setSelectionRange(L,L);}catch(e){}}return;}
+    v11BillTot();return;}
   l[f]=(f==='upName')?!!v:(v===''&&ms?'':(+v||0));
-  if(f==='qtyG'||f==='qtyN'){const had=(f==='qtyG'?'mrpG':'mrpN');const wasEmpty=(l[had]===''||l[had]==null);v11FillMS(l);if(wasEmpty&&+v>0){v11BillModal();return;}}
   v11BillTot();}
 function v11BillLineShip(k,sid){const l=v11BillLine(k);if(!l)return;l.shipmentId=sid;
   l.poRef=[...new Set(v11ShipAllocs(sid).filter(a=>a.canon===l.canon).map(a=>a.poNumber).filter(Boolean))].join(', ');v11BillModal();}
@@ -5212,6 +5275,7 @@ async function v11StageSet(billId,stage,lane,inputId,clear,reopen){
     if(!confirm('⚠ '+r.error+'\n\nRecord the MI number anyway (manual override)? The override is recorded on the bill and in the Audit Log.'))return;
     try{r=await vtApiPost(Object.assign({by:vtBy(),override:true},body));}catch(e){alert('Not saved — connection problem.');return;}}
   if(!r||r.ok===false){alert(nm+' — not saved.\n\n'+((r&&r.error)||'unknown error'));return;}
+  v11TakeFresh(r);
   if((r.warnings||[]).length)alert(r.warnings.join('\n'));
   toast(nm+(clear?' cleared.':' recorded.'));await v11Refresh();
   }finally{v11Busy(false);}

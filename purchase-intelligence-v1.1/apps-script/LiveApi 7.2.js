@@ -37,6 +37,11 @@
  *  - route poDelete → apiPoDelete_ (ShipmentApi.gs): deleting a PO now removes its PO Tracking rows too
  *  - apiRecord_: removePoNumbers is refused for a PO carried by a V1.1 shipment
  * [V1.1 server 2.3] route v11data → only the V1.1 data, for a fast refresh after a save
+ * [V1.1 server 2.5] (2026-10)
+ *  - FIX (old V1 bug): two functions were both named apiRegister_ (Supabase here, Sheet in RegisterApi.gs);
+ *    whichever file loaded last won, so the register pull broke depending on file order. The Supabase one
+ *    is now apiRegisterSb_ and api=register routes by its parameters (offset → Supabase; meta/from/sinceId → Sheet).
+ *  - every V1.1 write route returns the fresh V1.1 data (v11) in the same reply — one round trip per save.
  */
 
 /* ── SECRET TOKEN ──────────────────────────────────────────────────────────────
@@ -128,7 +133,7 @@ function apiWriteSheet_(body){
    GET ?api=register&offset=0&limit=1000  →  { ok, rows:[...], done }  (paged) */
 var SB_URL   = 'https://kssydapdfmkfufrqhwzp.supabase.co';
 var SB_TABLE = 'purchase_bill_data';
-function apiRegister_(params){
+function apiRegisterSb_(params){   // [2.5] renamed — was apiRegister_ (clashed with RegisterApi.gs)
   var key;
   try{ key = PropertiesService.getScriptProperties().getProperty('VT_SB_KEY'); }catch(e){}
   if(!key) return { ok:false, error:'VT_SB_KEY not set in Script Properties. Add the Supabase service_role key there.' };
@@ -159,7 +164,7 @@ function handleApi_(api, params, body){
       hint:'The token in the dashboard does not match VT_API_TOKEN in this script. Run setupLiveApi() once, or set it under Project Settings > Script properties.' });
   }
   try {
-    if (api === 'ping') return json_({ ok:true, version:APP_VERSION, time:new Date(), hasRegisterApi:(typeof apiRegister_==='function'),
+    if (api === 'ping') return json_({ ok:true, version:APP_VERSION, time:new Date(), hasRegisterApi:(typeof apiRegisterSb_==='function'), hasRegisterSheet:(typeof apiRegister_==='function'),
       v11:(typeof V11_VERSION!=='undefined'?V11_VERSION:'') });   // [V1.1-01]
     if (api === 'data' || api === 'requests') return json_(apiData_());
     if (api === 'record') return json_(apiRecord_(body));
@@ -172,21 +177,28 @@ function handleApi_(api, params, body){
     if (api === 'lotDelete') return json_(apiLotDelete_(body));
     if (api === 'audit') return json_(apiAudit_(body));
     if (api === 'archive') return json_(apiArchive_());
-    if (api === 'shipment') return json_((typeof apiShipment_==='function')?apiShipment_(body):{ok:false,error:'ShipmentApi.gs not installed'});             // [V1.1-01]
-    if (api === 'shipmentArrive') return json_((typeof apiShipmentArrive_==='function')?apiShipmentArrive_(body):{ok:false,error:'ShipmentApi.gs not installed'}); // [2.1]
-    if (api === 'bill') return json_((typeof apiBill_==='function')?apiBill_(body):{ok:false,error:'BillApi.gs not installed'});                         // [2.1]
-    if (api === 'billStage') return json_((typeof apiBillStage_==='function')?apiBillStage_(body):{ok:false,error:'BillApi.gs not installed'});          // [2.1]
-    if (api === 'billUnassign') return json_((typeof apiBillUnassign_==='function')?apiBillUnassign_(body):{ok:false,error:'BillApi.gs not installed'}); // [2.1]
-    if (api === 'billDelete') return json_((typeof apiBillDelete_==='function')?apiBillDelete_(body):{ok:false,error:'BillApi.gs not installed'});       // [2.1]
-    if (api === 'v11data') return json_({ ok:true, v11:(typeof V11_VERSION!=='undefined'?V11_VERSION:''),                                    // [2.3] fast V1.1-only refresh
-      shipments:(typeof shpReadShipments_==='function'?shpReadShipments_():[]), shipAllocs:(typeof shpReadAllocs_==='function'?shpReadAllocs_():[]),
-      bills:(typeof billReadBills_==='function'?billReadBills_():[]), billLines:(typeof billReadLines_==='function'?billReadLines_():[]) });
+    if (api === 'shipment') return json_((typeof apiShipment_==='function')?v11Wrap_(apiShipment_(body)):{ok:false,error:'ShipmentApi.gs not installed'});             // [V1.1-01]
+    if (api === 'shipmentArrive') return json_((typeof apiShipmentArrive_==='function')?v11Wrap_(apiShipmentArrive_(body)):{ok:false,error:'ShipmentApi.gs not installed'}); // [2.1]
+    if (api === 'bill') return json_((typeof apiBill_==='function')?v11Wrap_(apiBill_(body)):{ok:false,error:'BillApi.gs not installed'});                         // [2.1]
+    if (api === 'billStage') return json_((typeof apiBillStage_==='function')?v11Wrap_(apiBillStage_(body)):{ok:false,error:'BillApi.gs not installed'});          // [2.1]
+    if (api === 'billUnassign') return json_((typeof apiBillUnassign_==='function')?v11Wrap_(apiBillUnassign_(body)):{ok:false,error:'BillApi.gs not installed'}); // [2.1]
+    if (api === 'billDelete') return json_((typeof apiBillDelete_==='function')?v11Wrap_(apiBillDelete_(body)):{ok:false,error:'BillApi.gs not installed'});       // [2.1]
+    if (api === 'v11data') return json_(v11Payload_());                          // [2.3] fast V1.1-only refresh
     if (api === 'poDelete') return json_((typeof apiPoDelete_==='function')?apiPoDelete_(body):{ok:false,error:'ShipmentApi.gs not installed'});        // [2.2]
-    if (api === 'shipmentDelete') return json_((typeof apiShipmentDelete_==='function')?apiShipmentDelete_(body):{ok:false,error:'ShipmentApi.gs not installed'}); // [V1.1-01]
-    if (api === 'register') return json_((typeof apiRegister_==='function')?apiRegister_(params):{ok:false,error:'RegisterApi.gs not installed'});
+    if (api === 'shipmentDelete') return json_((typeof apiShipmentDelete_==='function')?v11Wrap_(apiShipmentDelete_(body)):{ok:false,error:'ShipmentApi.gs not installed'}); // [V1.1-01]
+    if (api === 'register') {                                                    // [2.5] route by parameters
+      var wantsSheet = params.meta != null || params.from != null || params.sinceId != null;
+      if (!wantsSheet) return json_(apiRegisterSb_(params));
+      return json_((typeof apiRegister_==='function')?apiRegister_(params):{ok:false,error:'RegisterApi.gs not installed'});
+    }
     return json_({ ok:false, error:'unknown api: '+api });
   } catch(err){ return json_({ ok:false, error:String(err && err.message || err) }); }
 }
+// [2.5] attach the fresh V1.1 data to a successful V1.1 write, so the dashboard needs no second call
+function v11Payload_(){ return { ok:true, v11:(typeof V11_VERSION!=='undefined'?V11_VERSION:''),
+  shipments:(typeof shpReadShipments_==='function'?shpReadShipments_():[]), shipAllocs:(typeof shpReadAllocs_==='function'?shpReadAllocs_():[]),
+  bills:(typeof billReadBills_==='function'?billReadBills_():[]), billLines:(typeof billReadLines_==='function'?billReadLines_():[]) }; }
+function v11Wrap_(res){ try{ if(res && res.ok) res.v11data = v11Payload_(); }catch(e){} return res; }
 function json_(o){
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 }

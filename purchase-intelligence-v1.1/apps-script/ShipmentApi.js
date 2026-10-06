@@ -10,6 +10,7 @@
  *   that refuses POs carried by a V1.1 shipment.
  *   2.3 adds: api=v11data — returns only the V1.1 data (fast refresh after a save).
  *   2.4 adds: UOM column on Shipment Allocations (unit can be changed per product on a shipment).
+ *   2.5: (LiveApi) register-function name clash fixed; writes return fresh V1.1 data in the same reply.
  *
  * WHAT THIS FILE DOES
  *  V1.1-01  Two new tabs + server support for multi-PO shipments:
@@ -36,7 +37,7 @@
  * SETUP: run setupShipmentsV11() once (it only creates the two tabs if missing).
  */
 
-var V11_VERSION = 'V1.1 "Vaigai" · server 2.4';
+var V11_VERSION = 'V1.1 "Vaigai" · server 2.5';
 var V11_TEST_SHEET_ID = '1ojAFR5wv6tKt94CB0EwoEs14iCp7lPeRbnhBvjm6XX8';   // self-test runs ONLY here
 
 var SHP_TAB  = 'Shipments';
