@@ -638,7 +638,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
     <button data-s="ships" disabled title="V1.1 — shipments that can carry several POs">Shipments <span id="ships-badge" class="po-badge" style="display:none;background:#0F766E">0</span></button>
 
     <span class="nav-right"><span id="mode-chip" class="mode-chip ops" title="Your current access level">PO Tracking</span>
-    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.3 · Vaigai</span></span>
+    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.4 · Vaigai</span></span>
   </nav>
 </header>
 
@@ -5144,7 +5144,7 @@ function v11BillModal(){
     const mine=B.lines.filter(x=>x.shipmentId===l.shipmentId&&x.canon===l.canon).reduce((a,x)=>a+(+x.qtyG||0)+(+x.qtyN||0),0);
     const flag=Math.abs(billedOther+mine-shipQ)>0.0005?`<span class="chip" style="font-size:.52rem;background:var(--non);color:#fff;border-color:transparent" title="all bills: ${NUM(billedOther+mine)} · shipment: ${NUM(shipQ)}">recheck</span>`:'';
     const shSel=`<select class="po-in" style="max-width:230px;font-size:.7rem"${dis} onchange="v11BillLineShip('${k}',this.value)">${v11ShipsCarrying(l.canon).map(s=>`<option value="${esc(s.shipmentId)}"${s.shipmentId===l.shipmentId?' selected':''}>${esc(v11ShipLabel(s.shipmentId))}</option>`).join('')}</select>`;
-    const inp=(f,w,step)=>`<input class="po-in" id="b11-${f}-${k}" type="number" min="0" step="${step||'any'}" style="width:${w}px" value="${l[f]===''||l[f]==null?'':l[f]}"${dis} oninput="v11BillSet('${k}','${f}',this.value)">`;
+    const inp=(f,w,step)=>`<input class="po-in" id="b11-${f}-${k}" type="number" min="0" step="${step||'any'}" style="width:${w}px" value="${l[f]===''||l[f]==null?'':l[f]}"${dis} oninput="v11BillSet('${k}','${f}',this.value)"${(f==='qtyG'||f==='qtyN')?` onchange="v11BillQtyDone('${k}')"`:''}>`;
     return `<tr><td class="r small muted">${ix+1}</td>
       <td class="small" style="min-width:150px">${esc(prodName(l.code,l.name))}<div class="mono small muted">${esc(l.canon)} ${flag}</div></td>
       <td>${shSel}<div class="small muted">shipped ${NUM(shipQ)}${billedOther>0?' · on other bills '+NUM(billedOther):''}</div></td>
@@ -5206,10 +5206,14 @@ function v11BillSet(k,f,v){const l=v11BillLine(k);if(!l)return;const ms=/^(mrp|s
     const before=[+l.qtyG>0,+l.qtyN>0];l._tot=Math.max(T,nv);l[f]=nv;l[o]=r3(Math.max(0,l._tot-nv));
     const oi=document.getElementById('b11-'+o+'-'+k);if(oi)oi.value=l[o]||'';
     v11FillMS(l);
-    if(before[0]!==(+l.qtyG>0)||before[1]!==(+l.qtyN>0)){v11BillModal();const el=document.getElementById('b11-'+f+'-'+k);if(el){el.focus();try{const L=String(el.value).length;el.setSelectionRange&&el.type!=='number'&&el.setSelectionRange(L,L);}catch(e){}}return;}
+    // [V1.1.3 R47] never redraw while typing (the redraw re-selected the box, so the 2nd digit replaced the 1st).
+    // The w / wo MRP & selling boxes are redrawn when you leave the box (v11BillQtyDone).
+    if(l._lanes==null)l._lanes=before.join(',');
     v11BillTot();return;}
   l[f]=(f==='upName')?!!v:(v===''&&ms?'':(+v||0));
   v11BillTot();}
+function v11BillQtyDone(k){const l=v11BillLine(k);if(!l)return;const now=[+l.qtyG>0,+l.qtyN>0].join(',');
+  const was=l._lanes;delete l._lanes;if(was!=null&&was!==now)v11BillModal();}
 function v11BillLineShip(k,sid){const l=v11BillLine(k);if(!l)return;l.shipmentId=sid;
   l.poRef=[...new Set(v11ShipAllocs(sid).filter(a=>a.canon===l.canon).map(a=>a.poNumber).filter(Boolean))].join(', ');v11BillModal();}
 function v11BillLineDrop(k){B11.lines=B11.lines.filter(l=>l.k!==k);v11BillModal();}

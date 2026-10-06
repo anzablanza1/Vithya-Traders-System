@@ -257,3 +257,18 @@ No production change is complete until this log is updated.
 **Known issues** — Vasy's `sellingPrice` is MRP minus the Vasy discount (e.g. IMP60KC MRP 103.61 / selling 86.00), so selling ≠ MRP for most products; the file carries Vasy's selling. 10 lots of deleted POs stay as old lots (nothing to attach them to). PO-17092603 line 4: SLV202723S (PO) vs SLV202723SN (lot) are both real products — the lot's SLV202723SN is kept; owner to confirm.
 
 **V2 learning** — product identity must be fixed at PO creation (no temporary codes), or every downstream record needs a re-key.
+
+---
+
+### <<LIVE_DATE_114>> — V1.1.4 (dashboard file only) — R47
+
+**Requirement** — R47: on the bill, typing a w / wo quantity allowed only one digit — the box was redrawn (and re-selected) as soon as a side went from empty to filled, so the second digit replaced the first.
+
+**Files changed** — `frontend/VT_Purchase_Intelligence_V1_1.html` only (chip "V1.1.4 · Vaigai"): `v11BillSet` no longer redraws during typing; new `v11BillQtyDone` redraws on leaving the box when a side was added or emptied (to show / hide its MRP & selling boxes).
+
+**Data / Sheet / API changes** — none. **Backward-compatibility impact** — none; server stays 2.7.
+
+**Tests performed** — simulated typing "4" then "40" in the wo box: same box kept, other side filled, redraw only on leaving the box, value kept; earlier dashboard regressions; 907 buttons pressed, 0 errors. Owner also confirmed the V1.1.3 dry run: 16 code mismatches understood (auto-code → Vasy code), 0 numbers change.
+- LIVE checks: <<LIVE_CHECKS_114>>
+
+**Result** — <<RESULT_114>>
