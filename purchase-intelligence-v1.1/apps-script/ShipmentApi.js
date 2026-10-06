@@ -37,7 +37,7 @@
  * SETUP: run setupShipmentsV11() once (it only creates the two tabs if missing).
  */
 
-var V11_VERSION = 'V1.1 "Vaigai" · server 2.6';
+var V11_VERSION = 'V1.1 "Vaigai" · server 2.7';
 var V11_TEST_SHEET_ID = '1ojAFR5wv6tKt94CB0EwoEs14iCp7lPeRbnhBvjm6XX8';   // self-test runs ONLY here
 
 var SHP_TAB  = 'Shipments';

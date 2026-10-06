@@ -12,7 +12,7 @@
  * ("Converted To"). Clearing column U (or running v11LotUnconvert) brings it back.
  */
 
-var V11_TOOLS_VERSION = 'tools 1.0 (V1.1.2)';
+var V11_TOOLS_VERSION = 'tools 1.1 (V1.1.3)';
 var CONV_REPORT_TAB = 'V1.1 Conversion Report';
 
 /* ===================== R37 — CORRECT A SHIPPED PRODUCT ===================== */
@@ -125,17 +125,24 @@ function v11ConvPlan_() {
   if (t && t.getLastRow() > 1) {
     t.getRange(2, 1, t.getLastRow() - 1, TRACK_HEADERS.length).getValues().forEach(function (r) {
       var p = String(r[7] || ''); if (!p) return;
-      var x = poInfo[p] = poInfo[p] || { lane: '', supplier: '', codes: {} };
+      var x = poInfo[p] = poInfo[p] || { lane: '', supplier: '', codes: {}, order: [] };
       if (!x.lane) x.lane = /non/i.test(String(r[6] || '')) ? 'n' : 'g';
       if (!x.supplier && r[15]) x.supplier = String(r[15]);
-      x.codes[shpCanon_(r[4])] = true;
+      var cc = shpCanon_(r[4]);
+      if (!x.codes[cc]) x.order.push(cc);          // line index = order of distinct codes, same as the dashboard rebuild
+      x.codes[cc] = true;
     });
   }
   var m = ss.getSheetByName(META_TAB);
   if (m && m.getLastRow() > 1) m.getRange(2, 1, m.getLastRow() - 1, 2).getValues().forEach(function (r) {
     var p = String(r[0] || ''); if (p && poInfo[p] && r[1]) poInfo[p].supplier = String(r[1]);
   });
-  return { lots: lots, lines: lines, poInfo: poInfo };
+  // known products (Products tab) — used to decide which of two codes is the real one
+  var known = {}, pnames = {};
+  var pt = ss.getSheetByName('Products');
+  if (pt && pt.getLastRow() > 1) pt.getRange(2, 1, pt.getLastRow() - 1, 2).getValues().forEach(function (r) {
+    var c = shpCanon_(r[0]); if (c) { known[c] = true; pnames[c] = String(r[1] || ''); } });
+  return { lots: lots, lines: lines, poInfo: poInfo, known: known, pnames: pnames };
 }
 
 function v11ConvYmd_(d) {
@@ -152,6 +159,7 @@ function v11LotConvert_(dry) {
     var report = [], plan = [], skipped = 0, already = 0;
     var existingShip = {}; shpReadShipments_().forEach(function (s) { existingShip[s.shipmentId] = s; });
     var before = shpQtyByPoCode_();
+    var alias = {}, fixes = {}, fixRows = [];   // [V1.1.3] lot code ≠ PO Tracking code on the same PO line
 
     P.lots.forEach(function (L) {
       if (L.converted) { already++; return; }
@@ -168,7 +176,27 @@ function v11LotConvert_(dry) {
       var allocs = ls.map(function (x) {
         var canon = shpCanon_(x.code);
         var onPo = x.i >= 0 && info.codes[canon];
-        return { type: onPo ? 'PO' : 'EXCESS', poNumber: L.poNumber, canon: canon, name: x.name, qty: x.qty, ret: x.ret || 0,
+        var pc = (!onPo && x.i >= 0) ? info.order[x.i] : '';
+        if (pc && pc !== canon) {
+          // the V1 PO line (by its position) carries a different code than the lot line:
+          // one of them is a temporary / name code. Keep the REAL product (in Products), fix PO Tracking if needed.
+          var lk = !!P.known[canon], pk = !!P.known[pc], use, fix = false, flag = '';
+          if (pk && !lk) use = pc;
+          else if (lk && !pk) { use = canon; fix = true; }
+          else if (lk && pk) { use = canon; fix = true; flag = 'both codes are real products — check'; }
+          else { use = pc; flag = 'neither code is in Products — check'; }
+          alias[L.poNumber + '|' + canon] = L.poNumber + '|' + use;
+          if (fix) {
+            alias[L.poNumber + '|' + pc] = L.poNumber + '|' + use;
+            var fk = L.poNumber + '|' + pc;
+            if (!fixes[fk]) { fixes[fk] = { po: L.poNumber, from: pc, to: use, name: P.pnames[use] || x.name, sids: [] }; }
+            if (fixes[fk].sids.indexOf(sid) < 0) fixes[fk].sids.push(sid);
+          }
+          fixRows.push([L.poNumber, 'line ' + (x.i + 1), 'PO Tracking: ' + pc, 'Lot: ' + canon, '→ uses ' + use + (fix ? ' (PO Tracking code corrected)' : ''), flag]);
+          canon = use; onPo = true;
+          x.code = use;                                   // bill line follows
+        }
+        return { type: onPo ? 'PO' : 'EXCESS', poNumber: L.poNumber, canon: canon, name: (pc && P.pnames[canon]) || x.name, qty: x.qty, ret: x.ret || 0,
           note: onPo ? '' : 'V1 line not on the PO' };
       });
       // a bill only when the lot has billing evidence
@@ -253,12 +281,36 @@ function v11LotConvert_(dry) {
       var colU = Ls.getRange(2, LOT_CONV_COL, Ls.getLastRow() - 1, 1).getValues();       // one write for all marks
       lotMarks.forEach(function (mk) { colU[mk[0] - 2][0] = mk[1]; });
       Ls.getRange(2, LOT_CONV_COL, colU.length, 1).setValues(colU);
-      created = { shipments: shipRows.length, allocations: allocRows.length, bills: billRows.length, billLines: lineRows.length };
+      // correct the PO Tracking codes (only where the lot carried the real product)
+      var fixList = Object.keys(fixes).map(function (k) { return fixes[k]; });
+      if (fixList.length) {
+        var tr = ss.getSheetByName(TRACK_TAB);
+        var tv = tr.getRange(2, 5, tr.getLastRow() - 1, 4).getValues();   // E code, F name, G lane, H PO
+        var nFix = 0;
+        tv.forEach(function (r) {
+          fixList.forEach(function (f) {
+            if (String(r[3]) === f.po && shpCanon_(r[0]) === f.from) {
+              r[0] = f.to + (/\/\s*$/.test(String(r[0])) ? '/' : ''); if (f.name) r[1] = f.name + (/\/\s*$/.test(String(r[0])) ? ' /' : ''); nFix++; }
+          });
+        });
+        tr.getRange(2, 5, tv.length, 4).setValues(tv);
+        var prevFix = []; try { prevFix = JSON.parse(PropertiesService.getScriptProperties().getProperty('V11_CONV_CODEFIX') || '[]'); } catch (e) { prevFix = []; }
+        PropertiesService.getScriptProperties().setProperty('V11_CONV_CODEFIX', JSON.stringify(prevFix.concat(fixList)));
+        if (typeof audit_ === 'function') fixList.forEach(function (f) { audit_(by, 'PO_CODE_FIX', 'PO', f.po, 'code', f.from, f.to, 'lot conversion — the lot carried the real product'); });
+      }
+      created = { shipments: shipRows.length, allocations: allocRows.length, bills: billRows.length, billLines: lineRows.length, poCodeFixes: fixList.length };
       if (typeof audit_ === 'function') audit_(by, 'LOT_CONVERT', 'Lots', '', '', '', shipRows.length + ' lot(s)',
         allocRows.length + ' allocation(s), ' + billRows.length + ' bill(s)');
     }
 
     // totals check: shipped / received per PO line must not change (dry run simulates it)
+    // compare per PO line: numbers recorded under a temporary code count for the corrected code
+    var beforeT = {};
+    Object.keys(before).forEach(function (k) {
+      var k2 = alias[k] || k, b = before[k], o = beforeT[k2] = beforeT[k2] || { shipped: 0, shippedPO: 0, shippedV1: 0, shippedV11: 0, excess: 0, received: 0 };
+      Object.keys(o).forEach(function (f) { o[f] += Number(b[f]) || 0; });
+    });
+    before = beforeT;
     var after = dry ? v11ConvSimulate_(before, plan) : shpQtyByPoCode_();
     var diffs = [];
     var keys = {}; Object.keys(before).forEach(function (k) { keys[k] = 1; }); Object.keys(after).forEach(function (k) { keys[k] = 1; });
@@ -275,6 +327,7 @@ function v11LotConvert_(dry) {
       ['Lots to convert', plan.length], ['Already converted', already], ['Skipped', skipped],
       ['Bills created from billing data', plan.filter(function (x) { return x.bill; }).length],
       ['Locked bills (already uploaded to Vasy)', plan.filter(function (x) { return x.bill && (x.bill.vasyG || x.bill.vasyN); }).length],
+      ['Lot code ≠ PO code (handled)', fixRows.length + (fixRows.length ? '  ← listed below; PO Tracking corrected where the lot had the real product' : '')],
       ['PO lines whose numbers change', diffs.length + (diffs.length ? '  ← see the list at the bottom; only products NOT on the PO should appear' : '  ✓ none')]];
     if (!dry) head.push(['Created', JSON.stringify(created)]);
     sh.getRange(1, 1, head.length, 2).setValues(head);
@@ -282,6 +335,12 @@ function v11LotConvert_(dry) {
     var h = ['Lot ID', 'PO', 'Lot #', 'New shipment ID', 'State', 'Lines', 'Bill', 'Supplier', ''];
     sh.getRange(r0, 1, 1, h.length).setValues([h]).setFontWeight('bold');
     if (report.length) sh.getRange(r0 + 1, 1, report.length, h.length).setValues(report);
+    if (fixRows.length) {
+      var rf = r0 + report.length + 3;
+      sh.getRange(rf, 1).setValue('Lot code ≠ PO code on the same PO line (' + fixRows.length + ')').setFontWeight('bold');
+      sh.getRange(rf + 1, 1, fixRows.length, 6).setValues(fixRows);
+      r0 = rf + fixRows.length - report.length;            // push the numbers table below
+    }
     if (diffs.length) {
       var r1 = r0 + report.length + 3;
       var dh = ['PO | product', 'shipped vs PO before', 'after', 'shipped before', 'after', 'received before', 'after'];
@@ -340,6 +399,18 @@ function v11LotUnconvert() {
     var nB = 0, nL = 0;
     if (ss.getSheetByName(BILL_TAB)) nB = v11ReplaceRows_(ss.getSheetByName(BILL_TAB), BILL_HEADERS.length, function (r) { return dropBill[String(r[0])]; }, []).length;
     if (ss.getSheetByName(BILLL_TAB)) nL = v11ReplaceRows_(ss.getSheetByName(BILLL_TAB), BILLL_HEADERS.length, function (r) { return dropBill[String(r[1])]; }, []).length;
+    // revert PO Tracking code corrections whose shipments are all undone
+    try {
+      var fx = JSON.parse(PropertiesService.getScriptProperties().getProperty('V11_CONV_CODEFIX') || '[]'), keepFx = [], nRev = 0;
+      var tr2 = ss.getSheetByName(TRACK_TAB), tv2 = tr2 && tr2.getLastRow() > 1 ? tr2.getRange(2, 5, tr2.getLastRow() - 1, 4).getValues() : [];
+      fx.forEach(function (f) {
+        if (f.sids.every(function (sid) { return drop[sid]; })) {
+          tv2.forEach(function (r) { if (String(r[3]) === f.po && shpCanon_(r[0]) === f.to) { r[0] = f.from + (/\/\s*$/.test(String(r[0])) ? '/' : ''); nRev++; } });
+        } else keepFx.push(f);
+      });
+      if (nRev) tr2.getRange(2, 5, tv2.length, 4).setValues(tv2);
+      PropertiesService.getScriptProperties().setProperty('V11_CONV_CODEFIX', JSON.stringify(keepFx));
+    } catch (e) {}
     var cleared = 0;
     marks.forEach(function (r) { if (drop[String(r[0] || '')]) { r[0] = ''; cleared++; } });
     if (cleared) Ls.getRange(2, LOT_CONV_COL, marks.length, 1).setValues(marks);

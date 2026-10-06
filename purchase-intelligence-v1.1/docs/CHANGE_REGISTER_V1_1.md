@@ -177,7 +177,7 @@ No production change is complete until this log is updated.
 
 ---
 
-### <<LIVE_DATE_112>> — V1.1.2 (server 2.6) — R09 · R23 · R34 · R36 · R37 · R39 · R42
+### 2026-10-06 — V1.1.2 (server 2.6) — R09 · R23 · R34 · R36 · R37 · R39 · R42
 
 **Requirement**
 - R36: "r3h" must find "R3 H2 IMP&DIFF N 86 OD AP"; "brf10npp" must find "BRF 10N … PP" / "BRF 10 N … PP".
@@ -216,9 +216,9 @@ No production change is complete until this log is updated.
 **Tests performed**
 - Server (mock workbook): self-tests 42/42 + 54/54 with the block-write change; product sync (Supabase + master + fallback when Supabase is down); conversion dry run / apply / second apply (nothing twice) / undo (numbers identical to before) / undo refused after a later edit; product correction refused on a locked bill, applied when unlocked; Goods Check + request progress run.
 - Dashboard (simulated browser): owner's search examples; earlier regression (R24 / R29 / R30 / R35); incl / excl GST labels and file values (cost 100 @ 12 % → 112, selling 58.10 written as is); correct-product flow (refused without CORRECT; PO line, old lot and shipment follow; shipped qty unchanged); delete buttons call the right server action; **906 buttons pressed across 22 screens / windows / views — 0 errors** after the theme fix.
-- LIVE checks: <<LIVE_CHECKS_112>>
+- LIVE checks: owner tested every change in LIVE; product sync run (8,282 products); conversion DRY RUN run and reviewed (not applied yet).
 
-**Result** — <<RESULT_112>>
+**Result** — LIVE, all changes working (owner, 6 Oct 2026). Product sync and conversion dry run reviewed → V1.1.3.
 
 **Known issues**
 - R41: product charge insight still reads old lots only (V1.1 bill charges not counted; converted lots drop out of it).
@@ -230,3 +230,30 @@ No production change is complete until this log is updated.
 - Product master: canonical SKU + w / wo item codes from Supabase; prices from the live ERP snapshot; keep explicit tax-inclusive / exclusive flags on every price field.
 - Corrections of identity (product) must cascade PO line → shipment allocation → bill line in one audited server call.
 - Migrations: dry run with a before/after numbers check, opt-in apply, marker column instead of deletes, and an undo that refuses records edited after migration.
+
+---
+
+### <<LIVE_DATE_113>> — V1.1.3 (server 2.7) — R43 · R44 · R45 · R46 (+ R09 dry-run review)
+
+**Requirement**
+- Owner: V1.1.2 working in LIVE (all changes). Product sync and conversion dry run reviewed with the LIVE export.
+- R43: Supabase is the truth, master sheet only a fallback (master data known to be wrong; real master comes in V2). MRP and selling in separate columns. No blank / 0 MRP must reach the upload file.
+- R44: the dry run listed 16 PO lines whose numbers would change — all were the same PO line under two codes (temporary / name code on one side, real code on the other).
+- R45: serial numbers on shipment product lines. R46: Vasy MI number recordable from the bill as well, status "MI uploaded".
+
+**Files changed** — `apps-script/ProductsApi.js` (0 counts as missing → master fallback, both lanes; new report counts), `apps-script/ShipmentTools.js` (code-mismatch handling, PO Tracking code correction + undo, report section), `apps-script/ShipmentApi.js` (version 2.7), `frontend/VT_Purchase_Intelligence_V1_1.html` (chip "V1.1.3 · Vaigai", serial badges, MI boxes on the bill).
+
+**Data / Sheet / API changes** — PO Tracking: column E (and F name) corrected for the PO lines listed in the conversion report, only when the lot carried the real product. New Script Property `V11_CONV_CODEFIX` (record of those corrections, used by the undo). Audit action PO_CODE_FIX. No API change.
+
+**Backward-compatibility impact** — none for staff; the corrections make Goods Check and the request app count those lines correctly (they showed 0 shipped under the temporary code).
+
+**Deployment** — LIVE Apps Script version <<NEW_VERSION_113>>; ping `V1.1 "Vaigai" · server 2.7`.
+
+**Tests performed** — LIVE export reviewed: sync 8,282 products (6,747 both, 1,532 Supabase only, 3 master only; 7,202 with Vasy prices); conversion dry run 88 lots / 13 skipped (10 lots of deleted POs, 3 empty lots) / 85 bills (43 locked) / 16 code mismatches mapped one by one. Mock workbook: mismatch converted under the real code, PO Tracking corrected, undo restores both; self-tests 42/42 + 54/54; dashboard: serial badges, MI from the bill → "MI uploaded"; 907 buttons pressed, 0 errors.
+- LIVE checks: <<LIVE_CHECKS_113>>
+
+**Result** — <<RESULT_113>>
+
+**Known issues** — Vasy's `sellingPrice` is MRP minus the Vasy discount (e.g. IMP60KC MRP 103.61 / selling 86.00), so selling ≠ MRP for most products; the file carries Vasy's selling. 10 lots of deleted POs stay as old lots (nothing to attach them to). PO-17092603 line 4: SLV202723S (PO) vs SLV202723SN (lot) are both real products — the lot's SLV202723SN is kept; owner to confirm.
+
+**V2 learning** — product identity must be fixed at PO creation (no temporary codes), or every downstream record needs a re-key.

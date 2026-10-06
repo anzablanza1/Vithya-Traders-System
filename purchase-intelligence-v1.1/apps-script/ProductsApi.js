@@ -18,7 +18,7 @@
  * A comparison is written to the tab "V1.1 Product Sync Report" on every run.
  */
 
-var PRODUCTS_V11_VERSION = 'products 1.0 (V1.1.2)';
+var PRODUCTS_V11_VERSION = 'products 1.1 (V1.1.3)';
 var PROD_REPORT_TAB = 'V1.1 Product Sync Report';
 
 function prodSbGetAll_(table, select, order) {
@@ -54,6 +54,7 @@ function prodUnit_(u) {
   return u.toLowerCase();
 }
 function prodR3_(v) { if (v === '' || v == null || isNaN(Number(v))) return ''; return Math.round(Number(v) * 1000) / 1000; }
+function prodPos_(v) { v = prodR3_(v); return (v === '' || !(v > 0)) ? '' : v; }   // [V1.1.3] 0 counts as missing → master fallback
 function prodCanon_(c) { return String(c || '').replace(/\/+\s*$/, '').trim(); }
 function prodStripLane_(n) { return String(n || '').replace(/\s*\/+\s*$/, '').trim(); }
 
@@ -76,7 +77,7 @@ function syncProductsV11_() {
   erp.forEach(function (r) {
     var d = r.data; if (typeof d === 'string') { try { d = JSON.parse(d); } catch (x) { d = {}; } }
     d = d || {};
-    E[String(r.item_code || '').trim()] = { name: String(d.productName || r.product_name || ''), mrp: prodR3_(d.mrp), sp: prodR3_(d.sellingPrice),
+    E[String(r.item_code || '').trim()] = { name: String(d.productName || r.product_name || ''), mrp: prodPos_(d.mrp), sp: prodPos_(d.sellingPrice),
       tax: (d.taxRate === '' || d.taxRate == null) ? '' : Number(d.taxRate), unit: prodUnit_(d.measurement), brand: String(d.brand || ''), cat: String(d.category || '') };
   });
 
@@ -96,14 +97,18 @@ function syncProductsV11_() {
   });
   Object.keys(master).forEach(function (c) { var p = get(c); p.inMaster = true; });
 
-  var rows = [], rep = [], cBoth = 0, cSb = 0, cMa = 0, cDiff = 0, cPrice = 0;
+  var rows = [], rep = [], cBoth = 0, cSb = 0, cMa = 0, cDiff = 0, cPrice = 0, cFb = 0, cSpDiff = 0;
   order.forEach(function (c) {
     var p = P[c], m = master[c] || {};
     var eg = p.gstCode ? E[p.gstCode] : null, en = p.nonCode ? E[p.nonCode] : null;
     var name = p.name || m.name || (eg && prodStripLane_(eg.name)) || (en && prodStripLane_(en.name)) || '';
     if (!name) return;
-    var gstMrp = (eg && eg.mrp !== '') ? eg.mrp : (m.gstMrp !== undefined ? m.gstMrp : '');
-    var nonMrp = (en && en.mrp !== '') ? en.mrp : (m.nonMrp !== undefined ? m.nonMrp : '');
+    // Supabase (Vasy) is the truth; the master sheet is only a fallback so the upload file never gets a blank / 0 MRP
+    var mG = prodPos_(m.gstMrp), mN = prodPos_(m.nonMrp);
+    var gstMrp = (eg && eg.mrp !== '') ? eg.mrp : (mG !== '' ? mG : mN);
+    var nonMrp = (en && en.mrp !== '') ? en.mrp : (mN !== '' ? mN : mG);
+    if ((eg && eg.mrp === '' && gstMrp !== '') || (en && en.mrp === '' && nonMrp !== '') || (!eg && gstMrp !== '') || (!en && nonMrp !== '')) cFb++;
+    if ((eg && eg.mrp !== '' && eg.sp !== '' && Math.abs(eg.mrp - eg.sp) > 0.005) || (en && en.mrp !== '' && en.sp !== '' && Math.abs(en.mrp - en.sp) > 0.005)) cSpDiff++;
     var gstSp = (eg && eg.sp !== '') ? eg.sp : '';
     var nonSp = (en && en.sp !== '') ? en.sp : '';
     if (eg || en) cPrice++;
@@ -137,7 +142,7 @@ function syncProductsV11_() {
     st.getRange('A7:B7').setValues([['Product source', 'Supabase + master (' + PRODUCTS_V11_VERSION + ')']]);
   }
   prodReport_(started, { total: rows.length, both: cBoth, sbOnly: cSb, masterOnly: cMa, withVasyPrice: cPrice, mrpDiff: cDiff,
-    skuRows: sku.length, erpRows: erp.length, masterRows: Object.keys(master).length, masterErr: masterErr }, '', rep);
+    skuRows: sku.length, erpRows: erp.length, masterRows: Object.keys(master).length, masterErr: masterErr, fallback: cFb, spDiff: cSpDiff }, '', rep);
   return rows.length;
 }
 
@@ -150,7 +155,8 @@ function prodReport_(started, s, err, rep) {
     if (err) head.push(['RESULT', err]);
     if (s) {
       head.push(['Products written', s.total], ['In Supabase AND master', s.both], ['Only in Supabase', s.sbOnly], ['Only in master sheet', s.masterOnly],
-        ['With a Vasy MRP / selling price', s.withVasyPrice], ['MRP (w) differs master vs Vasy by more than 1%', s.mrpDiff],
+        ['With a Vasy MRP / selling price', s.withVasyPrice], ['MRP filled from the master sheet (Vasy had none / 0)', s.fallback],
+        ['Vasy selling price differs from Vasy MRP', s.spDiff], ['MRP (w) differs master vs Vasy by more than 1%', s.mrpDiff],
         ['Supabase sku_master rows', s.skuRows], ['Supabase erp_snapshot rows', s.erpRows], ['Master sheet products', s.masterRows]);
       if (s.masterErr) head.push(['Master sheet problem', s.masterErr]);
       head.push(['Prices', 'MRP and Selling = incl GST (Vasy). Price = cost, excl GST (master; the dashboard prefers the purchase register).']);

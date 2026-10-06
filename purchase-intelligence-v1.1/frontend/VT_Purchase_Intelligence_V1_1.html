@@ -563,6 +563,7 @@ html[data-theme="dark"] .mode-chip.followup{background:#332b17}
 html[data-theme="dark"] .mode-chip.mgmt{background:#3b211d}
 nav#mainnav{align-items:center}
 /* [V1.1 R18] Shipments / Bills visual contrast */
+.s11-sn{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 5px;border-radius:11px;background:#0F766E;color:#fff;font-size:.66rem;font-weight:700;font-variant-numeric:tabular-nums}
 .gtag{display:inline-block;font-size:.52rem;font-weight:700;letter-spacing:.02em;padding:0 4px;border-radius:4px;margin-left:3px;vertical-align:middle;line-height:1.5;white-space:nowrap}
 .gtag.in{background:#E7F3EC;color:#1E6B3A;border:1px solid #9CCBAE}.gtag.ex{background:#FDF0E2;color:#8A4B0F;border:1px solid #E5B98A}
 html[data-theme="dark"] .gtag.in{background:#1d3326;color:#9CDDB4}html[data-theme="dark"] .gtag.ex{background:#3a2a19;color:#F0C597}
@@ -637,7 +638,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
     <button data-s="ships" disabled title="V1.1 — shipments that can carry several POs">Shipments <span id="ships-badge" class="po-badge" style="display:none;background:#0F766E">0</span></button>
 
     <span class="nav-right"><span id="mode-chip" class="mode-chip ops" title="Your current access level">PO Tracking</span>
-    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.2 · Vaigai</span></span>
+    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.3 · Vaigai</span></span>
   </nav>
 </header>
 
@@ -4799,14 +4800,14 @@ function v11ShipModal(){
   const title=S.sid?`Shipment <span class="mono">${esc(S.shipmentNo)}</span> <span class="chip" style="font-size:.6rem;background:${S11_STATE_CHIP[v11ShipState(S)][1]};color:#fff;border-color:transparent">${S11_STATE_CHIP[v11ShipState(S)][0]}</span>`:'New shipment';
   document.getElementById('s11-title').innerHTML=title;
   // pending products of this supplier (quick add)
-  const rows=S.rows.map(r=>{const k=r.k;const z=v11RowCalc(r);
+  const rows=S.rows.map((r,ri)=>{const k=r.k;const z=v11RowCalc(r);
     const allocRows=z.c.map((x,ix)=>`${(!x.own&&(ix===0||z.c[ix-1].own))?`<tr><td colspan="4" class="small muted" style="padding-top:6px">Also pending for this product on <b>other suppliers'</b> POs — fill only if this shipment really covers them:</td></tr>`:''}<tr${x.own?'':' style="opacity:.85"'}><td class="small mono">${v11PoLink(x.poId)} <span class="chip ${x.lane==='g'?'gst':'non'}" style="font-size:.5rem">${x.lane==='g'?'w':'wo'}</span>${x.own?'':` <span class="small muted">${esc(v11IsOps()?'other supplier':x.supplier)}</span>`}</td>
         <td class="r small num">${NUM(x.eff)}</td><td class="r small num">${NUM(x.pending)}</td>
         <td class="r"><input class="po-in" type="number" min="0" style="width:80px" data-po="${esc(x.poId)}" value="${+r.alloc[x.poId]||0}" oninput="v11AllocSet('${k}','${esc(x.poId)}',this.value)"></td></tr>`).join('');
     const tail=v11RowChip(r);
     return `<div class="card s11-row ${v11RowState(r)}" style="padding:9px 11px;margin:8px 0" id="s11-row-${k}">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <b class="small">${esc(prodName(r.code,r.name))}</b><span class="mono small muted">${esc(r.canon)}</span>
+        <span class="s11-sn" title="line ${ri+1} of ${S.rows.length}">${ri+1}</span><b class="small">${esc(prodName(r.code,r.name))}</b><span class="mono small muted">${esc(r.canon)}</span>
         <span style="flex:1"></span>${uomSelect('s11-u-'+k,r.uom||unitOf(r.canon),`v11UomSet('${k}',this.value)`,78)}<label class="small"><b>Qty shipped</b> (as on the bill)</label>
         <input class="po-in" type="number" min="0" style="width:96px;font-weight:700" id="s11-q-${k}" value="${(+r.qty||0)||''}" placeholder="0" oninput="v11QtySet('${k}',this.value)">
         <button class="btn ghost sm" title="remove this product" onclick="v11RowDrop('${k}')">✕</button></div>
@@ -5323,13 +5324,15 @@ function v11StageRow(b,stage,lane,reopen){
 function v11BillStagesHTML(){const b=v11BillById(B11.billId);if(!b)return '';
   const hasG=v11BillLinesOf(b.billId).some(l=>+l.qtyG>0),hasN=v11BillLinesOf(b.billId).some(l=>+l.qtyN>0);
   return `<div class="card" style="padding:10px 12px;margin-top:14px;border-top:3px solid var(--ok)">
-    <b>Vasy — supplier bill</b> <span class="small muted">(Material Inward is recorded from the shipment, after arrival)</span>
+    <b>Vasy — supplier bill</b> <span class="small muted">(record the MI number here or from the shipment's Material Inward window)</span>
     <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;align-items:flex-start">
       <div><button class="btn sm" onclick="v11BillDownloadBill()">⬇ Download for Supplier Bill</button>
         <div class="small muted" style="margin-top:3px">GST + Non-GST files · marks the bill "ready"</div></div>
       <div><div class="small"><b>Vasy bill number</b> (after the bill is generated in Vasy)</div>
         ${hasG?v11StageRow(b,'vasy','g','bill'):''}${hasN?v11StageRow(b,'vasy','n','bill'):''}</div>
-      <div class="small muted">MI: ${[b.miG&&('w '+esc(b.miG)),b.miN&&('wo '+esc(b.miN))].filter(Boolean).join(' · ')||'not recorded yet'}${b.miOverride?`<div style="color:#B8893A">⚠ ${esc(b.miOverride)}</div>`:''}</div>
+      <div><div class="small"><b>Vasy MI number</b> (after uploading to Material Inward) — marks "MI uploaded"</div>
+        ${hasG?v11StageRow(b,'mi','g','bill'):''}${hasN?v11StageRow(b,'mi','n','bill'):''}
+        ${b.miOverride?`<div class="small" style="color:#B8893A">⚠ ${esc(b.miOverride)}</div>`:''}</div>
     </div></div>`;}
 
 /* ---------- Material Inward workspace (from the shipment) ---------- */
