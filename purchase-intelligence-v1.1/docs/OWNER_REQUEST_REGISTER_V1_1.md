@@ -5,7 +5,7 @@ Numbers are never reused. New items are added at the bottom.
 
 Status: ✅ LIVE · 🧪 Built, in TEST (next release) · 📝 Planned · ⏳ Owner action / decision · 🧊 Deferred
 
-Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5, live Oct 2026 · **V1.1.2** = server 2.6 + ProductsApi + ShipmentTools, live Oct 2026 · **V1.1.3** = server 2.7 · **V1.1.4** = dashboard file only (this build)
+Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5, live Oct 2026 · **V1.1.2** = server 2.6 + ProductsApi + ShipmentTools, live Oct 2026 · **V1.1.3** = server 2.7 · **V1.1.4** = dashboard file only — all live Oct 2026
 
 | No. | Area | What was raised | Type | Status | Notes |
 |---|---|---|---|---|---|
@@ -17,7 +17,7 @@ Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5
 | R06 | Shipments | Shipment number reused after a delete | V1.1 bug | ✅ LIVE (Vaigai) | Permanent per-day counter |
 | R07 | Shipments | Sheet Status stayed "In Transit" after arrival | V1.1 bug | ✅ LIVE (Vaigai) | Status = Arrived / In Transit |
 | R08 | Old lots | Lot numbers not sequential, "*" provisional numbers | Old V1 bug | 🧊 Deferred | Not patched in V1 code; V1.1 numbers are server-assigned. Disappears with R09 |
-| R09 | Old lots | Convert all lots into shipments | Change | 🧪 V1.1.3 (dry run reviewed) | Owner: proceed. Run from Apps Script: `v11LotConvertDryRun` → check the "V1.1 Conversion Report" tab → `v11LotConvertApply`. Undo: `v11LotUnconvert`. Old lot rows are kept (column U "Converted To") |
+| R09 | Old lots | Convert all lots into shipments | Change | ✅ LIVE (V1.1.3) | Owner: proceed. Run from Apps Script: `v11LotConvertDryRun` → check the "V1.1 Conversion Report" tab → `v11LotConvertApply`. Undo: `v11LotUnconvert`. Old lot rows are kept (column U "Converted To") |
 | R10 | Shipment entry | Two quantity boxes were confusing | V1.1 UX | ✅ LIVE (Vaigai) | One "Qty shipped" box; PO split folded underneath |
 | R11 | Shipment entry | Editing the split should also change the shipped qty | V1.1 UX | ✅ LIVE (Vaigai) | |
 | R12 | Shipment entry | Show other suppliers' pending POs for the same product | Change | ✅ LIVE (Vaigai) | Shown, never auto-filled |
@@ -51,8 +51,8 @@ Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5
 | R40 | Release | V1.1 runs on a new copy of the live sheet; old V1 frozen (token changed, access = owner only) | Decision | ✅ LIVE | LIVE sheet `1SuQsKP9JwE4DGk8RELGdqMpfQjquVhK_vWC6pmIcJfE`, Apps Script `1R3cGa6vgyOkdwF3qFsZ38Tmu48YXBe0qLnyg3ArmEM2TeGWSbfczRNT9` |
 | R41 | Product page | Charge insight (per-unit freight) reads old lots only — V1.1 bill charges (and converted lots) are not counted | Found in R09 work | 📝 Planned | Read charges from V1.1 bills too |
 | R42 | Request app | Lot list on a request line did not show V1.1 shipment numbers | Found in R09 work | ✅ LIVE (V1.1.2) | SH numbers now listed with the old lots |
-| R43 | Products | Supabase is the truth, master only a fallback; MRP and selling in separate columns; a Vasy MRP of 0 must not block the upload | Decision | 🧪 V1.1.3 | A 0 / blank Vasy MRP or selling now counts as missing → master MRP fills it. Report shows how many were filled from the master and how many Vasy selling ≠ MRP |
-| R44 | Lot conversion | Dry run: 16 PO lines whose lot code ≠ PO code (temporary codes like impellerk60cri vs real IMP60KC) | Found in R09 dry run | 🧪 V1.1.3 | Matched by PO line position; the real product (in Products) is kept and PO Tracking is corrected; listed in the report; undone by v11LotUnconvert. Owner: mismatches come from auto-codes for new products later replaced by the Vasy code — expected. PO-17092603 line 4 (SLV202723S vs SLV202723SN, same sleeve, different make): register shows Gajanand billing SLV202723SN since Feb 2026 → SN kept. Second dry run (V1.1.3): 0 numbers change |
-| R45 | Shipment entry | Serial number on product lines when a shipment has many products | Change | 🧪 V1.1.3 | Numbered badge on every product line |
-| R46 | Bills | Record the Vasy Material Inward (MI) number in the bill too → status "MI uploaded" | Change | 🧪 V1.1.3 | MI w / wo boxes next to the Vasy bill number; same rules as the shipment's Material Inward window |
-| R47 | Bills | w / wo qty on the bill: after typing one digit the box got re-selected, so the second digit replaced the first | V1.1 bug | 🧪 V1.1.4 | The bill no longer redraws while typing; the w / wo MRP & selling boxes appear when you leave the qty box |
+| R43 | Products | Supabase is the truth, master only a fallback; MRP and selling in separate columns; a Vasy MRP of 0 must not block the upload | Decision | ✅ LIVE (V1.1.3) | A 0 / blank Vasy MRP or selling now counts as missing → master MRP fills it. Report shows how many were filled from the master and how many Vasy selling ≠ MRP |
+| R44 | Lot conversion | Dry run: 16 PO lines whose lot code ≠ PO code (temporary codes like impellerk60cri vs real IMP60KC) | Found in R09 dry run | ✅ LIVE (V1.1.3) | Matched by PO line position; the real product (in Products) is kept and PO Tracking is corrected; listed in the report; undone by v11LotUnconvert. Owner: mismatches come from auto-codes for new products later replaced by the Vasy code — expected. PO-17092603 line 4 (SLV202723S vs SLV202723SN, same sleeve, different make): register shows Gajanand billing SLV202723SN since Feb 2026 → SN kept. Second dry run (V1.1.3): 0 numbers change |
+| R45 | Shipment entry | Serial number on product lines when a shipment has many products | Change | ✅ LIVE (V1.1.3) | Numbered badge on every product line |
+| R46 | Bills | Record the Vasy Material Inward (MI) number in the bill too → status "MI uploaded" | Change | ✅ LIVE (V1.1.3) | MI w / wo boxes next to the Vasy bill number; same rules as the shipment's Material Inward window |
+| R47 | Bills | w / wo qty on the bill: after typing one digit the box got re-selected, so the second digit replaced the first | V1.1 bug | ✅ LIVE (V1.1.4) | The bill no longer redraws while typing; the w / wo MRP & selling boxes appear when you leave the qty box |
