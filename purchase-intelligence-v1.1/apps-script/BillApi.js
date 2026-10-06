@@ -235,11 +235,6 @@ function apiBill_(body) {
     if (f.rowIx) s.getRange(f.rowIx, 1, 1, BILL_HEADERS.length).setValues([vals]);
     else s.getRange(s.getLastRow() + 1, 1, 1, BILL_HEADERS.length).setValues([vals]);
 
-    var removed = 0;
-    if (sl.getLastRow() > 1) {
-      var lv = sl.getRange(2, 2, sl.getLastRow() - 1, 1).getValues();
-      for (var j = lv.length - 1; j >= 0; j--) if (String(lv[j][0]) === id) { sl.deleteRow(j + 2); removed++; }
-    }
     function nz(x) { return (x === '' || x == null) ? '' : Number(x); }
     var rows = (bill.lines || []).map(function (l, k) {
       return [id + '-' + (k + 1), id, String(l.shipmentId || '').trim(), shpCanon_(l.code), String(l.code || ''),
@@ -247,7 +242,7 @@ function apiBill_(body) {
         billNumOr_(l.qtyN, 0), billNumOr_(l.rateN, 0), (l.tax === '' || l.tax == null) ? '' : Number(l.tax),
         !!l.upName, String(l.upCode || ''), nz(l.mrpG), nz(l.spG), nz(l.mrpN), nz(l.spN), String(l.note || ''), now, by];
     });
-    if (rows.length) sl.getRange(sl.getLastRow() + 1, 1, rows.length, BILLL_HEADERS.length).setValues(rows);
+    var removed = v11ReplaceRows_(sl, BILLL_HEADERS.length, function (r) { return String(r[1]) === id; }, rows).length;   // [2.6 R23] one block write
     if (typeof audit_ === 'function')
       audit_(by, 'BILL_UPSERT', 'Bill', id, '', cur ? 'updated' : '', billNo,
         rows.length + ' line(s)' + (chk.warnings.length ? ' · ' + chk.warnings.length + ' warning(s)' : ''));
@@ -332,10 +327,8 @@ function apiBillUnassign_(body) {
     if (!f.rowIx) return { ok: false, error: 'Bill not found.' };
     if (billLocked_(billRowObj_(f.cur))) return { ok: false, error: 'This bill is locked — clear its MI / Vasy numbers first.' };
     var sl = ss.getSheetByName(BILLL_TAB), n = 0;
-    if (sl && sl.getLastRow() > 1) {
-      var v = sl.getRange(2, 2, sl.getLastRow() - 1, 2).getValues();
-      for (var j = v.length - 1; j >= 0; j--) if (String(v[j][0]) === id && String(v[j][1]) === sid) { sl.deleteRow(j + 2); n++; }
-    }
+    if (sl && sl.getLastRow() > 1)
+      n = v11ReplaceRows_(sl, BILLL_HEADERS.length, function (r) { return String(r[1]) === id && String(r[2]) === sid; }, []).length;   // [2.6 R23]
     if (n && typeof audit_ === 'function') audit_(by, 'BILL_UNASSIGN', 'Bill', id, 'shipment', sid, '', n + ' line(s) removed');
     return { ok: true, billId: id, shipmentId: sid, removedLines: n };
   } finally { lock.releaseLock(); }

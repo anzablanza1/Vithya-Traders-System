@@ -183,6 +183,7 @@ function handleApi_(api, params, body){
     if (api === 'billStage') return json_((typeof apiBillStage_==='function')?v11Wrap_(apiBillStage_(body)):{ok:false,error:'BillApi.gs not installed'});          // [2.1]
     if (api === 'billUnassign') return json_((typeof apiBillUnassign_==='function')?v11Wrap_(apiBillUnassign_(body)):{ok:false,error:'BillApi.gs not installed'}); // [2.1]
     if (api === 'billDelete') return json_((typeof apiBillDelete_==='function')?v11Wrap_(apiBillDelete_(body)):{ok:false,error:'BillApi.gs not installed'});       // [2.1]
+    if (api === 'shipmentRecode') return json_((typeof apiShipmentRecode_==='function')?v11Wrap_(apiShipmentRecode_(body)):{ok:false,error:'ShipmentTools.gs not installed'}); // [V1.1.2 R37]
     if (api === 'v11data') return json_(v11Payload_());                          // [2.3] fast V1.1-only refresh
     if (api === 'poDelete') return json_((typeof apiPoDelete_==='function')?apiPoDelete_(body):{ok:false,error:'ShipmentApi.gs not installed'});        // [2.2]
     if (api === 'shipmentDelete') return json_((typeof apiShipmentDelete_==='function')?v11Wrap_(apiShipmentDelete_(body)):{ok:false,error:'ShipmentApi.gs not installed'}); // [V1.1-01]
@@ -447,11 +448,24 @@ function lotlSheet_(){var ss=SpreadsheetApp.getActiveSpreadsheet();var s=ss.getS
   if(s.getLastRow()===0){s.getRange(1,1,1,LOTL_HEADERS.length).setValues([LOTL_HEADERS]).setFontWeight('bold').setBackground('#1F6B7A').setFontColor('#FFF');s.setFrozenRows(1);}return s;}
 function auditSheet_(){var ss=SpreadsheetApp.getActiveSpreadsheet();var s=ss.getSheetByName(AUDIT_TAB)||ss.insertSheet(AUDIT_TAB);
   if(s.getLastRow()===0){s.getRange(1,1,1,AUDIT_HEADERS.length).setValues([AUDIT_HEADERS]).setFontWeight('bold').setBackground('#444').setFontColor('#FFF');s.setFrozenRows(1);}return s;}
+// [V1.1.2 R09] lots converted into V1.1 shipments carry the shipment ID in column U ("Converted To").
+// They are hidden from every lot reader, so nothing is counted twice. Clearing column U brings a lot back.
+var LOT_CONV_COL = 21;
+function lotConvSet_(){
+  var out={};
+  try{var s=SpreadsheetApp.getActiveSpreadsheet().getSheetByName(LOTS_TAB);
+    if(!s||s.getLastRow()<2||s.getMaxColumns()<LOT_CONV_COL)return out;
+    var v=s.getRange(2,1,s.getLastRow()-1,LOT_CONV_COL).getValues();
+    for(var i=0;i<v.length;i++)if(v[i][0]&&String(v[i][LOT_CONV_COL-1]||'').trim())out[String(v[i][0])]=String(v[i][LOT_CONV_COL-1]);
+  }catch(e){}
+  return out;
+}
 function readLots_(){
   var ss=SpreadsheetApp.getActiveSpreadsheet(),s=ss.getSheetByName(LOTS_TAB),out=[];
   if(!s||s.getLastRow()<2)return out;
+  var conv=lotConvSet_();                                                      // [V1.1.2 R09]
   var v=s.getRange(2,1,s.getLastRow()-1,LOTS_HEADERS.length).getValues();
-  for(var i=0;i<v.length;i++){var r=v[i];if(!r[0])continue;
+  for(var i=0;i<v.length;i++){var r=v[i];if(!r[0]||conv[String(r[0])])continue;
     out.push({lotId:String(r[0]),poNumber:String(r[1]),lotNo:String(r[2]),date:dstr_(r[3]),transport:String(r[4]||''),lr:String(r[5]||''),
       billG:String(r[6]||''),billN:String(r[7]||''),miReadyAt:dstr_(r[8]),receivedAt:dstr_(r[9]),uploadedAt:dstr_(r[10]),note:String(r[11]||''),by:String(r[13]||''),expected:dstr_(r[14]),
       vasyBill:String(r[15]||''),roundG:Number(r[16])||0,roundN:Number(r[17])||0,chargesJson:String(r[18]||''),totalsJson:String(r[19]||'')});}
@@ -460,8 +474,9 @@ function readLots_(){
 function readLotLines_(){
   var ss=SpreadsheetApp.getActiveSpreadsheet(),s=ss.getSheetByName(LOTL_TAB),out=[];
   if(!s||s.getLastRow()<2)return out;
+  var conv=lotConvSet_();                                                      // [V1.1.2 R09]
   var v=s.getRange(2,1,s.getLastRow()-1,LOTL_HEADERS.length).getValues();
-  for(var i=0;i<v.length;i++){var r=v[i];if(!r[0])continue;
+  for(var i=0;i<v.length;i++){var r=v[i];if(!r[0]||conv[String(r[0])])continue;
     out.push({lotId:String(r[0]),poNumber:String(r[1]),i:(r[2]===''?-1:Number(r[2])),code:String(r[3]||''),name:String(r[4]||''),
       qty:Number(r[5])||0,g:(r[6]===''||r[6]==null)?null:Number(r[6]),n:(r[7]===''||r[7]==null)?null:Number(r[7]),
       rate:Number(r[8])||0,tax:Number(r[9])||0,upName:String(r[10]).toLowerCase()==='true'||r[10]===true,
@@ -486,6 +501,8 @@ function apiLot_(body){
         if(String(keys[i][1])===String(lot.poNumber)){var nn=parseInt(keys[i][2],10);if(nn>maxNo)maxNo=nn;}
       }
     }
+    var _conv=lotConvSet_();if(_conv[String(lot.lotId)])                          // [V1.1.2 R09]
+      return {ok:false,locked:true,error:'This old lot was converted into shipment '+_conv[String(lot.lotId)]+'. Edit it in the Shipments tab.'};
     if(!rowIx&&typeof v11LotLocked_==='function'&&v11LotLocked_())   // [V1.1 2.1] old-lot lock
       return {ok:false,locked:true,error:'New lots are switched off. Please use the new V1.1 dashboard file and record shipments in the Shipments tab. (Existing lots can still be edited.)'};
     if(!rowIx&&(!lotNo||lot.localNo))lotNo=('0'+(maxNo+1)).slice(-2);   // [v4.2] server-assigned 2-digit, in sync order
@@ -515,6 +532,7 @@ function apiLot_(body){
 function apiLotDelete_(body){
   var lotId = String((body && body.lotId) || ''); if (!lotId) return { ok:false, error:'no lotId' };
   var by = String((body && body.by) || 'dashboard');
+  var _cv = lotConvSet_(); if (_cv[lotId]) return { ok:false, error:'This old lot was converted into shipment '+_cv[lotId]+' — delete the shipment instead.' };   // [V1.1.2 R09]
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet(), n = 0;

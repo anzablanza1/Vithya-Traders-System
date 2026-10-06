@@ -39,7 +39,8 @@ var TABS = { REQ: 'PO Requests', PROD: 'Products', DRAFT: 'Drafts', SET: 'Settin
 var REQ_HEADERS = ['Line ID', 'PO Request No', 'Date & Time', 'User Name', 'Request Type', 'Urgency',
   'New Product', 'Product Code', 'Product Name', 'Quantity', 'Line Comment', 'Submission Comment', 'Status'];
 var PROD_HEADERS = ['Canonical Code', 'Product Name', 'Brand', 'Category', 'Subcategory',
-  'GST Code', 'GST Price', 'NonGST Code', 'NonGST Price', 'GST MRP', 'NonGST MRP'];   // VT-015
+  'GST Code', 'GST Price', 'NonGST Code', 'NonGST Price', 'GST MRP', 'NonGST MRP',   // VT-015
+  'GST Selling', 'NonGST Selling', 'Unit', 'GST %', 'Source'];                          // [V1.1.2 R34] MRP + Selling are GST-INCLUSIVE; Price = cost, excl GST
 
 var DEFAULT_STATUSES = ['Pending', 'Product Received', 'PO Created', 'Delete Requested'];
 
@@ -66,7 +67,7 @@ function setup() {
       ['18429640', '19*26*21(31.5*3) MM GODAVARI T BUSH', 'Godavari', 'RUBBER BUSH', 'GM T BUSH', '18429640', 42, '18429640/', 40, '', ''],
       ['18429210', '25*32*28 MM CRI T BUSH', 'CRI', 'RUBBER BUSH', 'GM T BUSH', '18429210', 55, '', '', '', ''],
       ['17320011', '6203 ZZ TEXMO BEARING', 'Texmo', 'BEARING', 'BALL BEARING', '17320011', 120, '', '', '', '']
-    ]);
+    ].map(function (r) { while (r.length < PROD_HEADERS.length) r.push(''); return r; }));
   }
 
   var dr = getOrCreate_(ss, TABS.DRAFT);
@@ -111,7 +112,17 @@ function onOpen() {
     .addToUi();
 }
 
+// [V1.1.2 R34] Supabase first (ProductsApi.gs), master sheet fills the gaps. If ProductsApi.gs is
+// not installed, or Supabase cannot be reached, the old master-only sync runs exactly as before.
+// Switch: Script Property V11_PRODUCTS_SB = on  (off / missing = old master-only sync, exactly as before).
 function syncProducts() {
+  var on = false;
+  try { on = String(PropertiesService.getScriptProperties().getProperty('V11_PRODUCTS_SB') || '').toLowerCase() === 'on'; } catch (e) {}
+  if (on && typeof syncProductsV11_ === 'function') return syncProductsV11_();
+  return syncProductsMasterOnly_();
+}
+// master sheet → { canon: {name, brand, cat, subcat, gstCode, gstPrice, nonCode, nonPrice, gstMrp, nonMrp} }
+function readMasterByCanon_() {
   var master = SpreadsheetApp.openById(MASTER_ID);
   var sheets = master.getSheets(), src = null;
   for (var i = 0; i < sheets.length; i++) if (sheets[i].getSheetId() === MASTER_GID) { src = sheets[i]; break; }
@@ -154,12 +165,17 @@ function syncProducts() {
     if (isNonGst) { rec.nonCode = rawCode; rec.nonPrice = price; rec.nonMrp = mrp; }      // VT-015
     else { rec.gstCode = rawCode || canon; rec.gstPrice = price; rec.gstMrp = mrp; }      // VT-015
   }
+  return byCanon;
+}
+function syncProductsMasterOnly_() {
+  var byCanon = readMasterByCanon_();
 
   var out = [];
   for (var canonKey in byCanon) {
     if (!byCanon.hasOwnProperty(canonKey)) continue;
     var rec = byCanon[canonKey];
-    out.push([canonKey, rec.name, rec.brand, rec.cat, rec.subcat, rec.gstCode, rec.gstPrice, rec.nonCode, rec.nonPrice, rec.gstMrp, rec.nonMrp]);   // VT-015
+    out.push([canonKey, rec.name, rec.brand, rec.cat, rec.subcat, rec.gstCode, rec.gstPrice, rec.nonCode, rec.nonPrice, rec.gstMrp, rec.nonMrp,   // VT-015
+      '', '', '', '', 'Master']);                                                          // [V1.1.2]
   }
 
   var dest = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TABS.PROD);
@@ -187,10 +203,12 @@ function syncFromForm() {
 }
 
 
+function prodNum_(v) { return (v === '' || v == null || isNaN(Number(v))) ? '' : Number(v); }
 function getProducts() {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TABS.PROD);
   if (!sh || sh.getLastRow() < 2) return [];
-  var vals = sh.getRange(2, 1, sh.getLastRow() - 1, PROD_HEADERS.length).getValues();
+  var nc = Math.min(PROD_HEADERS.length, sh.getMaxColumns());                          // [V1.1.2] older tabs have 11 columns
+  var vals = sh.getRange(2, 1, sh.getLastRow() - 1, nc).getValues();
   var out = [];
   for (var i = 0; i < vals.length; i++) {
     var name = String(vals[i][1] || '').trim(); if (!name) continue;
@@ -205,7 +223,10 @@ function getProducts() {
       nonCode: String(vals[i][7] || '').trim(),
       nonPrice: (nonPrice === '' || nonPrice == null) ? '' : Number(nonPrice),
       gstMrp: (gstMrp === '' || gstMrp == null) ? '' : Number(gstMrp),                    // VT-015
-      nonMrp: (nonMrp === '' || nonMrp == null) ? '' : Number(nonMrp)                     // VT-015
+      nonMrp: (nonMrp === '' || nonMrp == null) ? '' : Number(nonMrp),                    // VT-015
+      gstSp: prodNum_(vals[i][11]), nonSp: prodNum_(vals[i][12]),                                 // [V1.1.2 R34] selling, incl GST
+      unit: String(vals[i][13] == null ? '' : vals[i][13]).trim(), gstPct: prodNum_(vals[i][14]),
+      source: String(vals[i][15] == null ? '' : vals[i][15]).trim()
     });
   }
   return out;
@@ -224,8 +245,9 @@ function readLotsLite_() {
     if (!s || !sl || s.getLastRow() < 2 || sl.getLastRow() < 2) return out;
     var lm = {};
     var v = s.getRange(2, 1, s.getLastRow() - 1, 14).getValues();
+    var conv = (typeof lotConvSet_ === 'function') ? lotConvSet_() : {};   // [V1.1.2 R09] converted lots are V1.1 shipments now
     v.forEach(function (r) {
-      if (!r[0]) return;
+      if (!r[0] || conv[String(r[0])]) return;
       var d = r[3];
       var ds = (Object.prototype.toString.call(d) === '[object Date]')
         ? (d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2))
@@ -241,6 +263,17 @@ function readLotsLite_() {
       out.ship[k] = (out.ship[k] || 0) + qty;
       (out.lots[k] = out.lots[k] || []).push({ no: L.no, date: L.date, recd: L.recd, qty: qty });
     });
+    // [V1.1.2] V1.1 shipments are listed with the old lots (request app shows SH numbers too)
+    try {
+      if (typeof shpReadShipments_ === 'function') {
+        var S = {}; shpReadShipments_().forEach(function (x) { if (x.status !== 'Cancelled') S[x.shipmentId] = x; });
+        shpReadAllocs_().forEach(function (a) {
+          var sh = S[a.shipmentId]; if (!sh || !a.poNumber || (a.type !== 'PO' && a.type !== 'EXCESS')) return;
+          var k2 = a.poNumber + '|' + a.canon;
+          (out.lots[k2] = out.lots[k2] || []).push({ no: sh.shipmentNo || sh.shipmentId, date: sh.shipDate || '', recd: !!sh.arrivedAt, qty: a.qty });
+        });
+      }
+    } catch (e2) {}
     Object.keys(out.lots).forEach(function (k) { out.lots[k].sort(function (a, b) { return String(a.no).localeCompare(String(b.no)); }); });
   } catch (e) {}
   return out;

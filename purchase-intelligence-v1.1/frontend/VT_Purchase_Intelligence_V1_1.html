@@ -563,6 +563,9 @@ html[data-theme="dark"] .mode-chip.followup{background:#332b17}
 html[data-theme="dark"] .mode-chip.mgmt{background:#3b211d}
 nav#mainnav{align-items:center}
 /* [V1.1 R18] Shipments / Bills visual contrast */
+.gtag{display:inline-block;font-size:.52rem;font-weight:700;letter-spacing:.02em;padding:0 4px;border-radius:4px;margin-left:3px;vertical-align:middle;line-height:1.5;white-space:nowrap}
+.gtag.in{background:#E7F3EC;color:#1E6B3A;border:1px solid #9CCBAE}.gtag.ex{background:#FDF0E2;color:#8A4B0F;border:1px solid #E5B98A}
+html[data-theme="dark"] .gtag.in{background:#1d3326;color:#9CDDB4}html[data-theme="dark"] .gtag.ex{background:#3a2a19;color:#F0C597}
 .v11-band{background:linear-gradient(90deg,#0F766E,#14968a);color:#fff;border-radius:10px;padding:10px 14px;margin:0 0 12px}
 .v11-band h3,.v11-band .mono{color:#fff}
 .v11-band.bill{background:linear-gradient(90deg,#B45309,#d97706)}
@@ -634,7 +637,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
     <button data-s="ships" disabled title="V1.1 — shipments that can carry several POs">Shipments <span id="ships-badge" class="po-badge" style="display:none;background:#0F766E">0</span></button>
 
     <span class="nav-right"><span id="mode-chip" class="mode-chip ops" title="Your current access level">PO Tracking</span>
-    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.1 · Vaigai</span></span>
+    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.2 · Vaigai</span></span>
   </nav>
 </header>
 
@@ -1199,6 +1202,12 @@ function poUploadCode(l,lane){return laneCodeStr(l.code, (l&&l.upName)?'n':lane)
 let MI_GROSS=true, MI_TAXPCT=18;   // session defaults; toggle at download
 // [v4.2] every price written to a download file is capped at 3 decimals — Vasy rejects more
 function r3(v){return Math.round(((+v||0)+Number.EPSILON)*1000)/1000;}
+/* [V1.1.2 R34] MRP and selling price are GST-INCLUSIVE (Vasy w prices include tax) → written to the file as they are.
+   Cost / rate is EXCL GST → grossed up for GST codes (uploadRate). Labels: GT(1)=incl GST, GT(0)=excl GST. */
+const SP_INCL=true;
+function spUploadRate(sp,upCode,taxPct){return SP_INCL?r3(sp):uploadRate(sp,upCode,taxPct,MI_GROSS);}
+function GT(incl){return incl?'<span class="gtag in" title="includes GST">incl GST</span>':'<span class="gtag ex" title="before GST">excl GST</span>';}
+function prodTaxPct(code){try{const m=PRODUCTS.get(String(code||'').replace(/\/+$/,''));if(m&&+m.gstPct>0)return +m.gstPct;}catch(e){}return (typeof MI_TAXPCT!=='undefined'?MI_TAXPCT:18);}
 function uploadRate(base,upCode,taxPct,gross){base=+base||0;const isGst=!String(upCode||'').endsWith('/');
   return r3((gross&&isGst)?base*(1+(+taxPct||0)/100):base);}
 const laneNameStr=(name,lane)=>String(name||'').replace(/\s*\/+\s*$/,'').trim()+(lane==='n'?' /':'');
@@ -1784,6 +1793,26 @@ function sTokMatchWords(t,words){
   }
   return false;
 }
+/* [V1.1.2 R36] word-chain match: a typed token written without spaces is read as the
+   beginnings of several words IN ORDER (words in between may be skipped).
+   "r3h" = R3 + H2 ; "brf10npp" = BRF + 10N + … + PP ; "brf10npp" also = BRF + 10 + N + … + PP.
+   Only used when the normal word / prefix match fails. First piece must be 2+ characters. */
+function sChain(t,W,used,start,depth){
+  start=start||0;depth=depth||0;
+  if(depth>8||!t)return null;
+  for(let i=start;i<W.length;i++){
+    if(used&&used[i])continue;const w=W[i];
+    let k=0;while(k<w.length&&k<t.length&&w[k]===t[k])k++;
+    for(;k>=1;k--){
+      if(depth===0&&k<2)break;
+      if(depth===0&&k===t.length)continue;         // whole token in one word = normal prefix match, not a chain
+      if(k===t.length)return [i];
+      const rest=sChain(t.slice(k),W,used,i+1,depth+1);
+      if(rest)return [i].concat(rest);
+    }
+  }
+  return null;
+}
 function sMatch(c,r,toks,words){
   const W=words||null;
   if(W){
@@ -1793,6 +1822,7 @@ function sMatch(c,r,toks,words){
       let wi=-1;for(let i=0;i<W.length;i++){if(!used[i]&&W[i]===t){wi=i;break;}}      // exact word
       if(wi<0)for(let i=0;i<W.length;i++){if(!used[i]&&W[i].startsWith(t)){wi=i;break;}} // prefix
       if(wi<0&&/^[0-9.]{3,}$/.test(t))for(let i=0;i<W.length;i++){if(!used[i]&&W[i].includes(t)){wi=i;break;}} // number inside a code
+      if(wi<0){const ch=sChain(t,W,used);if(ch){ch.forEach(i=>used[i]=true);return true;}}   // [R36] "r3h" → R3 H2, "brf10npp" → BRF 10N … PP
       if(wi<0)return c.indexOf(sRev(t))>=0;
       used[wi]=true;return true;
     });
@@ -1834,6 +1864,8 @@ function sScore(c,toks,nameLen,words,dimPhrase,rawText){
       if(prefixAt===0)sc-=10;       // but a prefix at the start still beats a mid-string prefix
     }else if(numSubAt>=0){
       sc+=90+numSubAt*2;            // a number buried inside a longer number — weakest word-level match
+    }else if(t.length>=3&&sChain(t,W)){
+      const ch=sChain(t,W);sc+=60+ch[0]*3+ch.length*5+(ch[ch.length-1]-ch[0]-ch.length+1)*2;   // [R36] chained words: tighter chain ranks higher
     }else{
       const ix=c.indexOf(t);
       sc+=(ix<0)?300:(140+ix);       // only compact/reversed substring — weakest overall
@@ -2170,7 +2202,7 @@ function showItem(code){
   <h2 class="sect">Rate history <span class="sub">landing cost over time</span></h2>
   <div class="card"><div class="chart-box"><canvas id="ch-item"></canvas></div></div>
   <h2 class="sect">All purchases of this item <span class="sub">${it.nTx} lines</span></h2>
-  <div class="tbl-wrap" style="max-height:420px;overflow:auto"><table><thead><tr><th>Date</th><th>Type</th><th>Supplier</th><th>Bill</th><th class="r">Qty</th><th class="r">Unit</th><th class="r">Rate ₹</th><th class="r">Landing ₹</th><th class="r">Total ₹</th></tr></thead><tbody>`+
+  <div class="tbl-wrap" style="max-height:420px;overflow:auto"><table><thead><tr><th>Date</th><th>Type</th><th>Supplier</th><th>Bill</th><th class="r">Qty</th><th class="r">Unit</th><th class="r">Rate ₹ ${GT(0)}</th><th class="r">Landing ₹ ${GT(0)}</th><th class="r">Total ₹</th></tr></thead><tbody>`+
   [...it.tx].reverse().map(t=>`<tr><td class="small">${DFMT(t.date)}</td><td><span class="chip ${t.gst?'gst':'non'}">${t.gst?'GST':'NON'}</span>${t.mismatch?' <span class="chip warn" title="Supplier & product-name GST signals disagree — check for a naming error">⚠</span>':''}</td><td>${esc(t.party)}</td><td class="small mono">${esc(t.billNo)}</td><td class="r num">${NUM(t.qty)}</td><td class="r num">${INR2(t.rate)}</td><td class="r num">${INR2(t.landing)}</td><td class="r num">${INR(t.total)}</td></tr>`).join('')+
   `</tbody></table></div>`;
   document.getElementById('detail').innerHTML=html;enhanceTables(document.getElementById('detail'));
@@ -3082,7 +3114,7 @@ function applyLiveData(d){
     const gP=(p.gstPrice!==''&&p.gstPrice!=null)?+p.gstPrice:0;
     const nP=(p.nonPrice!==''&&p.nonPrice!=null)?+p.nonPrice:0;
     const price=gP||nP||0;
-    PRODUCTS.set(code,{name:String(p.name||'').trim(),brand:String(p.brand||'').trim(),cat:String(p.category||'').trim(),subcat:String(p.subcategory||'').trim(),price:price,gstPrice:gP,nonPrice:nP,gstCode:p.gstCode||'',nonCode:p.nonCode||'',gstMrp:+p.gstMrp||0,nonMrp:+p.nonMrp||0,gstSp:+p.gstSp||+p.gstSell||+p.gstSelling||+p.sellingPrice||+p.sell||0,nonSp:+p.nonSp||+p.nonSell||+p.nonSelling||+p.sellingPrice||+p.sell||0,unit:String(p.unit||'').trim()});});
+    PRODUCTS.set(code,{name:String(p.name||'').trim(),brand:String(p.brand||'').trim(),cat:String(p.category||'').trim(),subcat:String(p.subcategory||'').trim(),price:price,gstPrice:gP,nonPrice:nP,gstCode:p.gstCode||'',nonCode:p.nonCode||'',gstMrp:+p.gstMrp||0,nonMrp:+p.nonMrp||0,gstSp:+p.gstSp||+p.gstSell||+p.gstSelling||+p.sellingPrice||+p.sell||0,nonSp:+p.nonSp||+p.nonSell||+p.nonSelling||+p.sellingPrice||+p.sell||0,unit:String(p.unit||'').trim(),gstPct:+p.gstPct||0,source:String(p.source||'')});});
   // requests
   REQ=[];let idx=0;
   (d.requests||[]).forEach(r=>{
@@ -3524,7 +3556,7 @@ function applyTheme(t){
   document.documentElement.setAttribute('data-theme',t);
   document.getElementById('btn-theme').textContent=t==='dark'?'☀️':'🌙';
   try{localStorage.setItem('vt_theme',t);}catch(e){}
-  if(window.__rendered){renderDashboard();renderInsights();}
+  if(window.__rendered&&REGISTER_LOADED){try{renderDashboard();renderInsights();}catch(e){}}   // [V1.1.2 R39] old bug: theme button crashed in PO Tracking mode (no register)
 }
 function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
 (function initTheme(){let t='light';
@@ -4208,7 +4240,7 @@ function poRender(){
      <button class="btn red sm" onclick="poCreateRecord('${esc(g.sup)}','${g.lane}')">✓ Create PO</button>
      <button class="btn sm" onclick="poDownloadGroup('${esc(g.sup)}','${g.lane}')">⬇ Upload file</button>
      <button class="btn ghost sm" onclick="poClearSupplier('${esc(g.sup)}','${g.lane}')">Clear</button></div>
-     <div class="tbl-wrap" style="border:none;border-radius:0"><table><thead><tr><th style="width:26px"></th><th>Product</th><th>Item code</th><th>Supplier</th><th class="r">Qty</th><th class="r">Price ₹</th><th class="r">MRP ₹</th><th class="r">Line ₹</th><th></th></tr></thead><tbody>`;
+     <div class="tbl-wrap" style="border:none;border-radius:0"><table><thead><tr><th style="width:26px"></th><th>Product</th><th>Item code</th><th>Supplier</th><th class="r">Qty</th><th class="r">Price ₹ ${GT(0)}</th><th class="r">MRP ₹ ${GT(1)}</th><th class="r">Line ₹ ${GT(0)}</th><th></th></tr></thead><tbody>`;
     for(const l of g.rows){
       const it=ITEMS.get(l.code);
       const selCell=`<td><input type="checkbox" ${PO_SEL.has(l.id)?'checked':''} onclick="poSelToggle(${l.id},this.checked)"></td>`;
@@ -4555,7 +4587,7 @@ function v11InjectLots(){
         if(!x){const ix=(p.lines||[]).findIndex(l=>v11Canon(l.code)===a.canon);
           x={i:ix,code:a.code||a.canon,name:a.name||'',qty:0,g:null,n:null,rate:0,tax:null,upName:false,mrp:null,sp:null,ret:0,flags:ix<0?['not-in-PO']:[],_v11Excess:0};
           byCanon.set(a.canon,x);}
-        x.qty+=(+a.qty||0);
+        x.qty+=(+a.qty||0);x.ret+=(+a.ret||0);   // [V1.1.2] returns on converted lots
         if(a.type==='EXCESS'){x._v11Excess+=(+a.qty||0);if(!x.flags.includes('over-shipped'))x.flags.push('over-shipped');}});
       const lines=[...byCanon.values()];
       p.lots.push({lotId:'SHP:'+sid,lotNo:s.shipmentNo||sid,_v11:true,_synced:true,date:s.shipDate||'',transport:s.transport||'',lr:s.lr||'',
@@ -5039,9 +5071,10 @@ function v11LineFromShip(sid,canon,qty,exceptBill){
   let rG=0,rN=0;al.forEach(a=>{const p=a.poNumber&&podocFind(a.poNumber);if(!p)return;const l=(p.lines||[]).find(x=>v11Canon(x.code)===canon);if(!l)return;
     if(p.lane==='n'){if(!rN)rN=+l.price||0;}else{if(!rG)rG=+l.price||0;}});
   const m=(typeof PRODUCTS!=='undefined')&&PRODUCTS.get(canon);
-  if(!rG)rG=m?(+m.gstPrice||+m.price||0):0;if(!rN)rN=m?(+m.nonPrice||+m.price||0):rG;
+  // [R34] no PO price → the purchase register's last cost for that lane → the master cost (all excl GST)
+  if(!rG)rG=poCostFor(canon,'g',m?(+m.gstPrice||+m.price||0):0);if(!rN)rN=poCostFor(canon,'n',m?(+m.nonPrice||+m.price||0):rG);
   return v11FillMS({k:'b'+(B11_LN++),shipmentId:sid,canon,code:canon,name:a0.name||prodName(canon,canon),
-    poRef:[...new Set(al.map(a=>a.poNumber).filter(Boolean))].join(', '),qtyG:qG,rateG:rG,qtyN:qN,rateN:rN,tax:(typeof MI_TAXPCT!=='undefined'?MI_TAXPCT:18),upName:false,
+    poRef:[...new Set(al.map(a=>a.poNumber).filter(Boolean))].join(', '),qtyG:qG,rateG:rG,qtyN:qN,rateN:rN,tax:prodTaxPct(canon),upName:false,
     mrpG:'',spG:'',mrpN:'',spN:''});
 }
 function v11BillNew(fromSid){
@@ -5143,9 +5176,9 @@ function v11BillModal(){
         <datalist id="b11-pl">${[...prodMap.values()].sort((a,b)=>a.name.localeCompare(b.name)).map(o=>`<option value="${esc(o.c)} — ${esc(o.name)} · unbilled ${NUM(o.u)} · ${esc([...o.sh].join(', '))}"></option>`).join('')}</datalist></div>
       <div class="f"><label>&nbsp;</label><button class="btn ghost sm" onclick="v11BillAddProdUI()">＋ add</button></div></div>`}
     <div style="overflow:auto"><table class="sp-tbl"><thead><tr><th>#</th><th>Product</th><th>Shipment (POs)</th>
-      <th class="sp-w" style="background:var(--gst);color:#fff">w qty</th><th class="sp-w" style="background:var(--gst);color:#fff">w rate ₹</th>
-      <th class="sp-n" style="background:var(--non);color:#fff">wo qty</th><th class="sp-n" style="background:var(--non);color:#fff">wo rate ₹</th>
-      <th>GST%</th><th title="upload the w side under the / code">/ name</th><th title="filled from the last purchase / master / PO — change if needed">MRP</th><th title="filled from the last purchase / master / PO — change if needed (before GST; the file adds GST on w)">Selling</th><th></th></tr></thead>
+      <th class="sp-w" style="background:var(--gst);color:#fff">w qty</th><th class="sp-w" style="background:var(--gst);color:#fff">w rate ₹ ${GT(0)}</th>
+      <th class="sp-n" style="background:var(--non);color:#fff">wo qty</th><th class="sp-n" style="background:var(--non);color:#fff">wo rate ₹ <span class="gtag ex" title="Non-GST bill — no tax">no GST</span></th>
+      <th>GST%</th><th title="upload the w side under the / code">/ name</th><th title="filled from the last purchase / Vasy / master / PO — change if needed">MRP ${GT(1)}</th><th title="filled from the last purchase / Vasy / master / PO — incl GST, goes into the file as typed">Selling ${GT(1)}</th><th></th></tr></thead>
       <tbody>${rows||'<tr><td colspan="12" class="small muted" style="padding:10px">No lines yet — assign a shipment.</td></tr>'}</tbody></table></div>
     ${assigned.length?`<div class="small" style="margin:6px 0"><b>Shipments on this bill:</b> ${assigned.map(sid=>`<span class="chip lite" style="font-size:.62rem">${esc(v11ShipLabel(sid))}${B.billId&&!B.locked?` · <a class="linky" title="unassign this shipment from the bill (the shipment is NOT deleted)" onclick="v11BillUnassign('${esc(sid)}')">unassign</a>`:''}</span>`).join(' ')}</div>`:''}
     <datalist id="b11-chg-list">${['Freight','Transport / Lorry hire','Packing & Forwarding','Loading / Unloading','Hamali','Courier','Insurance','Handling charges','Door delivery','Cartage','Octroi / Entry tax','Other'].map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist>
@@ -5233,7 +5266,7 @@ function v11VasyRows(billId){
     const tax=upCode.endsWith('/')?0:(l.tax==null?18:+l.tax);
     const ovM=lane==='g'?l.mrpG:l.mrpN, ovS=lane==='g'?l.spG:l.spN;
     const mrp=(ovM!=null&&ovM!=='')?+ovM:(+base.mrp||0), sp=(ovS!=null&&ovS!=='')?+ovS:(+base.sp||0);
-    const pp=uploadRate(+rate||0,upCode,tax,MI_GROSS), spOut=uploadRate(sp,upCode,tax,MI_GROSS);
+    const pp=uploadRate(+rate||0,upCode,tax,MI_GROSS), spOut=spUploadRate(sp,upCode,tax);   // [R34] selling is incl GST
     const row=[upCode,v11UomFor(l.shipmentId,l.canon)||base.uom||unitOf(l.canon),+q,pp,r3(mrp),r3(spOut),'','','','','','','amount',0,'percentage',0,'',''];
     const nm=prodName(l.canon,l.name);
     if(!(+mrp))bad.push(nm+' — MRP is 0');else if(!(+spOut))bad.push(nm+' — selling price is 0');else if(spOut<pp)bad.push(nm+' — selling '+INR2(spOut)+' is below purchase '+INR2(pp));
@@ -5635,7 +5668,7 @@ function splitRender(){
         <th colspan="3" class="c sp-w" style="background:var(--gst);color:#fff">w · GST bill</th><th class="sp-div"></th>
         <th colspan="3" class="c sp-n" style="background:var(--non);color:#fff">wo · Non-GST bill</th>
         <th class="r" rowspan="2">GST%</th><th rowspan="2" title="copy w rate to wo for that row">rate</th><th rowspan="2"></th><th rowspan="2"></th></tr>
-      <tr><th class="r sp-w">Qty</th><th class="r sp-w">Rate ₹</th><th class="r sp-w">Taxable ₹</th><th class="sp-div"></th>
+      <tr><th class="r sp-w">Qty</th><th class="r sp-w">Rate ₹ ${GT(0)}</th><th class="r sp-w">Taxable ₹ ${GT(0)}</th><th class="sp-div"></th>
           <th class="r sp-n">Qty</th><th class="r sp-n">Rate ₹</th><th class="r sp-n">Value ₹</th></tr></thead>
       <tbody>${rows||'<tr><td colspan="13" class="small muted" style="padding:10px">Nothing matches this view.</td></tr>'}</tbody></table></div>
     <div id="split-charges" style="margin-top:12px"></div>
@@ -6078,13 +6111,16 @@ function miMkRow(p,l,i,lane,qty,key,price){
   // [v6.4] selling price & MRP: the register's last actuals first (that's the real number),
   // then the master, then the PO line. The master has no selling price, so it must not win.
   let sp=0,mrp=0;
-  if(it){const Ln=(lane==='n')?it.n:it.g, alt=(lane==='n')?it.g:it.n;
+  // [V1.1.2 R34] Vasy's current price (from Supabase, incl GST) wins when the product has one for this lane
+  if(master){const vs=(lane==='n')?+master.nonSp:+master.gstSp, vm=(lane==='n')?+master.nonMrp:+master.gstMrp;
+    if(vs>0){sp=vs;mrp=vm>0?vm:vs;}}
+  if(!sp&&it){const Ln=(lane==='n')?it.n:it.g, alt=(lane==='n')?it.g:it.n;
     const s=(Ln&&Ln.n)?Ln:alt;
     if(s){sp=+s.lastSell||0;mrp=+s.lastMRP||0;}}
   if(!sp)sp=miMasterSp(master,lane,(l.sp||l.mrp||0));
   if(!mrp)mrp=master?miMasterMrp(master,lane,sp):(l.mrp||sp);
   if(!sp)sp=mrp;
-  return {key,i,lane,code:l.code,name:laneNameStr(l.name||l.code,lane),qty,cost:+price||l.price,mrp,sp,upName:!!l.upName,tax:MI_TAXPCT,uom:unitOf(l)};
+  return {key,i,lane,code:l.code,name:laneNameStr(l.name||l.code,lane),qty,cost:+price||l.price,mrp,sp,upName:!!l.upName,tax:prodTaxPct(l.code),uom:unitOf(l)};
 }
 function miRowUpCode(r){
   if(r&&r.codeOverride!=null&&String(r.codeOverride).trim())return String(r.codeOverride).trim();
@@ -6127,13 +6163,13 @@ function miRenderBody(){
   const gross=`<label class="small" style="display:flex;align-items:center;gap:6px;margin:0 0 10px;flex-wrap:wrap">
     <input type="checkbox" id="mi-gross" ${MI_GROSS?'checked':''} onchange="MI_GROSS=this.checked;miRecalc()">
     Gross up <b>GST</b> item rates by <input type="number" id="mi-taxpct" value="${MI_TAXPCT}" min="0" step="0.5" style="width:52px" oninput="MI_TAXPCT=+this.value||0;MI_CTX.rows.forEach(x=>x.tax=MI_TAXPCT);miRecalc()">% for upload
-    <span class="muted">— Vasy strips tax from GST codes.</span></label>`;
+    <span class="muted">— Vasy strips tax from GST codes. Cost is excl GST (grossed up); MRP and selling are incl GST (written as they are).</span></label>`;
   const supOK=(typeof VT_MODE!=='undefined'&&VT_MODE!=='ops');
   const fileRow=`<div class="filters" style="margin:0 0 10px;align-items:flex-end">
     <div class="f" style="min-width:210px"><label>Download file name</label><input class="po-in" id="mi-fname" value="${esc(MI_CTX.fname||miDefaultName())}" style="width:100%"></div>
     ${supOK?`<label class="small" style="display:flex;align-items:center;gap:5px;padding-bottom:6px"><input type="checkbox" id="mi-supname" ${MI_SUPNAME?'checked':''} onchange="miSupNameToggle(this.checked)"> add supplier name</label>`:'<span class="small muted" style="padding-bottom:6px">supplier name — Follow-up / Management only</span>'}
     <span class="small muted" style="padding-bottom:6px">_GST / _NonGST is added automatically</span></div>`;
-  document.getElementById('mi-body').innerHTML=fileRow+gross+`<table><thead><tr><th style="width:28px">#</th><th>Item</th><th>Upload as</th><th class="r">Qty</th><th class="r">Cost ₹</th><th class="r">Tax %</th><th class="r">Upload ₹</th><th class="r">Value ₹</th><th class="r">MRP ₹<div class="small muted" style="font-weight:400">incl. GST</div></th><th class="r">Selling ₹<div class="small muted" style="font-weight:400">ex-tax</div></th><th class="r">Selling in file<div class="small muted" style="font-weight:400">incl. GST</div></th></tr></thead><tbody>`+
+  document.getElementById('mi-body').innerHTML=fileRow+gross+`<table><thead><tr><th style="width:28px">#</th><th>Item</th><th>Upload as</th><th class="r">Qty</th><th class="r">Cost ₹ ${GT(0)}</th><th class="r">Tax %</th><th class="r">Upload ₹<div class="small muted" style="font-weight:400">w: incl GST</div></th><th class="r">Value ₹</th><th class="r">MRP ₹ ${GT(1)}</th><th class="r">Selling ₹ ${GT(1)}</th><th class="r">Selling in file ${GT(1)}</th></tr></thead><tbody>`+
     MI_CTX.rows.map((r,_i)=>{const gstCode=!miRowUpCode(r).endsWith('/');
       return `<tr><td class="r num small muted">${_i+1}</td><td class="small">${esc(r.name)} <span class="chip ${r.lane==='g'?'gst':'non'}" style="font-size:.55rem">${r.lane==='g'?'w':'wo'}</span></td>
       <td class="small">${((typeof PRODUCTS!=='undefined')&&PRODUCTS.has(String(r.code||'').replace(/\/+$/,'')))
@@ -6147,7 +6183,7 @@ function miRenderBody(){
       <td class="r"><b id="mi-u-${r.key}" class="num"></b></td>
       <td class="r"><b id="mi-v-${r.key}" class="num"></b></td>
       <td class="r"><input class="po-in" type="number" min="0" step="0.01" id="mi-m-${r.key}" value="${r.mrp}" style="width:72px"></td>
-      <td class="r"><input class="po-in" type="number" min="0" step="0.01" id="mi-s-${r.key}" value="${r.sp}" style="width:72px" oninput="miRecalc()" title="ex-tax; it is grossed up for GST codes like the rate"></td>
+      <td class="r"><input class="po-in" type="number" min="0" step="0.01" id="mi-s-${r.key}" value="${r.sp}" style="width:72px" oninput="miRecalc()" title="incl GST — goes into the file as typed"></td>
       <td class="r"><b id="mi-so-${r.key}" class="num small"></b></td></tr>`;}).join('')+`</tbody></table>
     <div style="margin-top:8px;display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
       <div style="min-width:230px"><label class="small muted">Supplier sent something extra?</label>${pickerHTML('mi-add','search product to add…','')}</div>
@@ -6186,7 +6222,7 @@ function miRecalc(){if(!MI_CTX)return;
     const up=uploadRate(cost,upCode,tax,MI_GROSS);
     const spRaw=+((document.getElementById('mi-s-'+r.key)||{}).value)||0;
     const mrpRaw=+((document.getElementById('mi-m-'+r.key)||{}).value)||0;
-    const spUp=uploadRate(spRaw,upCode,tax,MI_GROSS);
+    const spUp=spUploadRate(spRaw,upCode,tax);   // [R34]
     const val=r3(up*(+r.qty||0)), base=r3(cost*(+r.qty||0));
     const cell=document.getElementById('mi-u-'+r.key);if(cell){cell.textContent=INR2(up);cell.style.color=(MI_GROSS&&gstCode&&up!==cost)?'var(--gst)':'';}
     const sCell=document.getElementById('mi-so-'+r.key);
@@ -6279,7 +6315,7 @@ function miConfirm(){
     // [v5.9] the master's price is EX-tax but MRP is INCLUSIVE. Grossing only the cost made
     // the selling price fall below the purchase price and Vasy rejected the file.
     const ppOut=uploadRate(cost,upCode,tax,MI_GROSS);
-    const spOut=uploadRate(sp,upCode,tax,MI_GROSS);
+    const spOut=spUploadRate(sp,upCode,tax);   // [R34] selling is incl GST — written as is
     const row=[upCode,(r.uom||unitOf(r.code)),r.qty,ppOut,r3(mrp),r3(spOut),'','','','','','','amount',0,'percentage',0,'',''];
     if(!(+mrp))bad.push(prodName(r.code,r.name)+' — MRP is 0');
     else if(!(+spOut))bad.push(prodName(r.code,r.name)+' — selling price is 0');
@@ -8965,7 +9001,7 @@ function poEditOpen(poId){
       <td class="r"><input class="po-in" type="number" min="0" id="pe-q-${i}" value="${+l.qty||0}" style="width:70px"></td>
       <td class="r"><input class="po-in" type="number" min="0" step="0.001" id="pe-r-${i}" value="${r3(l.price)}" style="width:82px"></td>
       <td class="r num small">${NUM(sh)}</td>
-      <td class="r">${sh>0?'<span class="small muted" title="shipped — cannot remove">locked</span>':`<button class="btn ghost sm" onclick="poEditDrop(${i})">✕</button>`}</td></tr>`;}).join('');
+      <td class="r">${sh>0?`<span class="small muted" title="shipped — cannot remove">locked</span><br><button class="btn ghost sm" style="font-size:.6rem;border-color:var(--danger,#D93025);color:var(--danger,#D93025);margin-top:2px" title="Emergency only: the wrong product was ordered AND shipped" onclick="poFixOpen(${i})">⚠ correct product</button>`:`<button class="btn ghost sm" onclick="poEditDrop(${i})">✕</button>`}</td></tr>`;}).join('');
   document.getElementById('poedit-body').innerHTML=`
     <div class="filters" style="margin-bottom:10px">
       ${supOK?`<div class="f"><label>Supplier</label>
@@ -8975,12 +9011,81 @@ function poEditOpen(poId){
       <div class="f"><label>Supplier / software PO no</label><input class="po-in" id="pe-real" value="${esc(p.realNo||'')}" style="width:150px"></div>
       <div class="f"><label>Expected</label><input class="po-in" type="date" id="pe-exp" value="${esc(p.expected||'')}"></div>
     </div>
-    <table><thead><tr><th>Product</th><th class="r">Qty</th><th class="r">Rate ₹</th><th class="r">Shipped</th><th></th></tr></thead>
+    <table><thead><tr><th>Product</th><th class="r">Qty</th><th class="r">Rate ₹ ${GT(0)}</th><th class="r">Shipped</th><th></th></tr></thead>
     <tbody id="pe-rows">${rows}</tbody></table>
+    <div id="pe-fix"></div>
     <div id="pe-add"></div>
     <button class="btn ghost sm" style="margin-top:6px" onclick="poEditAddRow()">＋ add item to this PO</button>
     <div id="pe-warn" class="small" style="color:var(--non);margin-top:6px;display:none"></div>`;
   mOpen('poedit-modal');
+}
+/* [V1.1.2 R37] CORRECT A PRODUCT THAT ALREADY SHIPPED — emergency only, from PO edit only.
+   Changes this PO line to the right product everywhere it has gone: the PO line, old lots of this PO,
+   V1.1 shipment lines for this PO and the bill lines on those shipments (server checks bills are not locked).
+   Recorded in the Audit Log. Vasy is NOT changed — fix anything already uploaded there by hand. */
+let POFIX=null;
+function poFixAffected(p,i){
+  const l=p.lines[i],from=v11Canon(l.code);
+  const oldLots=(p.lots||[]).filter(L=>!v11Lot(L)&&(L.lines||[]).some(x=>x.i===i&&(+x.qty||0)>0));
+  const ships=(V11.allocs||[]).filter(a=>a.poNumber===p.poId&&v11Canon(a.code||a.canon)===from).map(a=>a.shipmentId);
+  const shipIds=[...new Set(ships)];
+  const bills=[...new Set((V11.billLines||[]).filter(b=>shipIds.includes(b.shipmentId)&&v11Canon(b.canon)===from).map(b=>b.billId))];
+  return {from,oldLots,shipIds,bills};
+}
+function poFixOpen(i){
+  const p=podocFind(POEDIT_ID);if(!p||!p.lines[i])return;
+  const l=p.lines[i],A=poFixAffected(p,i);POFIX={i,to:''};
+  const shipNo=id=>{const s=(V11.shipments||[]).find(x=>x.shipmentId===id);return s?(s.shipmentNo||id):id;};
+  const billNo=id=>{const b=(V11.bills||[]).find(x=>x.billId===id);return b?((b.billNo||id)+(b.locked||b.miG||b.miN||b.vasyG||b.vasyN?' 🔒 LOCKED':'')):id;};
+  const up=A.oldLots.filter(L=>L.uploadedAt||L.vasyBill);
+  const box=document.getElementById('pe-fix');if(!box)return;
+  box.innerHTML=`<div class="card" style="margin-top:10px;padding:10px 12px;border:2px solid var(--danger,#D93025);background:#FFF5F4">
+    <b style="color:var(--danger,#D93025)">⚠ Correct a product that already shipped</b> <span class="small muted">— emergency only</span>
+    <div class="small" style="margin:6px 0">Wrong product: <b>${esc(prodName(l.code,l.name))}</b> <span class="mono">${esc(A.from)}</span> · ordered ${NUM(l.qty)} · shipped ${NUM(shipForLine(p,i))}</div>
+    <div class="small"><b>This will also change:</b>
+      <ul style="margin:3px 0 3px 18px;padding:0">
+        <li>Old lots: ${A.oldLots.length?A.oldLots.map(L=>esc(lotDisplayId(p,L))).join(', '):'none'}</li>
+        <li>V1.1 shipments: ${A.shipIds.length?A.shipIds.map(id=>esc(shipNo(id))).join(', '):'none'}</li>
+        <li>Bills: ${A.bills.length?A.bills.map(id=>esc(billNo(id))).join(', '):'none'}</li></ul>
+      ${up.length?`<div style="color:var(--danger,#D93025)">Lot ${up.map(L=>esc(lotDisplayId(p,L))).join(', ')} was already uploaded to Vasy — correct it in Vasy by hand as well.</div>`:''}
+      ${A.bills.some(id=>/LOCKED/.test(billNo(id)))?`<div style="color:var(--danger,#D93025)">A bill is locked — clear its Vasy MI / bill numbers first, or the server will refuse.</div>`:''}</div>
+    <div class="filters" style="margin-top:8px;align-items:flex-end">
+      <div class="f" style="min-width:260px"><label>Right product</label>${pickerHTML('pefix','search the correct product…','')}</div>
+      <div class="f"><label>Type CORRECT to confirm</label><input class="po-in" id="pefix-ok" style="width:110px" autocomplete="off"></div>
+      <div class="f"><label>&nbsp;</label><button class="btn red sm" onclick="poFixApply()">Correct product</button></div>
+      <div class="f"><label>&nbsp;</label><button class="btn ghost sm" onclick="document.getElementById('pe-fix').innerHTML='';POFIX=null">Cancel</button></div></div>
+    <div id="pefix-msg" class="small" style="margin-top:4px"></div></div>`;
+  PICK_CB['pefix']=(code)=>{POFIX.to=v11Canon(code);const m=document.getElementById('pefix-msg');
+    const dup=p.lines.findIndex((x,k)=>k!==i&&v11Canon(x.code)===POFIX.to);
+    if(m)m.innerHTML=dup>=0?`<span style="color:var(--danger,#D93025)">This PO already has ${esc(prodName(POFIX.to,POFIX.to))} on another line — correct it by hand.</span>`:`→ will become <b>${esc(prodName(POFIX.to,POFIX.to))}</b> <span class="mono">${esc(POFIX.to)}</span>`;};
+  try{box.scrollIntoView({block:'nearest'});}catch(e){}
+}
+async function poFixApply(){
+  const p=podocFind(POEDIT_ID);if(!p||!POFIX)return;const i=POFIX.i,l=p.lines[i];if(!l)return;
+  const to=POFIX.to||v11Canon(pickerCode('pefix'));
+  if(!to){toast('Pick the right product first.');return;}
+  if(String((document.getElementById('pefix-ok')||{}).value||'').trim().toUpperCase()!=='CORRECT'){toast('Type CORRECT to confirm.');return;}
+  const A=poFixAffected(p,i);
+  if(to===A.from){toast('That is the same product.');return;}
+  if(p.lines.some((x,k)=>k!==i&&v11Canon(x.code)===to)){alert('This PO already has that product on another line. Correct it by hand.');return;}
+  if(!liveConnected()){alert('Not connected — a product correction must be saved to the live sheet. Nothing changed.');return;}
+  const nm=prodName(to,to);
+  // 1) V1.1 shipments + bills first — the server refuses if a bill is locked, and then nothing changes here
+  if(A.shipIds.length){
+    const r=await v11Post({api:'shipmentRecode',poNumber:p.poId,from:A.from,to,name:nm},'Correct product');
+    if(!r)return;}
+  // 2) the PO line and the old lots of this PO
+  const oldCode=l.code,oldName=l.name;
+  l.code=to;l.name=nm;l.isNew=false;
+  A.oldLots.forEach(L=>{(L.lines||[]).forEach(x=>{if(x.i===i){x.code=to;x.name=nm;x.mrp=null;x.sp=null;}});});
+  try{v11InjectLots();}catch(e){}   // the V1.1 shipment lines now point at the corrected PO line
+  lotMirror(p);poStatusRecompute(p);_podPersist(p);
+  A.oldLots.forEach(L=>{try{liveLotPushQ(p,L);}catch(e){}});
+  liveAudit('PRODUCT_CORRECT','POLine',(p.realNo||p.poId)+' / line '+(i+1),'product',String(oldCode||'')+' '+String(oldName||''),to+' '+nm,
+    'after shipping · lots '+A.oldLots.length+' · shipments '+A.shipIds.length+' · bills '+A.bills.length);
+  POFIX=null;
+  toast('Product corrected: '+(oldName||oldCode)+' → '+nm);
+  poEditOpen(POEDIT_ID);try{poDetailRefresh();posRender();}catch(e){}
 }
 function poEditDrop(i){const p=podocFind(POEDIT_ID);if(!p)return;
   if(shipForLine(p,i)>0){toast('That line has shipped quantity — cancel the remainder instead.');return;}

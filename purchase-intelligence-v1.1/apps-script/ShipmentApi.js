@@ -37,7 +37,7 @@
  * SETUP: run setupShipmentsV11() once (it only creates the two tabs if missing).
  */
 
-var V11_VERSION = 'V1.1 "Vaigai" · server 2.5';
+var V11_VERSION = 'V1.1 "Vaigai" · server 2.6';
 var V11_TEST_SHEET_ID = '1ojAFR5wv6tKt94CB0EwoEs14iCp7lPeRbnhBvjm6XX8';   // self-test runs ONLY here
 
 var SHP_TAB  = 'Shipments';
@@ -45,7 +45,7 @@ var SHPA_TAB = 'Shipment Allocations';
 var SHP_HEADERS  = ['Shipment ID', 'Shipment No', 'Supplier', 'Ship Date', 'Transport', 'LR No',
                     'Expected Delivery', 'Status', 'Note', 'Created At', 'Updated At', 'By', 'Arrived At', 'Arrived By'];
 var SHPA_HEADERS = ['Allocation ID', 'Shipment ID', 'Type', 'PO Number', 'Canonical Code', 'Item Code',
-                    'Item Name', 'Qty', 'Suggested Qty', 'Note', 'Updated At', 'By', 'UOM'];
+                    'Item Name', 'Qty', 'Suggested Qty', 'Note', 'Updated At', 'By', 'UOM', 'Returned'];   // [2.6] N = qty sent back (converted V1 lots)
 var SHP_TYPES    = { PO: true, EXCESS: true, OFFPO: true };
 var SHP_STATUSES = { 'In Transit': true, 'Arrived': true, 'Cancelled': true };
 
@@ -113,6 +113,26 @@ function shpPoUse_() {
 function shpCanon_(c) { return String(c == null ? '' : c).replace(/\/+\s*$/, '').trim(); }
 function shpStr_(v) { return (typeof dstr_ === 'function') ? dstr_(v) : String(v == null ? '' : v); }
 function shpNum_(v) { var n = Number(v); return isFinite(n) ? n : NaN; }
+/* [2.6 R23] remove every data row for which isGone(row) is true and append newRows — in ONE block write.
+   Replaces the old one-deleteRow-per-line loops (each deleteRow costs ~0.2 s).
+   Keeps any extra columns the sheet may have to the right. Returns the removed rows. */
+function v11ReplaceRows_(sh, width, isGone, newRows) {
+  newRows = newRows || [];
+  var w = Math.max(width, sh.getLastColumn ? sh.getLastColumn() : width);
+  var last = sh.getLastRow();
+  var data = last > 1 ? sh.getRange(2, 1, last - 1, w).getValues() : [];
+  var keep = [], gone = [];
+  for (var i = 0; i < data.length; i++) (isGone(data[i]) ? gone : keep).push(data[i]);
+  var add = newRows.map(function (r) { r = r.slice(); while (r.length < w) r.push(''); return r; });
+  if (!gone.length) {
+    if (add.length) sh.getRange(last + 1, 1, add.length, w).setValues(add);
+    return gone;
+  }
+  var out = keep.concat(add);
+  if (out.length) sh.getRange(2, 1, out.length, w).setValues(out);
+  if (data.length > out.length) sh.getRange(2 + out.length, 1, data.length - out.length, w).clearContent();
+  return gone;
+}
 
 /* ===================== READERS (never throw) ===================== */
 function shpReadShipments_() {
@@ -143,7 +163,8 @@ function shpReadAllocs_() {
       out.push({ allocId: String(r[0]), shipmentId: String(r[1]), type: String(r[2] || '').toUpperCase(),
         poNumber: String(r[3] || ''), canon: shpCanon_(r[4]), code: String(r[5] || ''), name: String(r[6] || ''),
         qty: Number(r[7]) || 0, suggestedQty: (r[8] === '' || r[8] == null) ? '' : (Number(r[8]) || 0),
-        note: String(r[9] || ''), updatedAt: String(r[10] || ''), by: String(r[11] || ''), uom: String(r[12] || '') });
+        note: String(r[9] || ''), updatedAt: String(r[10] || ''), by: String(r[11] || ''), uom: String(r[12] || ''),
+        ret: Number(r[13]) || 0 });                                                       // [2.6]
     }
   } catch (e) { return []; }
   return out;
@@ -199,7 +220,7 @@ function shpQtyByPoCode_() {
       if (a.type === 'PO') { x = e(a.poNumber, a.canon); x.shipped += a.qty; x.shippedPO += a.qty; x.shippedV11 += a.qty; }
       else if (a.type === 'EXCESS') { x = e(a.poNumber, a.canon); x.shipped += a.qty; x.excess += a.qty; }
       else return;
-      if (arrived[a.shipmentId]) x.received += a.qty;
+      if (arrived[a.shipmentId]) x.received += Math.max(0, a.qty - (a.ret || 0));   // [2.6] returns
     });
   } catch (err) {}
   return out;
@@ -362,18 +383,19 @@ function apiShipment_(body) {
     if (rowIx) s.getRange(rowIx, 1, 1, SHP_HEADERS.length).setValues([vals]);
     else s.getRange(s.getLastRow() + 1, 1, 1, SHP_HEADERS.length).setValues([vals]);
 
-    // replace this shipment's allocations (delete bottom-up, then append fresh)
-    var removed = 0;
-    if (sa.getLastRow() > 1) {
-      var av = sa.getRange(2, 2, sa.getLastRow() - 1, 1).getValues();
-      for (var j = av.length - 1; j >= 0; j--) { if (String(av[j][0]) === id) { sa.deleteRow(j + 2); removed++; } }
-    }
+    // replace this shipment's allocations — [2.6 R23] one block rewrite instead of one deleteRow per line
+    var oldRet = {};
+    (sa.getLastRow() > 1 ? sa.getRange(2, 1, sa.getLastRow() - 1, SHPA_HEADERS.length).getValues() : []).forEach(function (r) {
+      if (String(r[1]) === id && Number(r[13])) oldRet[String(r[2]).toUpperCase() + '|' + String(r[3]) + '|' + shpCanon_(r[4])] = Number(r[13]);
+    });
     var rows = (sh.allocations || []).map(function (a, k) {
       var sug = (a.suggestedQty === undefined || a.suggestedQty === null || a.suggestedQty === '') ? '' : Number(a.suggestedQty);
-      return [id + '-' + (k + 1), id, String(a.type).toUpperCase(), String(a.poNumber || '').trim(), shpCanon_(a.code),
-        String(a.code || ''), String(a.name || ''), Number(a.qty), sug, String(a.note || ''), now, by, String(a.uom || '')];
+      var ty = String(a.type).toUpperCase(), po = String(a.poNumber || '').trim(), cn = shpCanon_(a.code);
+      var ret = (a.ret != null && a.ret !== '') ? (Number(a.ret) || 0) : (oldRet[ty + '|' + po + '|' + cn] || '');   // returns survive an edit
+      return [id + '-' + (k + 1), id, ty, po, cn,
+        String(a.code || ''), String(a.name || ''), Number(a.qty), sug, String(a.note || ''), now, by, String(a.uom || ''), ret];
     });
-    if (rows.length) sa.getRange(sa.getLastRow() + 1, 1, rows.length, SHPA_HEADERS.length).setValues(rows);
+    var removed = v11ReplaceRows_(sa, SHPA_HEADERS.length, function (r) { return String(r[1]) === id; }, rows).length;
 
     if (typeof audit_ === 'function')
       audit_(by, 'SHIPMENT_UPSERT', 'Shipment', id, '', cur ? 'updated' : '', shipNo,
@@ -400,10 +422,7 @@ function apiShipmentDelete_(body) {
       for (var i = v.length - 1; i >= 0; i--) if (String(v[i][0]) === id) { shipNo = String(v[i][1] || ''); s.deleteRow(i + 2); nS++; }
     }
     var sa = ss.getSheetByName(SHPA_TAB);
-    if (sa && sa.getLastRow() > 1) {
-      var w = sa.getRange(2, 2, sa.getLastRow() - 1, 1).getValues();
-      for (var j = w.length - 1; j >= 0; j--) if (String(w[j][0]) === id) { sa.deleteRow(j + 2); nA++; }
-    }
+    if (sa && sa.getLastRow() > 1) nA = v11ReplaceRows_(sa, SHPA_HEADERS.length, function (r) { return String(r[1]) === id; }, []).length;   // [2.6 R23]
     if (typeof audit_ === 'function' && (nS || nA))
       audit_(by, 'SHIPMENT_DELETE', 'Shipment', id, '', shipNo, 'deleted', nA + ' allocation(s) removed');
     return { ok: true, shipmentId: id, removedShipments: nS, removedAllocations: nA };

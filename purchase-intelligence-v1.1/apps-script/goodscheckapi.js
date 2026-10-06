@@ -98,8 +98,9 @@ function readLotsFull_() {
     var lm = {};
     var n = Math.max(15, s.getLastColumn());
     var v = s.getRange(2, 1, s.getLastRow() - 1, n).getValues();
+    var conv = (typeof lotConvSet_ === 'function') ? lotConvSet_() : {};   // [V1.1.2 R09] converted lots are V1.1 shipments now
     v.forEach(function (r) {
-      if (!r[0]) return;
+      if (!r[0] || conv[String(r[0])]) return;
       lm[String(r[0])] = {
         date: dstr(r[3]),                       // Date (shipped)
         received: dstr(r[9]),                    // Received At

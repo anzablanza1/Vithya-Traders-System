@@ -152,3 +152,81 @@ No production change is complete until this log is updated.
 - Numbers must come from the server at save time from a permanent counter, never from the client.
 - Separate w / wo MRP and selling per bill line; charges belong to the bill but not to the Vasy item file.
 - "Whole PO with pending qty" is the dominant entry pattern; product-first search is the exception path.
+
+---
+
+### <<V111_LIVE_DATE>> — V1.1.1 (server 2.5) — R23 (part) · R24 · R29 · R30 · R33 · R35 · R36 (part) · R38 · R39 (static)
+
+**Requirement** — owner request list after go-live (numbers in `OWNER_REQUEST_REGISTER_V1_1.md`): multi-select products from a PO (R24); w/wo auto-split on bills (R29); charge dropdown + typing (R30); Supabase register pull broken (R33, old V1 bug); PO-builder unit stuck on "nos" (R35, old V1 bug); search unreliable (R36, old V1 bug); colour contrast in the Shipments module (R38); faster saves (R23); check all buttons (R39).
+
+**Files changed** — `apps-script/LiveApi 7.2.js` (register function renamed `apiRegisterSb_`, `register` route chooses Supabase or sheet by its parameters, V1.1 write replies carry the fresh V1.1 data `v11data`), `apps-script/ShipmentApi.js` (version label 2.5), `frontend/VT_Purchase_Intelligence_V1_1.html` (chip "V1.1.1 · Vaigai").
+
+**Data / Sheet / API changes** — none to tabs. API: every V1.1 write reply now includes `v11data` (additive).
+
+**Backward-compatibility impact** — older dashboard files ignore `v11data` and still refresh the old way.
+
+**Deployment** — LIVE Apps Script version <<V111_VERSION>>; ping label `V1.1 "Vaigai" · server 2.5`.
+
+**Tests performed** — self-tests 42/42 + 54/54; simulated-browser checks for R24 / R29 / R30 / R35 / R36; static handler check (332 handlers, none missing). Owner checked in LIVE: all working except R36 (two search examples).
+
+**Result** — LIVE, working (owner, Oct 2026). R36 reopened → V1.1.2.
+
+**Known issues** — R36 word-joined searches (fixed in V1.1.2).
+
+**V2 learning** — one function name per project: Apps Script silently keeps the LAST definition of a duplicated name.
+
+---
+
+### <<LIVE_DATE_112>> — V1.1.2 (server 2.6) — R09 · R23 · R34 · R36 · R37 · R39 · R42
+
+**Requirement**
+- R36: "r3h" must find "R3 H2 IMP&DIFF N 86 OD AP"; "brf10npp" must find "BRF 10N … PP" / "BRF 10 N … PP".
+- R34: products from Supabase (`sku_master` + Vasy `erp_snapshot`), master sheet as fallback, cached in the Products tab. Owner decisions: MRP = selling in Vasy; Vasy "w" prices are GST-inclusive, so the upload file carries MRP and selling **incl GST, as they are** (cost is still grossed up); every price labelled **incl GST / excl GST** like w / wo; cost comes from the purchase register.
+- R37: correct a wrong product after it has shipped — **only from PO edit**, with a clear warning.
+- R09: convert all old lots into V1.1 shipments (owner: proceed).
+- R23: faster saves. R39: full button behaviour audit.
+
+**Files changed** (`purchase-intelligence-v1.1/`)
+- `apps-script/ProductsApi.js` — NEW. `syncProductsV11_()`: Supabase (read-only, key from `VT_SB_KEY`) + master sheet → Products tab; writes "V1.1 Product Sync Report". If Supabase cannot be read, the old master-only sync runs.
+- `apps-script/ShipmentTools.js` — NEW. `apiShipmentRecode_` (R37), `v11LotConvertDryRun` / `v11LotConvertApply` / `v11LotUnconvert` (R09), `v11SpeedCheck` (R23).
+- `apps-script/Code.js` — `syncProducts()` uses ProductsApi only when Script Property `V11_PRODUCTS_SB` = `on`, else the old master-only sync (`syncProductsMasterOnly_`, logic unchanged, split out as `readMasterByCanon_`); `getProducts()` also returns `gstSp`, `nonSp`, `unit`, `gstPct`, `source` and copes with an 11-column tab; request-app lot list skips converted lots and lists V1.1 shipment numbers (R42).
+- `apps-script/ShipmentApi.js` — version 2.6; allocation column N "Returned" (received = qty − returned); allocations replaced in one block write (no row-by-row deletes); returns kept when a shipment is edited; helper `v11ReplaceRows_`.
+- `apps-script/BillApi.js` — bill lines replaced / unassigned in one block write.
+- `apps-script/LiveApi 7.2.js` — `lotConvSet_()`; `readLots_` / `readLotLines_` hide converted lots; `apiLot_` / `apiLotDelete_` refuse a converted lot; route `shipmentRecode`.
+- `apps-script/goodscheckapi.js` — skips converted lots (their numbers come from the shipments).
+- `frontend/VT_Purchase_Intelligence_V1_1.html` — chip "V1.1.2 · Vaigai"; word-chain search (`sChain`); incl / excl GST tags (`GT()`) on PO builder, PO edit, bill, material inward, split and rate history; selling written to the file as typed (`spUploadRate`); Vasy MRP / selling preferred when the product has them; GST % default from the product; bill rate default = PO price → register last cost → master; "⚠ correct product" in PO edit (`poFixOpen` / `poFixApply`); returns shown on converted shipments; theme button crash fixed (R39).
+
+**Data / Sheet / API changes**
+- Products tab: + L GST Selling · M NonGST Selling · N Unit · O GST % · P Source (Supabase / Supabase+Master / Master). MRP and Selling = incl GST; Price = cost excl GST.
+- Shipment Allocations: + N Returned. Lots: + U Converted To (shipment ID; only after conversion).
+- New tabs (reports, rewritten each run): "V1.1 Product Sync Report", "V1.1 Conversion Report", "V1.1 Speed Check".
+- Settings tab: A7 "Product source".
+- New Script Property `V11_PRODUCTS_SB` (`on` = Supabase product sync; off / missing = old master-only sync).
+- API: `shipmentRecode` (additive). Audit actions: PRODUCT_CORRECT, LOT_CONVERT, LOT_UNCONVERT.
+- Supabase: read only, no schema change.
+
+**Backward-compatibility impact**
+- Upload files: GST-code selling price is no longer grossed up (owner decision — Vasy w prices are tax-inclusive). Cost / rate still grossed up as before.
+- Until `V11_PRODUCTS_SB` = `on` (or without ProductsApi.gs), product sync behaves exactly as before. Without ShipmentTools.gs, nothing else changes.
+- Lot conversion is opt-in (run by hand), reversible (`v11LotUnconvert`), and old lot rows are never deleted. Shipped / received per PO line stay identical, except products that were NOT on the PO (now EXCESS — shipped & received unchanged, no longer "shipped against the PO").
+- Rollback: redeploy V1.1.1 (<<V111_VERSION>>), run `v11LotUnconvert` if conversion was applied, set `V11_PRODUCTS_SB` to `off` and run "Sync products now".
+
+**Deployment** — LIVE Apps Script version <<NEW_VERSION_112>>; ping `V1.1 "Vaigai" · server 2.6`.
+
+**Tests performed**
+- Server (mock workbook): self-tests 42/42 + 54/54 with the block-write change; product sync (Supabase + master + fallback when Supabase is down); conversion dry run / apply / second apply (nothing twice) / undo (numbers identical to before) / undo refused after a later edit; product correction refused on a locked bill, applied when unlocked; Goods Check + request progress run.
+- Dashboard (simulated browser): owner's search examples; earlier regression (R24 / R29 / R30 / R35); incl / excl GST labels and file values (cost 100 @ 12 % → 112, selling 58.10 written as is); correct-product flow (refused without CORRECT; PO line, old lot and shipment follow; shipped qty unchanged); delete buttons call the right server action; **906 buttons pressed across 22 screens / windows / views — 0 errors** after the theme fix.
+- LIVE checks: <<LIVE_CHECKS_112>>
+
+**Result** — <<RESULT_112>>
+
+**Known issues**
+- R41: product charge insight still reads old lots only (V1.1 bill charges not counted; converted lots drop out of it).
+- Vasy `sellingPrice` = MRP − Vasy discount; when the register has no newer actual, that is the selling default.
+- Lots that exist only on one PC (never synced) are not converted — sync every PC first.
+- Converted bills carry "V1" / "V1:<Vasy bill>" markers instead of real MI numbers (V1 never stored them).
+
+**V2 learning**
+- Product master: canonical SKU + w / wo item codes from Supabase; prices from the live ERP snapshot; keep explicit tax-inclusive / exclusive flags on every price field.
+- Corrections of identity (product) must cascade PO line → shipment allocation → bill line in one audited server call.
+- Migrations: dry run with a before/after numbers check, opt-in apply, marker column instead of deletes, and an undo that refuses records edited after migration.

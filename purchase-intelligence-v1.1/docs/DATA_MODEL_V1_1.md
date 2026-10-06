@@ -32,6 +32,7 @@ Columns marked (text) are forced to plain text so codes / IDs / dates are not co
 | I | Suggested Qty | what the oldest-PO-first suggestion proposed |
 | J–L | Note · Updated At · By | |
 | M | UOM | per product on this shipment |
+| N | Returned | [V1.1.2] qty sent back (converted V1 lots); received = Qty − Returned |
 
 ## Bills — one row per supplier bill (w + wo)
 A Bill ID · B Bill No (`BL-YYYYMMDD-NN`) · C Supplier · D Bill Date · E Supplier Bill No (w) · F Supplier Bill No (wo) · G Round Off (w) · H Round Off (wo) · I Charges JSON `[{name,amount,gst,lane}]` · J Totals JSON · K Status · L Ready At · M MI No (w) · N MI No (wo) · O MI At · P MI By · Q MI Override · R Vasy Bill No (w) · S Vasy Bill No (wo) · T Vasy Bill At · U Vasy Bill By · V Note · W Created At · X Updated At · Y By
@@ -52,3 +53,9 @@ A Line ID · B Bill ID · C Shipment ID · D Canonical Code · E Item Code · F 
 - shipped = shippedPO + excess → drives **in transit**
 - received = V1 lots marked received (qty − return) + V1.1 arrived shipments (PO + EXCESS)
 - The Receipts tab is NOT used for quantities (it repeats rows on every lot save and logged shipped qty as received).
+
+## V1.1.2 additions
+- **Products** tab gains L GST Selling · M NonGST Selling · N Unit · O GST % · P Source. MRP + Selling are **incl GST** (Vasy); Price columns are cost **excl GST** (master). Built by `syncProductsV11_()` from Supabase `sku_master` (name, brand, category, sub-category, unit, w / wo codes) + `erp_snapshot` (Vasy MRP, selling, GST %, unit per item code); master sheet fills anything missing.
+- **Lots** column U "Converted To" — the V1.1 shipment ID (`CONV-<lotId>`) after `v11LotConvertApply`. Every lot reader skips these rows; clearing U restores the lot.
+- Converted lots → Shipments `CONV-<lotId>` (number `SH-<lot date>-NN`), allocations PO (or EXCESS for lines not on the PO), Returned kept; bills `CONVB-<lotId>` only for lots with billing data (supplier bill nos, split, charges, MI-ready / uploaded / Vasy bill). Uploaded lots get MI "V1" and Vasy "V1:<bill or uploaded date>" (locked).
+- Report tabs (rewritten each run): "V1.1 Product Sync Report", "V1.1 Conversion Report", "V1.1 Speed Check".
