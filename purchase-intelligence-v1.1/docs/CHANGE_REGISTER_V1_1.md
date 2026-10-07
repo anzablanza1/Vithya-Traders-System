@@ -275,3 +275,22 @@ No production change is complete until this log is updated.
 
 **Result** — LIVE, working (owner, 7 Oct 2026).
 
+---
+
+### <<LIVE_DATE_115>> — V1.1.5 (dashboard file only) — R48
+
+**Requirement** — R48: sort and filter on the Shipments and Bills lists — custom date range, status, supplier and other relevant options.
+
+**Files changed** — `frontend/VT_Purchase_Intelligence_V1_1.html` only (chip "V1.1.5 · Vaigai"): `F11` filter state (kept per PC in browser storage `vt_f11`), `f11Apply` / `f11Paint` and helpers; both list renderers call `f11Apply`.
+- Shipments: sort (number, ship / expected / arrived date, supplier, qty, products); date field (ship / expected / arrived) + from–to + quick ranges (today, 7 / 30 / 90 days, this / last month, this financial year); status (in transit, overdue, arrived, cancelled); bill (not on a bill, part, on bill not billed, billed in Vasy, recheck); supplier (hidden in PO Tracking mode); only-show (excess, off-PO, converted from V1, no LR).
+- Bills: sort (number, bill date, supplier, value, stage); date field (bill / ready / MI / Vasy bill) + range + quick ranges; status (draft, ready, MI uploaded, part billed, billed); supplier; only-show (w, wo, locked, MI override, no supplier bill no., empty, converted).
+- Rules: choices inside one row = any; different rows = all; the existing Open / All switch still applies.
+
+**Data / Sheet / API changes** — none. **Backward-compatibility impact** — none; server stays 2.7.
+
+**Deployment** — <<NEW_VERSION_115>>.
+
+**Tests performed** — `tests/dashboard/t35.js` (overdue, excess, date range, billed / not billed, sort by qty, supplier, quick range, bills value sort / stage / converted / wo); earlier regressions; button audit 970 buttons, 0 problems (incl. both filter bars open).
+- LIVE checks: <<LIVE_CHECKS_115>>
+
+**Result** — <<RESULT_115>>

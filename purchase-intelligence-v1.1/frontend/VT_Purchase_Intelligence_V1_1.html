@@ -563,6 +563,11 @@ html[data-theme="dark"] .mode-chip.followup{background:#332b17}
 html[data-theme="dark"] .mode-chip.mgmt{background:#3b211d}
 nav#mainnav{align-items:center}
 /* [V1.1 R18] Shipments / Bills visual contrast */
+.f11{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:flex-end;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line-2)}
+.f11 .f label{display:block}.f11 .chips{display:flex;flex-wrap:wrap;gap:4px}
+.f11 .fc{font-size:.66rem;padding:3px 8px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.f11 .fc.on{background:#0F766E;border-color:#0F766E;color:#fff}.f11.bills .fc.on{background:#B45309;border-color:#B45309}
+.f11-tog{font-size:.72rem}.f11-n{display:inline-block;min-width:16px;padding:0 5px;border-radius:8px;background:#0F766E;color:#fff;font-size:.6rem;margin-left:4px}
 .s11-sn{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 5px;border-radius:11px;background:#0F766E;color:#fff;font-size:.66rem;font-weight:700;font-variant-numeric:tabular-nums}
 .gtag{display:inline-block;font-size:.52rem;font-weight:700;letter-spacing:.02em;padding:0 4px;border-radius:4px;margin-left:3px;vertical-align:middle;line-height:1.5;white-space:nowrap}
 .gtag.in{background:#E7F3EC;color:#1E6B3A;border:1px solid #9CCBAE}.gtag.ex{background:#FDF0E2;color:#8A4B0F;border:1px solid #E5B98A}
@@ -638,7 +643,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
     <button data-s="ships" disabled title="V1.1 — shipments that can carry several POs">Shipments <span id="ships-badge" class="po-badge" style="display:none;background:#0F766E">0</span></button>
 
     <span class="nav-right"><span id="mode-chip" class="mode-chip ops" title="Your current access level">PO Tracking</span>
-    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.4 · Vaigai</span></span>
+    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.5 · Vaigai</span></span>
   </nav>
 </header>
 
@@ -928,6 +933,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
       <div class="f" id="ships-newbill"><label>&nbsp;</label><button class="btn ghost" onclick="v11BillNew()">＋ New bill</button></div>
       <span style="flex:1"></span><span class="foot-note" id="ships-count" style="margin:0 8px 0 0"></span>
     </div>
+    <div id="ships-fbar"></div>
   </div>
   <div id="ships-list"></div>
 </section>
@@ -4685,6 +4691,110 @@ function v11SupplierOptions(cur){
   return [...map.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
 }
 
+/* ---------- [V1.1.5 R48] SORT + FILTER for the Shipments and Bills lists ----------
+   Kept per PC (browser storage). "Open / All" still works; these filters narrow it further. */
+const F11_DEF={ships:{date:'ship',from:'',to:'',st:[],bill:[],sup:'',flags:[],sort:'no-desc'},
+               bills:{date:'bill',from:'',to:'',st:[],sup:'',flags:[],sort:'no-desc'}};
+let F11=(()=>{try{const o=JSON.parse(localStorage.getItem('vt_f11')||'null');if(o&&o.ships&&o.bills)return Object.assign(JSON.parse(JSON.stringify(F11_DEF)),o);}catch(e){}return JSON.parse(JSON.stringify(F11_DEF));})();
+let F11_OPEN=false;
+const F11_OPT={
+  ships:{dates:[['ship','Ship date'],['expected','Expected date'],['arrived','Arrived date']],
+    st:[['transit','🚚 In transit'],['overdue','⏰ Overdue'],['arrived','📦 Arrived'],['cancelled','✖ Cancelled']],
+    bill:[['none','Not on a bill'],['part','Part on bill'],['onbill','On bill, not billed'],['billed','✅ Billed in Vasy'],['recheck','⚠ Recheck qty']],
+    flags:[['excess','Has excess'],['offpo','Has off-PO'],['conv','Converted from V1 lot'],['nolr','No LR no.']],
+    sort:[['no-desc','Newest number first'],['no-asc','Oldest number first'],['ship-desc','Ship date — newest'],['ship-asc','Ship date — oldest'],
+      ['exp-asc','Expected — soonest'],['arr-desc','Arrived — latest'],['sup-asc','Supplier A–Z'],['qty-desc','Qty — highest'],['items-desc','Products — most']]},
+  bills:{dates:[['bill','Bill date'],['ready','Ready date'],['mi','MI date'],['vasy','Vasy bill date']],
+    st:[['draft','Draft'],['ready','⬇ Ready'],['mi','MI uploaded'],['partbilled','Part billed'],['billed','✅ Billed in Vasy']],
+    flags:[['w','Has w (GST)'],['wo','Has wo (Non-GST)'],['locked','🔒 Locked'],['override','MI override'],['nosup','No supplier bill no.'],['empty','Empty bill'],['conv','Converted from V1 lot']],
+    sort:[['no-desc','Newest number first'],['no-asc','Oldest number first'],['date-desc','Bill date — newest'],['date-asc','Bill date — oldest'],
+      ['sup-asc','Supplier A–Z'],['val-desc','Value (w + wo) — highest'],['val-asc','Value — lowest'],['stage-asc','Stage — earliest first']]}};
+function f11Save(){try{localStorage.setItem('vt_f11',JSON.stringify(F11));}catch(e){}}
+function f11Ymd(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function f11Count(v){const F=F11[v];return (F.from||F.to?1:0)+F.st.length+(F.bill?F.bill.length:0)+(F.sup?1:0)+F.flags.length;}
+function f11Set(v,k,val){F11[v][k]=val;f11Save();v11ShipsRefresh();}
+function f11Tog(v,k,val){const a=F11[v][k];const i=a.indexOf(val);if(i>=0)a.splice(i,1);else a.push(val);f11Save();v11ShipsRefresh();}
+function f11Clear(v){const keep=F11[v].sort;F11[v]=JSON.parse(JSON.stringify(F11_DEF[v]));F11[v].sort=keep;f11Save();v11ShipsRefresh();}
+function f11Preset(v,p){const F=F11[v],t=new Date(),T=f11Ymd(t);
+  if(p==='today'){F.from=T;F.to=T;}
+  else if(p==='7'||p==='30'||p==='90'){const d=new Date(t);d.setDate(d.getDate()-(+p-1));F.from=f11Ymd(d);F.to=T;}
+  else if(p==='month'){F.from=f11Ymd(new Date(t.getFullYear(),t.getMonth(),1));F.to=T;}
+  else if(p==='lastmonth'){F.from=f11Ymd(new Date(t.getFullYear(),t.getMonth()-1,1));F.to=f11Ymd(new Date(t.getFullYear(),t.getMonth(),0));}
+  else if(p==='fy'){const y=t.getMonth()>=3?t.getFullYear():t.getFullYear()-1;F.from=y+'-04-01';F.to=T;}
+  else {F.from='';F.to='';}
+  f11Save();v11ShipsRefresh();}
+function f11InRange(d,F){if(!F.from&&!F.to)return true;d=dOnly(d);if(!d)return false;return (!F.from||d>=F.from)&&(!F.to||d<=F.to);}
+function f11BillVal(b){let t={};try{t=JSON.parse(b.totalsJson||'{}')||{};}catch(e){}
+  if(t.wTotal!=null||t.nTotal!=null)return (+t.wTotal||0)+(+t.nTotal||0);
+  return v11BillLinesOf(b.billId).reduce((a,l)=>a+(+l.qtyG||0)*(+l.rateG||0)+(+l.qtyN||0)*(+l.rateN||0),0);}
+function f11ShipBillKey(sid){const st=v11BillState(sid);if(st==='none'||st==='recheck'||st==='part')return st;
+  return v11ShipBills(sid).every(b=>v11BillStage(b).key==='billed')?'billed':'onbill';}
+function f11Apply(v,list){const F=F11[v];const today=f11Ymd(new Date());
+  if(v==='ships'){
+    const dk={ship:'shipDate',expected:'expected',arrived:'arrivedAt'}[F.date]||'shipDate';
+    list=list.filter(s=>{
+      if(!f11InRange(s[dk],F))return false;
+      if(F.sup&&s.supplier!==F.sup)return false;
+      if(F.st.length){const st=v11ShipState(s);const od=st==='transit'&&s.expected&&dOnly(s.expected)<today;
+        if(!F.st.some(x=>x===st||(x==='overdue'&&od)))return false;}
+      if(F.bill.length&&!F.bill.includes(f11ShipBillKey(s.shipmentId)))return false;
+      if(F.flags.length){const al=v11ShipAllocs(s.shipmentId);
+        for(const f of F.flags){
+          if(f==='excess'&&!al.some(a=>a.type==='EXCESS'))return false;
+          if(f==='offpo'&&!al.some(a=>a.type==='OFFPO'))return false;
+          if(f==='conv'&&String(s.shipmentId).indexOf('CONV-')!==0)return false;
+          if(f==='nolr'&&String(s.lr||'').trim())return false;}}
+      return true;});
+    const qty=s=>v11ShipAllocs(s.shipmentId).reduce((a,x)=>a+(+x.qty||0),0), items=s=>new Set(v11ShipAllocs(s.shipmentId).map(a=>a.canon)).size;
+    const d=(s,k)=>dOnly(s[k])||'';
+    const by={'no-desc':(a,b)=>String(b.shipmentNo).localeCompare(String(a.shipmentNo)),'no-asc':(a,b)=>String(a.shipmentNo).localeCompare(String(b.shipmentNo)),
+      'ship-desc':(a,b)=>d(b,'shipDate').localeCompare(d(a,'shipDate')),'ship-asc':(a,b)=>(d(a,'shipDate')||'9').localeCompare(d(b,'shipDate')||'9'),
+      'exp-asc':(a,b)=>(d(a,'expected')||'9').localeCompare(d(b,'expected')||'9'),'arr-desc':(a,b)=>d(b,'arrivedAt').localeCompare(d(a,'arrivedAt')),
+      'sup-asc':(a,b)=>String(a.supplier).localeCompare(String(b.supplier)),'qty-desc':(a,b)=>qty(b)-qty(a),'items-desc':(a,b)=>items(b)-items(a)};
+    return list.sort((a,b)=>(by[F.sort]||by['no-desc'])(a,b)||String(b.shipmentNo).localeCompare(String(a.shipmentNo)));
+  }
+  const dk={bill:'billDate',ready:'readyAt',mi:'miAt',vasy:'vasyAt'}[F.date]||'billDate';
+  list=list.filter(b=>{
+    if(!f11InRange(b[dk],F))return false;
+    if(F.sup&&b.supplier!==F.sup)return false;
+    if(F.st.length&&!F.st.includes(v11BillStage(b).key))return false;
+    if(F.flags.length){const ln=v11BillLanes(b.billId),L=v11BillLinesOf(b.billId);
+      for(const f of F.flags){
+        if(f==='w'&&!ln.g)return false;if(f==='wo'&&!ln.n)return false;
+        if(f==='locked'&&!(b.locked||b.miG||b.miN||b.vasyG||b.vasyN))return false;
+        if(f==='override'&&!b.miOverride)return false;
+        if(f==='nosup'&&(b.supBillG||b.supBillN))return false;
+        if(f==='empty'&&L.length)return false;
+        if(f==='conv'&&String(b.billId).indexOf('CONVB-')!==0)return false;}}
+    return true;});
+  const ord=['draft','ready','mi','partbilled','billed'];
+  const by={'no-desc':(a,b)=>String(b.billNo).localeCompare(String(a.billNo)),'no-asc':(a,b)=>String(a.billNo).localeCompare(String(b.billNo)),
+    'date-desc':(a,b)=>(dOnly(b.billDate)||'').localeCompare(dOnly(a.billDate)||''),'date-asc':(a,b)=>(dOnly(a.billDate)||'9').localeCompare(dOnly(b.billDate)||'9'),
+    'sup-asc':(a,b)=>String(a.supplier).localeCompare(String(b.supplier)),'val-desc':(a,b)=>f11BillVal(b)-f11BillVal(a),'val-asc':(a,b)=>f11BillVal(a)-f11BillVal(b),
+    'stage-asc':(a,b)=>ord.indexOf(v11BillStage(a).key)-ord.indexOf(v11BillStage(b).key)};
+  return list.sort((a,b)=>(by[F.sort]||by['no-desc'])(a,b)||String(b.billNo).localeCompare(String(a.billNo)));
+}
+function f11Paint(v){const el=document.getElementById('ships-fbar');if(!el)return;const F=F11[v],O=F11_OPT[v],n=f11Count(v);
+  const chips=(k,opts)=>`<div class="chips">${opts.map(([val,lbl])=>`<button class="fc${F[k].includes(val)?' on':''}" onclick="f11Tog('${v}','${k}','${val}')">${lbl}</button>`).join('')}</div>`;
+  const sups=[...new Set(((v==='ships'?V11.shipments:V11.bills)||[]).map(x=>x.supplier).filter(Boolean))].sort();
+  const sortSel=`<div class="f"><label>Sort by</label><select class="po-in" onchange="f11Set('${v}','sort',this.value)">${O.sort.map(([k,l])=>`<option value="${k}"${F.sort===k?' selected':''}>${l}</option>`).join('')}</select></div>`;
+  const head=`<div style="display:flex;gap:10px;align-items:center;margin-top:8px">${sortSel}
+    <div class="f"><label>&nbsp;</label><button class="btn ghost sm f11-tog" onclick="F11_OPEN=!F11_OPEN;f11Paint('${v}')">${F11_OPEN?'▴ hide filters':'▾ filters'}${n?`<span class="f11-n">${n}</span>`:''}</button></div>
+    ${n?`<div class="f"><label>&nbsp;</label><a class="linky small" onclick="f11Clear('${v}')">clear filters</a></div>`:''}</div>`;
+  if(!F11_OPEN){el.innerHTML=head;return;}
+  el.innerHTML=head+`<div class="f11${v==='bills'?' bills':''}">
+    <div class="f"><label>Date</label><select class="po-in" onchange="f11Set('${v}','date',this.value)">${O.dates.map(([k,l])=>`<option value="${k}"${F.date===k?' selected':''}>${l}</option>`).join('')}</select></div>
+    <div class="f"><label>From</label><input class="po-in" type="date" value="${esc(F.from)}" onchange="f11Set('${v}','from',this.value)"></div>
+    <div class="f"><label>To</label><input class="po-in" type="date" value="${esc(F.to)}" onchange="f11Set('${v}','to',this.value)"></div>
+    <div class="f"><label>Quick range</label><select class="po-in" onchange="f11Preset('${v}',this.value);this.value=''"><option value="">—</option>
+      <option value="today">Today</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option>
+      <option value="month">This month</option><option value="lastmonth">Last month</option><option value="fy">This financial year</option><option value="all">Any date</option></select></div>
+    ${v11IsOps()?'':`<div class="f"><label>Supplier</label><select class="po-in" style="max-width:220px" onchange="f11Set('${v}','sup',this.value)"><option value="">All suppliers</option>${sups.map(x=>`<option value="${esc(x)}"${F.sup===x?' selected':''}>${esc(x)}</option>`).join('')}</select></div>`}
+    <div class="f" style="flex-basis:100%"><label>Status</label>${chips('st',O.st)}</div>
+    ${v==='ships'?`<div class="f" style="flex-basis:100%"><label>Bill</label>${chips('bill',O.bill)}</div>`:''}
+    <div class="f" style="flex-basis:100%"><label>Only show</label>${chips('flags',O.flags)}</div>
+    <div class="small muted" style="flex-basis:100%">Choices inside one row = any of them · different rows = all must match · "Open / All" above still applies.</div></div>`;}
+
 /* ---------- list ---------- */
 function v11ShipsRender(){
   const el=document.getElementById('ships-list');if(!el)return;el.classList.remove('bills');try{document.getElementById('scr-ships').classList.remove('bills-on');}catch(e){}
@@ -4694,9 +4804,10 @@ function v11ShipsRender(){
   if(S11_SCOPE==='open')list=list.filter(s=>s.status!=='Cancelled'&&(!s.arrivedAt||v11ShipBillChip(s.shipmentId)[0]!=='✅ billed'));
   if(q)list=list.filter(s=>{const al=v11ShipAllocs(s.shipmentId);
     return [s.shipmentNo,v11IsOps()?'':s.supplier,s.lr,s.transport,s.note].concat(v11ShipPos(s.shipmentId).map(v11PoLabel),al.map(a=>a.canon+' '+(a.name||''))).join(' ').toLowerCase().indexOf(q)>=0;});
-  list.sort((a,b)=>String(b.shipmentNo).localeCompare(String(a.shipmentNo)));
+  list=f11Apply('ships',list);   // [V1.1.5 R48] filters + sort
   const cnt=document.getElementById('ships-count');if(cnt)cnt.textContent=list.length+' shipment(s)';
-  if(!list.length){el.innerHTML='<div class="card small muted">No shipments '+(S11_SCOPE==='open'?'open ':'')+'yet. Use <b>＋ New shipment</b>.</div>';return;}
+  f11Paint('ships');
+  if(!list.length){el.innerHTML='<div class="card small muted">'+(f11Count('ships')?'No shipments match these filters. <a class="linky" onclick="f11Clear(\'ships\')">Clear filters</a>':'No shipments '+(S11_SCOPE==='open'?'open ':'')+'yet. Use <b>＋ New shipment</b>.')+'</div>';return;}
   el.innerHTML=`<div class="card" style="overflow:auto"><table><thead><tr><th>Shipment</th><th>Ship date</th><th>Supplier</th><th>POs</th><th>Products</th><th class="r">Qty</th><th>Status</th><th>Bill</th><th></th></tr></thead><tbody>${
     list.map(s=>{const al=v11ShipAllocs(s.shipmentId);const st=v11ShipState(s);const bs=v11BillState(s.shipmentId);
       const qty=al.reduce((a,x)=>a+(+x.qty||0),0);const ex=al.filter(a=>a.type==='EXCESS').reduce((a,x)=>a+(+x.qty||0),0);
@@ -5031,9 +5142,10 @@ function v11BillsRender(){
   let list=(V11.bills||[]).slice();
   if(S11_SCOPE==='open')list=list.filter(b=>v11BillStage(b).key!=='billed');
   if(q)list=list.filter(b=>[b.billNo,b.supplier,b.supBillG,b.supBillN,b.miG,b.miN,b.vasyG,b.vasyN].concat(v11BillLinesOf(b.billId).map(l=>(v11ShipById(l.shipmentId)||{}).shipmentNo+' '+l.canon)).join(' ').toLowerCase().indexOf(q)>=0);
-  list.sort((a,b)=>String(b.billNo).localeCompare(String(a.billNo)));
+  list=f11Apply('bills',list);   // [V1.1.5 R48] filters + sort
   const cnt=document.getElementById('ships-count');if(cnt)cnt.textContent=list.length+' bill(s)';
-  if(!list.length){el.innerHTML='<div class="card small muted">No bills '+(S11_SCOPE==='open'?'open ':'')+'yet. Use <b>＋ New bill</b>, or <b>🧾</b> on a shipment.</div>';return;}
+  f11Paint('bills');
+  if(!list.length){el.innerHTML='<div class="card small muted">'+(f11Count('bills')?'No bills match these filters. <a class="linky" onclick="f11Clear(\'bills\')">Clear filters</a>':'No bills '+(S11_SCOPE==='open'?'open ':'')+'yet. Use <b>＋ New bill</b>, or <b>🧾</b> on a shipment.')+'</div>';return;}
   el.innerHTML=`<div class="card" style="overflow:auto"><table><thead><tr><th>Bill</th><th>Bill date</th><th>Supplier</th><th>Supplier bill no.</th><th>Shipments</th><th class="r">w total</th><th class="r">wo total</th><th>Status</th><th>Vasy</th></tr></thead><tbody>${
     list.map(b=>{let t={};try{t=JSON.parse(b.totalsJson||'{}')||{};}catch(e){}
       const sh=[...new Set(v11BillLinesOf(b.billId).map(l=>l.shipmentId))];
