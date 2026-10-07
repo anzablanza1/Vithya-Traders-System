@@ -50,7 +50,7 @@ Any V1.1 technical shortcut must be documented so future V2 work can distinguish
 | V1.1-00 | Freeze V1 and create V1.1 branch/source/docs | ✅ Done |
 | V1.1-01 | Data structures + server support for multi-PO Shipment allocations; preserve V1 compatibility | ✅ Done (Vaigai) |
 | V1.1-02 | Backward compatibility / mapping for existing V1 Lots | ✅ Done (read-time mapping) |
-| V1.1-02b | Convert UNFINISHED V1 lots into V1.1 shipments after go-live (dry run first); decide on finished lots later | ⏳ owner to decide timing |
+| V1.1-02b | Convert V1 lots into V1.1 shipments (owner: all lots) — dry run, apply, undo | ✅ Tool LIVE (R09/R44, V1.1.2–V1.1.3) |
 | V1.1-03 | Shipment Entry: product-first, FIFO suggestion, editable PO allocation, Excess/Off-PO | ✅ Done (Vaigai) |
 | V1.1-04 | Derive Ordered / In Transit / Received / Pending without breaking current views | ✅ Done (Vaigai) — incl. 04a received-qty fix |
 | V1.1-05 | Bill / Material Inward separated from Shipment while preserving W/WO/Vasy logic | ✅ Done (Vaigai) |
@@ -122,9 +122,9 @@ No production change is complete until this log is updated.
 - Existing V1 lots: still open / split / upload / receive exactly as before; counted through read-time mapping. Creating NEW V1 lots is switched off (dashboard + server lock).
 - Older dashboard files on staff PCs: still sync and read; any attempt to create a new lot is refused by the server with a "use the new dashboard file" message. Edits to existing lots still work.
 - Goods Check / request app: numbers change deliberately — goods still on the road now show as In Transit (not Received), deleted lots no longer count, closed POs are hidden.
-- Rollback: redeploy the previous LIVE version (previous LIVE deployment version) and set `V11_LOT_LOCK` to `off`; the four new tabs can stay (V1 never reads them). Staff go back to the v8.6 file.
+- Rollback: redeploy the previous LIVE version (V1 version 36 on the old sheet) and set `V11_LOT_LOCK` to `off`; the four new tabs can stay (V1 never reads them). Staff go back to the v8.6 file.
 
-**Deployment** — LIVE Apps Script version — not recorded by owner (see Apps Script → Deploy → Manage deployments) ("V1.1 Vaigai — server 2.4"), previous: the V1 deployment on the old sheet (frozen — token changed, access owner-only). Server label in ping: `V1.1 "Vaigai" · server 2.4`. Dashboard file: `VT_Purchase_Intelligence_V1_1.html` (chip "V1.1 · Vaigai").
+**Deployment** — LIVE Apps Script version — first deployment of the new LIVE project ("V1.1 Vaigai — server 2.4"); previous: V1 deployment **version 36** on the old sheet (frozen — token changed, access owner-only). Server label in ping: `V1.1 "Vaigai" · server 2.4`. Dashboard file: `VT_Purchase_Intelligence_V1_1.html` (chip "V1.1 · Vaigai").
 
 **Tests performed**
 - Phase 0 (TEST copy): baseline row counts; Receipts diagnostic — 531 repeated rows, 146 rows for 16 in-transit lots, 292 PO lines over-stated; all 179 lot-less "L…" rows belong to deleted lots (Audit Log), no history exists only in Receipts.
@@ -165,7 +165,7 @@ No production change is complete until this log is updated.
 
 **Backward-compatibility impact** — older dashboard files ignore `v11data` and still refresh the old way.
 
-**Deployment** — LIVE Apps Script version — not recorded by owner (see Apps Script → Deploy → Manage deployments); ping label `V1.1 "Vaigai" · server 2.5`.
+**Deployment** — an intermediate LIVE deployment version (versions 2–5 were used for V1.1.1–V1.1.3 and the trial; exact mapping not recorded); ping label `V1.1 "Vaigai" · server 2.5`.
 
 **Tests performed** — self-tests 42/42 + 54/54; simulated-browser checks for R24 / R29 / R30 / R35 / R36; static handler check (332 handlers, none missing). Owner checked in LIVE: all working except R36 (two search examples).
 
@@ -209,9 +209,9 @@ No production change is complete until this log is updated.
 - Upload files: GST-code selling price is no longer grossed up (owner decision — Vasy w prices are tax-inclusive). Cost / rate still grossed up as before.
 - Until `V11_PRODUCTS_SB` = `on` (or without ProductsApi.gs), product sync behaves exactly as before. Without ShipmentTools.gs, nothing else changes.
 - Lot conversion is opt-in (run by hand), reversible (`v11LotUnconvert`), and old lot rows are never deleted. Shipped / received per PO line stay identical, except products that were NOT on the PO (now EXCESS — shipped & received unchanged, no longer "shipped against the PO").
-- Rollback: redeploy V1.1.1 (V1.1.1 deployment version), run `v11LotUnconvert` if conversion was applied, set `V11_PRODUCTS_SB` to `off` and run "Sync products now".
+- Rollback: redeploy V1.1.1 (the deployment version before V1.1.2), run `v11LotUnconvert` if conversion was applied, set `V11_PRODUCTS_SB` to `off` and run "Sync products now".
 
-**Deployment** — LIVE Apps Script version — not recorded by owner (see Apps Script → Deploy → Manage deployments); ping `V1.1 "Vaigai" · server 2.6`.
+**Deployment** — an intermediate LIVE deployment version (between 2 and 5); ping `V1.1 "Vaigai" · server 2.6`.
 
 **Tests performed**
 - Server (mock workbook): self-tests 42/42 + 54/54 with the block-write change; product sync (Supabase + master + fallback when Supabase is down); conversion dry run / apply / second apply (nothing twice) / undo (numbers identical to before) / undo refused after a later edit; product correction refused on a locked bill, applied when unlocked; Goods Check + request progress run.
@@ -247,7 +247,7 @@ No production change is complete until this log is updated.
 
 **Backward-compatibility impact** — none for staff; the corrections make Goods Check and the request app count those lines correctly (they showed 0 shipped under the temporary code).
 
-**Deployment** — LIVE Apps Script version — not recorded by owner (see Apps Script → Deploy → Manage deployments); ping `V1.1 "Vaigai" · server 2.7`.
+**Deployment** — LIVE deployment version 5 or 6 (server 2.7 is unchanged in version 6); ping `V1.1 "Vaigai" · server 2.7`.
 
 **Tests performed** — LIVE export reviewed: sync 8,282 products (6,747 both, 1,532 Supabase only, 3 master only; 7,202 with Vasy prices); conversion dry run 88 lots / 13 skipped (10 lots of deleted POs, 3 empty lots) / 85 bills (43 locked) / 16 code mismatches mapped one by one. Mock workbook: mismatch converted under the real code, PO Tracking corrected, undo restores both; self-tests 42/42 + 54/54; dashboard: serial badges, MI from the bill → "MI uploaded"; 907 buttons pressed, 0 errors.
 - LIVE checks: owner confirmed every change working in LIVE (7 Oct 2026): serial numbers, MI number from the bill, product sync with master fallback; second conversion dry run showed 0 changed numbers.
@@ -268,7 +268,10 @@ No production change is complete until this log is updated.
 
 **Data / Sheet / API changes** — none. **Backward-compatibility impact** — none; server stays 2.7.
 
+**Deployment** — LIVE staff deployment **version 6** (owner, 7 Oct 2026) with dashboard chip "V1.1.4 · Vaigai".
+
 **Tests performed** — simulated typing "4" then "40" in the wo box: same box kept, other side filled, redraw only on leaving the box, value kept; earlier dashboard regressions; 907 buttons pressed, 0 errors. Owner also confirmed the V1.1.3 dry run: 16 code mismatches understood (auto-code → Vasy code), 0 numbers change.
 - LIVE checks: owner confirmed everything working in LIVE (7 Oct 2026), including two-digit w / wo quantities on the bill.
 
 **Result** — LIVE, working (owner, 7 Oct 2026).
+

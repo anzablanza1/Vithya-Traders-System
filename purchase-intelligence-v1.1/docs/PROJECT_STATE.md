@@ -1,6 +1,8 @@
 # Purchase Intelligence V1.1 — Project State
 
-Status: LIVE — release "Vaigai" V1.1.4 (server 2.7), confirmed by the owner 7 Oct 2026
+Status: LIVE — release "Vaigai" V1.1.4 (server 2.7), staff deployment version 6, confirmed by the owner 7 Oct 2026 · old V1 frozen at version 36
+
+New chat? Read `START_HERE_V1_1.md` first.
 Branch: `purchase-v1.1-transition`
 
 ## Baseline
@@ -42,6 +44,9 @@ V1.1.1 onwards were tested in simulation first, then on a separate trial deploym
 
 ## Current next items
 
+0. R48 sort + filter for Shipments / Bills — built as V1.1.5, waiting for LIVE check.
+0. R49 dashboard restructure — proposal in `DASHBOARD_STRUCTURE_PROPOSAL.md`, waiting for owner decision.
+0. R50 Apps Script clean-up — owner action.
 1. R41 — product charge insight should also read V1.1 bill charges.
 2. V1.1-06 — line-level Goods Check / receipt with rejections (replaces the interim "Mark arrived").
 3. V1.1-07 — Vasy validation before upload.

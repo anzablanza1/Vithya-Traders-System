@@ -1,0 +1,14 @@
+const fs=require('fs');const {JSDOM,VirtualConsole}=require('jsdom');
+const src=fs.readFileSync('audit2.js','utf8');const SETUP=src.match(/const SETUP=`([\s\S]*?)`;\nconst CTX/)[1];
+const html=fs.readFileSync('VT_Purchase_Intelligence_V1_1.html','utf8').replace(/<script[^>]*src=[^>]*><\/script>/g,'');
+const vc=new VirtualConsole();const errs=[];vc.on('jsdomError',e=>errs.push(String(e.message||e)));
+const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole:vc,url:'https://x.test/',beforeParse(w){w.alert=m=>{(w.__a=w.__a||[]).push(String(m).slice(0,90))};w.confirm=()=>true;w.prompt=()=>'DELETE';}});
+const w=dom.window;setTimeout(async()=>{const ev=c=>w.eval(c);
+ const run=async(label,code)=>{ev(SETUP);ev(`window.__p=[];const _o=vtApiPost;vtApiPost=async b=>{__p.push(b.api);return _o(b);}`);w.__a=[];
+   try{const r=ev(code);if(r&&r.then)await r;}catch(e){console.log(label,'THREW',e.message);}await new Promise(r=>setTimeout(r,200));
+   console.log(label.padEnd(34),'→ server calls:',ev('__p.join(",")')||'(none)','| alerts:',JSON.stringify(w.__a||[]));};
+ await run('Delete PO-2 (no shipments)',`podocDelete('PO-2')`);
+ await run('Delete PO-1 (on shipment)',`podocDelete('PO-1')`);
+ await run('Delete shipment S1 (no bill)',`v11ShipEdit('S1');v11ShipDelete()`);
+ await run('Delete bill B1 (has lines)',`v11BillOpen('B1');v11BillDelete()`);
+ console.log('errors',errs.slice(0,3));process.exit(0);},1500);

@@ -5,13 +5,15 @@
 Branch: `purchase-v1.1-transition`.
 
 For V1.1 live-maintenance work, read first:
-1. `purchase-intelligence-v1.1/README.md`
+1. `purchase-intelligence-v1.1/docs/START_HERE_V1_1.md` (LIVE IDs, file map, owner working rules, how to test)
 2. `purchase-intelligence-v1.1/docs/PROJECT_STATE.md`
-3. `purchase-intelligence-v1.1/docs/CHANGE_REGISTER_V1_1.md`
-4. `purchase-intelligence-v1.1/docs/TEST_PLAN.md`
-5. `purchase-intelligence-v1.1/docs/GIT_WORKFLOW.md`
-6. `docs/PURCHASE_V1_FREEZE_VERIFICATION.md`
-7. relevant frozen V1 source for comparison only.
+3. `purchase-intelligence-v1.1/docs/OWNER_REQUEST_REGISTER_V1_1.md` (R-numbers the owner uses)
+4. `purchase-intelligence-v1.1/docs/CHANGE_REGISTER_V1_1.md`
+5. `purchase-intelligence-v1.1/docs/DATA_MODEL_V1_1.md`
+6. `purchase-intelligence-v1.1/docs/TEST_PLAN.md` and `purchase-intelligence-v1.1/tests/README.md`
+7. `purchase-intelligence-v1.1/docs/GIT_WORKFLOW.md`
+8. `docs/PURCHASE_V1_FREEZE_VERIFICATION.md`
+9. relevant frozen V1 source for comparison only.
 
 V1.1 is a transitional production upgrade. Prefer the smallest safe,
 backward-compatible implementation that delivers the required business

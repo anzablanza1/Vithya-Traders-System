@@ -1,0 +1,14 @@
+const fs=require('fs');const {JSDOM,VirtualConsole}=require('jsdom');
+const src=fs.readFileSync('audit2.js','utf8');const SETUP=src.match(/const SETUP=`([\s\S]*?)`;\nconst CTX/)[1];
+const html=fs.readFileSync('VT_Purchase_Intelligence_V1_1.html','utf8').replace(/<script[^>]*src=[^>]*><\/script>/g,'');
+const vc=new VirtualConsole();const errs=[];vc.on('jsdomError',e=>errs.push(String(e.message||e)));
+const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole:vc,url:'https://x.test/'});
+const w=dom.window;setTimeout(()=>{const ev=c=>w.eval(c);
+ ev(SETUP);ev(`v11BillNew('S1')`);const k=ev(`B11.lines[0].k`);
+ ev(`window.__el=document.getElementById('b11-qtyN-${k}')`);
+ ev(`__el.value='4';__el.dispatchEvent(new Event('input'))`);ev(`__el.value='40';__el.dispatchEvent(new Event('input'))`);
+ console.log('same box while typing:',ev(`__el===document.getElementById('b11-qtyN-${k}')`),'| w/wo:',ev(`B11.lines[0].qtyG+'/'+B11.lines[0].qtyN`),'| w box:',ev(`document.getElementById('b11-qtyG-${k}').value`));
+ const before=ev(`document.querySelectorAll('#bill11-modal input').length`);
+ ev(`__el.dispatchEvent(new Event('change'))`);
+ console.log('after leaving the box → redrawn:',ev(`__el!==document.getElementById('b11-qtyN-${k}')`),'inputs',before,'→',ev(`document.querySelectorAll('#bill11-modal input').length`),'| value kept:',ev(`document.getElementById('b11-qtyN-${k}').value`));
+ console.log('errors',errs.slice(0,3));process.exit(0);},1500);

@@ -5,7 +5,7 @@ Numbers are never reused. New items are added at the bottom.
 
 Status: ✅ LIVE · 🧪 Built, in TEST (next release) · 📝 Planned · ⏳ Owner action / decision · 🧊 Deferred
 
-Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5, live Oct 2026 · **V1.1.2** = server 2.6 + ProductsApi + ShipmentTools, live Oct 2026 · **V1.1.3** = server 2.7 · **V1.1.4** = dashboard file only — all live Oct 2026
+Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5, live Oct 2026 · **V1.1.2** = server 2.6 + ProductsApi + ShipmentTools, live Oct 2026 · **V1.1.3** = server 2.7 · **V1.1.4** = dashboard file only — all live Oct 2026 (staff deployment version 6) · **V1.1.5** = dashboard file only (in test)
 
 | No. | Area | What was raised | Type | Status | Notes |
 |---|---|---|---|---|---|
@@ -56,3 +56,7 @@ Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5
 | R45 | Shipment entry | Serial number on product lines when a shipment has many products | Change | ✅ LIVE (V1.1.3) | Numbered badge on every product line |
 | R46 | Bills | Record the Vasy Material Inward (MI) number in the bill too → status "MI uploaded" | Change | ✅ LIVE (V1.1.3) | MI w / wo boxes next to the Vasy bill number; same rules as the shipment's Material Inward window |
 | R47 | Bills | w / wo qty on the bill: after typing one digit the box got re-selected, so the second digit replaced the first | V1.1 bug | ✅ LIVE (V1.1.4) | The bill no longer redraws while typing; the w / wo MRP & selling boxes appear when you leave the qty box |
+| R48 | Shipments / Bills | Sort by + filter by: custom date range, status, supplier and other relevant options | Change | 🧪 V1.1.5 | Sort list, date field + from / to + quick ranges, status / bill / only-show chips, supplier; kept per PC |
+| R49 | Whole dashboard | Restructure: separate data entry from tracking; group PO / Shipment / Bill; analytics separate; think of V2 | Design | 📝 Proposal | `DASHBOARD_STRUCTURE_PROPOSAL.md` — options A / B / C compared; owner to decide |
+| R50 | Apps Script | Clean up stale script files / deployments | Owner action | ⏳ Owner | Delete `Untitled` (whereAmI debug helper); archive the trial deployment; see START_HERE / chat checklist |
+| R51 | Memory / Git | New chat must be able to continue | Docs | ✅ Done | `START_HERE_V1_1.md`, tests folder with `run_all.sh`, versions recorded (V1 = 36, V1.1 LIVE = 6) |

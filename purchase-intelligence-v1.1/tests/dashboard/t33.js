@@ -1,0 +1,14 @@
+const fs=require('fs');const {JSDOM,VirtualConsole}=require('jsdom');
+const src=fs.readFileSync('audit2.js','utf8');const SETUP=src.match(/const SETUP=`([\s\S]*?)`;\nconst CTX/)[1];
+const html=fs.readFileSync('VT_Purchase_Intelligence_V1_1.html','utf8').replace(/<script[^>]*src=[^>]*><\/script>/g,'');
+const vc=new VirtualConsole();const errs=[];vc.on('jsdomError',e=>errs.push(String(e.message||e)));
+const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole:vc,url:'https://x.test/',beforeParse(w){w.alert=m=>{(w.__a=w.__a||[]).push(String(m).slice(0,90))};w.confirm=()=>true;}});
+const w=dom.window;setTimeout(async()=>{const ev=c=>w.eval(c);
+ ev(SETUP);ev(`window.__p=[];vtApiPost=async b=>{__p.push(b.api+':'+b.stage+':'+b.lane+':'+b.value);V11.bills[0].miG=b.value;return {ok:true,v11data:{ok:true,shipments:V11.shipments,shipAllocs:V11.allocs,bills:V11.bills,billLines:V11.billLines}};};v11Refresh=async()=>{};`);
+ ev(`PODOCS[0].lines.push({code:'333',name:'Third',qty:9,price:1},{code:'444',name:'Fourth',qty:9,price:1});lotMirror(PODOCS[0]);v11ShipNew();v11SetSupplier('Acme');v11PoPickOpen('PO-1');v11PoPickAll(true);v11PoPickAdd()`);
+ console.log('serials:',ev(`[...document.querySelectorAll('#s11-body .s11-sn')].map(x=>x.textContent).join(',')`));
+ ev(`v11BillOpen('B1')`);
+ console.log('MI input in bill window:',ev(`!!document.getElementById('st-mi-g-B1')`));
+ ev(`document.getElementById('st-mi-g-B1').value='MI-555'`);await ev(`v11StageSet('B1','mi','g','st-mi-g-B1',false,'bill')`);
+ console.log('posted:',ev(`__p.join(',')`),'| status:',ev(`v11BillStage(V11.bills[0]).label`));
+ console.log('errors',errs.slice(0,3));process.exit(0);},1500);
