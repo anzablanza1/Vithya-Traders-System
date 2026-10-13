@@ -578,6 +578,14 @@ nav#mainnav{align-items:center}
 .qv{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}.qv button{font-size:.7rem;padding:4px 10px;border-radius:14px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);cursor:pointer}
 .qv button.on{background:#0F766E;border-color:#0F766E;color:#fff}.qv button .n{opacity:.75;margin-left:4px}
 .qv button[disabled]{opacity:.45;cursor:default}
+.ask-blk{border-top:1px dashed var(--line-2);padding:8px 0}.ask-act{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-left:22px}
+html[data-density="condensed"] .ask-act .btn{padding:2px 7px;font-size:.66rem}.td-row{padding:5px 0}
+.ask-bar{position:sticky;bottom:0;z-index:30;background:var(--surface,#fff);border:1px solid var(--line-2);border-radius:10px;box-shadow:0 -4px 16px rgba(0,0,0,.14);padding:8px 10px;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.ask-bar-g{display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap;padding-right:10px;border-right:1px solid var(--line-2)}
+html[data-density="condensed"] .vt-c-hide{display:none!important}
+html[data-density="condensed"] .ask-blk{padding:3px 0}html[data-density="condensed"] .ask-blk ul{margin-top:1px!important;margin-bottom:1px!important}
+html[data-density="condensed"] .td-row{padding:2px 0}html[data-density="condensed"] .ovc{padding:8px 10px}html[data-density="condensed"] .ovn{font-size:1.3rem}
+html[data-density="condensed"] .card{padding-top:10px;padding-bottom:10px}
 .nb{display:inline-block;min-width:16px;padding:0 5px;margin-left:5px;border-radius:9px;background:var(--non);color:#fff;font-size:.62rem;line-height:16px;text-align:center;font-weight:700}
 details.fund-more{border:1px solid var(--line-2);border-radius:8px;padding:5px 9px;background:var(--surface)}details.fund-more>summary{cursor:pointer}
 .gtag{display:inline-block;font-size:.52rem;font-weight:700;letter-spacing:.02em;padding:0 4px;border-radius:4px;margin-left:3px;vertical-align:middle;line-height:1.5;white-space:nowrap}
@@ -636,7 +644,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
         <button data-l="all" class="active">TOTAL</button><button data-l="g">GST</button><button data-l="n">NON-GST</button>
       </span>
       <span class="data-pill" id="pill-range">No data loaded</span>
-      <span class="density-toggle" id="density-toggle" title="Table density"><button data-d="detailed" class="active" onclick="setDensity('detailed')">Detailed</button><button data-d="condensed" onclick="setDensity('condensed')">Condensed</button></span>
+      <span class="density-toggle" id="density-toggle" title="Spacing on every screen — Detailed or Condensed"><button data-d="detailed" class="active" onclick="setDensity('detailed')">Detailed</button><button data-d="condensed" onclick="setDensity('condensed')">Condensed</button></span>
       <button class="btn ghost sm" id="btn-settings-top" title="Settings &amp; access" onclick="event.stopPropagation();acOpenSettings()" style="font-weight:700">⚙ Settings</button>
       <button class="btn ghost sm" id="btn-theme" title="Toggle dark mode" onclick="toggleTheme()">🌙</button>
       <span class="sync-pill ok" id="sync-pill" style="display:none" onclick="if(SYNC.failed)syncRetry()"></span>
@@ -657,7 +665,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
     </span>
 
     <span class="nav-right"><span id="mode-chip" class="mode-chip ops" title="Your current access level">Operations</span>
-    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.8 · Vaigai</span></span>
+    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.8b · Vaigai</span></span>
   </nav>
   <nav id="subnav" style="display:none"></nav>
 </header>
@@ -894,7 +902,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
       <h2 class="sect" style="margin-top:0">Purchase order cart <span class="sub" id="po-count">empty</span></h2>
       <div class="filters" style="margin-bottom:8px">
         <div class="f"><label>Sort</label><span class="lane-toggle" id="po-sort" style="border-color:var(--line-2)"><button data-s="lane" class="active" onclick="poSetSort('lane')">GST/Non-GST</button><button data-s="sup" onclick="poSetSort('sup')">Supplier</button><button data-s="az" onclick="poSetSort('az')">Product A–Z</button><button data-s="za" onclick="poSetSort('za')">Z–A</button><button data-s="new" onclick="poSetSort('new')">Newest</button></span></div>
-        <div class="f"><label>View</label><span class="density-toggle" id="po-view"><button data-v="full" class="active" onclick="poSetView('full')">Editable</button><button data-v="cond" onclick="poSetView('cond')">Condensed</button></span></div>
+        <div class="f"><label>View</label><span class="density-toggle" id="po-view"><button data-v="full" class="active" onclick="poSetView('full')">Editable</button><button data-v="cond" onclick="poSetView('cond')">Summary</button></span></div>
         <div class="f" id="po-cond-sort-wrap" style="display:none"><label>Group by</label><select id="po-cond-sort" onchange="poRender()"><option value="supplier">Supplier</option><option value="category">Category</option><option value="product">Product</option></select></div>
         <span style="flex:1"></span>
         <span class="exports">
@@ -2747,6 +2755,7 @@ function closeListModal(){mClose('list-modal');}
 function setDensity(d){
   document.documentElement.setAttribute('data-density',d);
   document.querySelectorAll('#density-toggle button').forEach(b=>b.classList.toggle('active',b.dataset.d===d));
+  try{POS_COMPACT=(d==='condensed');if(window.__rendered){posRender();if(typeof v11ShipsRefresh==='function')v11ShipsRefresh();}}catch(e){}   // [V1.1.8b R69] one switch for every screen
   try{localStorage.setItem('vt_density',d);}catch(e){}
 }
 (function(){let d='detailed';try{d=localStorage.getItem('vt_density')||'detailed';}catch(e){}setDensity(d);})();
@@ -6687,7 +6696,7 @@ function podocSupplierPDF(id){const p=podocFind(id);if(!p)return;
   }catch(err){console.error(err);toast('PDF error: '+err.message);}
 }
 // [POs-VIEW] list + render committed PO records
-let POS_FILTER='open',POS_VIEW='dash',POS_SHOW_COST=false,POS_COMPACT=false,POS_FILTERS=new Set(),POS_SCOPE='open';
+let POS_FILTER='open',POS_VIEW='dash',POS_SHOW_COST=false,POS_COMPACT=(document.documentElement.getAttribute('data-density')==='condensed'),POS_FILTERS=new Set(),POS_SCOPE='open';
 let POS_SORT_PO='new',POS_SORT_PROD='az',POS_FROM='',POS_TO='',POS_CAT='',POS_BRAND='',POS_RECV_N=25,POS_Q='',POS_DATE_BASIS='activity';
 function posSetScope(s){POS_SCOPE=s;document.querySelectorAll('#pos-scope button').forEach(b=>b.classList.toggle('active',b.dataset.s===s));posRender();}
 function posClearStatus(){POS_FILTERS=new Set();posSyncFilterButtons();posRender();}
@@ -6725,11 +6734,11 @@ function posBrandOptions(){const s=new Set();PODOCS.filter(p=>!p.parentPoId).for
 function posControlsRender(){
   const el=document.getElementById('pos-controls');if(!el)return;const v=POS_VIEW;let h='';
   // [v7.4] value modules (fund/analytics/history) carry their own filters — hide the shared scope/status/search
-  const ownFilters=(v==='fund'||v==='allpos'||v==='analytics'||v==='history'||v==='goods'||v==='today'||v==='askdad'||v==='fucal'||v==='supterms');
+  const ownFilters=(v==='fund'||v==='allpos'||v==='analytics'||v==='history'||v==='goods'||v==='today'||v==='askdad'||v==='fucal'||v==='supterms'||v==='shipov'||v==='billov');
   document.querySelectorAll('.pos-filterset').forEach(x=>{x.style.display=ownFilters?'none':'';});
   if(ownFilters){el.innerHTML='';return;}
   if(v==='po'||v==='product'||v==='timeline'||v==='kanban'){
-    h+=`<div class="f"><label>Density</label><span class="lane-toggle"><button class="${POS_COMPACT?'':'active'}" onclick="POS_COMPACT=false;posControlsRender();posRender()">Detailed</button><button class="${POS_COMPACT?'active':''}" onclick="POS_COMPACT=true;posControlsRender();posRender()">▤ Compact</button></span></div>`;
+    /* [V1.1.8b R69] density moved to the one Detailed / Condensed switch at the top */
   }
   if(v==='po'||v==='kanban'||v==='timeline'){
     h+=`<div class="f"><label>Sort</label><select onchange="posSetSortPO(this.value)">
@@ -8134,13 +8143,13 @@ function apoRowInfo(r){const p=r.p;const bits=[];
   const od=posOverdue(p)?`<span class="chip" style="font-size:.55rem;background:var(--danger,#D93025);color:#fff;border-color:transparent">⏰ overdue</span>`:'';
   const sh=(typeof v11PoShipNos==='function')?v11PoShipNos(p.poId):[];
   const n=apoLastNote(p);
-  const lc=fuLastCall(p),nx=fuNext(p);   // [V1.1.8] dad's last answer + next follow-up
+  const lc=fuLastCall(p),nx=fuNext(p);   // [V1.1.8] supplier's last answer + next follow-up
   return `${od}<span class="small muted">${bits.join(' · ')}</span>${fuOutChip(lc)}${nx?`<span class="small ${nx<=t8()?'':'muted'}" style="${nx<=t8()?'color:var(--non)':''}">📞 next ${esc(d8show(nx))}</span>`:''}${sh&&sh.length?`<span class="small mono">${sh.slice(0,3).map(x=>esc(x)).join(', ')}${sh.length>3?' …':''}</span>`:''}${n?`<span class="small" title="${esc(n.text||'')}" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 ${esc(n.text||'')}${n.due?' · due '+esc(posDispDate(dOnly(n.due))):''}</span>`:''}`;}
 function apoRowActions(r){const p=r.p,st=r.status,id=esc(r.poId);let b='';
   if(st==='made')b+=`<button class="btn sm" onclick="podocMarkSent('${id}')" title="mark sent to supplier">✈ Send</button>`;
   else if(st!=='done'&&r.T.pending>0)b+=`<button class="btn sm" style="background:var(--ok);border-color:var(--ok)" onclick="poReceiveUnit('${id}')" title="record a shipment with this PO's pending lines">🚚 Ship</button>`;
   if(st==='done')b+=`<button class="btn sm" onclick="poClose('${id}')">✓ Close</button>`;
-  if(st!=='made'&&st!=='done')b+=`<button class="btn ghost sm" onclick="fuLogOpen(['${id}'],'')" title="log dad's answer · next follow-up">📞</button>`;   // [V1.1.8]
+  if(st!=='made'&&st!=='done')b+=`<button class="btn ghost sm" onclick="fuLogOpen(['${id}'],'')" title="log the supplier's answer · next follow-up">📞</button>`;   // [V1.1.8]
   b+=`<button class="btn ghost sm" onclick="poDetailOpen('${id}')" title="all actions: notes, promised date, follow-up, edit, cancel balance…">⋯</button>`;
   return b;}
 function fundBodyHTML(){
@@ -8956,7 +8965,7 @@ function podNotesHTML(p){
      <button class="btn ghost sm" style="padding:0 6px;color:var(--non)" title="delete" onclick="podNoteDel('${esc(p.poId)}',${idx})">✕</button></div>`;
   return `<div style="margin-top:12px;border-top:1px solid var(--line-2);padding-top:10px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><b class="small">Follow-up notes &amp; to-do</b><span class="small muted">${notes.length||'no'} note${notes.length===1?'':'s'}</span>
-      <span style="flex:1"></span><button class="btn sm" onclick="fuLogOpen(['${esc(p.poId)}'],'')" title="what the supplier said — sets the next follow-up">📞 Log dad's answer</button></div>
+      <span style="flex:1"></span><button class="btn sm" onclick="fuLogOpen(['${esc(p.poId)}'],'')" title="what the supplier said — sets the next follow-up">📞 Log answer</button></div>
     <div class="small" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><b class="small muted">Next follow-up</b>
       <input type="date" class="po-in" style="width:136px" value="${esc(fuNext(p))}" onchange="fuSetNext('${esc(p.poId)}',this.value)">
       <button class="btn ghost sm" onclick="fuNextIn('${esc(p.poId)}',1)">Tomorrow</button><button class="btn ghost sm" onclick="fuNextIn('${esc(p.poId)}',3)">+3 days</button><button class="btn ghost sm" onclick="fuNextIn('${esc(p.poId)}',7)">+7 days</button>
@@ -9725,8 +9734,9 @@ function posRender(){
   const el=document.getElementById('pos-list');if(!el)return;
   const tops=PODOCS.filter(p=>p&&!p.parentPoId&&!p.closed);
   // [V1.1.8] Today · Ask dad · Follow-up calendar · Lead time & MOQ
-  if(POS_VIEW==='today'||POS_VIEW==='askdad'||POS_VIEW==='fucal'||POS_VIEW==='supterms'){document.getElementById('pos-count').textContent='';
-    try{el.innerHTML=POS_VIEW==='today'?posToday():POS_VIEW==='askdad'?posAskDad():POS_VIEW==='fucal'?posFuCal():posSupTerms();}
+  if(POS_VIEW==='today'||POS_VIEW==='askdad'||POS_VIEW==='fucal'||POS_VIEW==='supterms'||POS_VIEW==='shipov'||POS_VIEW==='billov'){document.getElementById('pos-count').textContent='';
+    try{el.innerHTML=POS_VIEW==='today'?posToday():POS_VIEW==='askdad'?posAskDad():POS_VIEW==='fucal'?posFuCal():POS_VIEW==='shipov'?posShipOverview():POS_VIEW==='billov'?posBillOverview():posSupTerms();
+      if(POS_VIEW==='askdad'){askBarPaint();askHeadPaint();}}
     catch(e){console.warn(e);el.innerHTML=`<div class="card"><div class="empty">Could not draw this screen: ${esc(e.message||String(e))}</div></div>`;}
     try{navBadgeDirty();}catch(e){}return;}
   // [VT-013/14] board & timeline ignore the Open/Received filter (they group by status themselves)
@@ -10265,7 +10275,7 @@ function acGoUpload(){if(VT_MODE!=='mgmt'){alert('Management mode required.');re
    promised dates, shipping, transport / LR, pending items, and bills posted in the WhatsApp group.
    No server change — everything is kept in the existing PO Meta sheet:
      • "Snooze Until" column  = NEXT FOLLOW-UP date of a PO
-     • Notes JSON             = to-dos, dad's answers (kind:'call') and shipment bill flags (kind:'ship')
+     • Notes JSON             = to-dos, supplier answers (kind:'call') and shipment bill flags (kind:'ship')
      • rows named "~ST|<supplier>|n" = supplier-given lead time & MOQ per product (not POs — the dashboard skips them) */
 function t8(){return f11Ymd(new Date());}
 function d8add(ymd,n){const d=new Date((ymd||t8())+'T00:00:00');d.setDate(d.getDate()+(+n||0));return f11Ymd(d);}
@@ -10294,13 +10304,13 @@ function pendTxt(list,n){n=n||3;return list.slice(0,n).map(x=>x.name+' × '+NUM(
 function shfHolder(sid){for(const po of v11ShipPos(sid)){const p=podocFind(po);if(p)return fuTop(p);}return null;}
 function shfGet(sid){const p=shfHolder(sid);if(!p)return {};return (p.notes||[]).find(n=>n&&n.kind==='ship'&&n.sid===sid)||{};}
 function shfText(r,s){const no=(s&&s.shipmentNo)||r.sid;
-  return no+': '+(r.bill==='group'?'bill is in the group':r.bill==='personal'?'bill is on dad\'s phone — to forward':'bill not seen yet')+(r.next?' · ask again '+r.next:'');}
+  return no+': '+(r.bill==='group'?'bill is in the group':r.bill==='personal'?'bill is on a personal phone — to forward':'bill not seen yet')+(r.next?' · ask again '+r.next:'');}
 function shfSet(sid,patch){const p=shfHolder(sid);if(!p){toast('This shipment has no PO to keep the note on.');return;}
   p.notes=p.notes||[];let r=p.notes.find(n=>n&&n.kind==='ship'&&n.sid===sid);
   if(!r){r={kind:'ship',sid,done:true,due:''};p.notes.push(r);}
   Object.assign(r,patch,{at:nowStamp(),by:vtBy()});r.text=shfText(r,v11ShipById(sid));
   _podPersist(p);posRender();try{navBadgeDirty();}catch(e){}}
-function shfBill(sid,v){shfSet(sid,{bill:v});toast(v==='group'?'Marked: bill is in the group.':v==='personal'?'Marked: bill is on dad\'s phone — it stays on the list until forwarded.':'Bill flag cleared.');}
+function shfBill(sid,v){shfSet(sid,{bill:v});toast(v==='group'?'Marked: bill is in the group.':v==='personal'?'Marked: bill is on a personal phone — it stays on the list until forwarded.':'Bill flag cleared.');}
 function shfLater(sid,days){shfSet(sid,{next:d8add(t8(),days||1)});toast('Will ask again on '+d8show(d8add(t8(),days||1))+'.');}
 
 /* ---------- the ASK LIST — what to ask each supplier today ---------- */
@@ -10335,7 +10345,7 @@ function askBuild(){
     const st=v11ShipState(s),bs=v11BillState(s.shipmentId);if(st==='transit')S(s.supplier||'—').transit++;
     if(st==='arrived'&&bs!=='none')return;
     const f=shfGet(s.shipmentId),age=d8diff(dOnly(s.shipDate),T);const asks=[];const add=(sev,kind,text)=>asks.push({sev,kind,text});
-    if(bs==='none'){if(f.bill==='personal')add('high','billfwd','Bill is on dad\'s phone — forward it to the group');
+    if(bs==='none'){if(f.bill==='personal')add('high','billfwd','Bill is on a personal phone — forward it to the group');
       else if(f.bill!=='group')add(age!=null&&age>=1?'high':'med','billgroup','Bill posted in the group?'+(age!=null?' (shipped '+agoTxt(age)+')':''));}
     if(st==='transit'&&!(dOnly(f.next)&&dOnly(f.next)>T)){
       if(!String(s.lr||'').trim()&&!String(s.transport||'').trim())add('med','lr','Get the LR no. / transport name');
@@ -10350,7 +10360,7 @@ function askBuild(){
   return out.sort((a,b)=>(b.high-a.high)||(b.n-a.n)||String(a.sup).localeCompare(String(b.sup)));
 }
 const ASK_ICON={nopromise:'📅',late:'⏰',soon:'🗓',shipcheck:'🚚',balance:'📦',todo:'📝',fudue:'📞',send:'✈',billgroup:'🧾',billfwd:'📱',lr:'🚛',shiplate:'⏰',eta:'🚛'};
-let ASK_UI={q:'',all:false,fold:new Set()};
+let ASK_UI={q:'',all:false,fold:new Set(),sel:new Set()};
 function askSetQ(v){ASK_UI.q=v;posRenderKeepFocus();}
 function askFold(el){const s=el.closest('[data-s]').dataset.s;ASK_UI.fold.has(s)?ASK_UI.fold.delete(s):ASK_UI.fold.add(s);posRender();}
 function askShipNo(s){return s.shipmentNo||s.shipmentId;}
@@ -10370,41 +10380,82 @@ function askCopyAnswers(){const T=t8();const lines=[];
 function askLogAll(el){const s=el.closest('[data-s]').dataset.s;const x=askBuild().find(y=>y.sup===s);if(!x)return;
   const ids=x.pos.filter(r=>r.asks.some(a=>a.kind!=='send'&&a.kind!=='todo')).map(r=>r.p.poId);
   if(!ids.length){toast('No PO of this supplier needs an answer right now.');return;}fuLogOpen(ids,'');}
+/* [V1.1.8b R68] Ask by supplier — expand / collapse all, tick POs and shipments, act on all ticked at once */
+function askSelKeys(kind){return [...ASK_UI.sel].filter(k=>k.indexOf(kind+':')===0).map(k=>k.slice(kind.length+1));}
+function askSel(key,on){on?ASK_UI.sel.add(key):ASK_UI.sel.delete(key);askBarPaint();askHeadPaint();}
+function askSelSup(el){const card=el.closest('[data-s]');if(!card)return;const on=el.checked;
+  card.querySelectorAll('input[data-k]').forEach(cb=>{cb.checked=on;on?ASK_UI.sel.add(cb.dataset.k):ASK_UI.sel.delete(cb.dataset.k);});askBarPaint();}
+function askSelAll(on){document.querySelectorAll('#pos-list input[data-k]').forEach(cb=>{cb.checked=on;on?ASK_UI.sel.add(cb.dataset.k):ASK_UI.sel.delete(cb.dataset.k);});
+  document.querySelectorAll('#pos-list input[data-supsel]').forEach(cb=>{cb.checked=on;});askBarPaint();}
+function askSelClear(){ASK_UI.sel.clear();askSelAll(false);}
+function askHeadPaint(){document.querySelectorAll('#pos-list [data-s]').forEach(card=>{const h=card.querySelector('input[data-supsel]');if(!h)return;
+  const cbs=[...card.querySelectorAll('input[data-k]')];h.checked=cbs.length>0&&cbs.every(c=>c.checked);h.indeterminate=!h.checked&&cbs.some(c=>c.checked);});}
+function askFoldAll(fold){ASK_UI.fold=new Set();if(fold)askBuild().forEach(x=>ASK_UI.fold.add(x.sup));posRender();}
+function askBarPaint(){const el=document.getElementById('ask-bar');if(!el)return;
+  const pos=askSelKeys('po').filter(id=>podocFind(id)),sh=askSelKeys('sh').filter(id=>v11ShipById(id));
+  if(!pos.length&&!sh.length){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='flex';
+  el.innerHTML=`${pos.length?`<span class="ask-bar-g"><b>${pos.length} PO${pos.length===1?'':'s'}</b>
+      <button class="btn sm" onclick="askBulkLog('promised')">📅 Promised date</button><button class="btn ghost sm" onclick="askBulkLog('shipping')">🚚 Shipping today</button>
+      <button class="btn ghost sm" onclick="askBulkLog('noanswer')">📵 No answer</button><button class="btn ghost sm" onclick="askBulkLog('delayed')">⏳ Delayed</button>
+      <span class="small muted">next follow-up</span><button class="btn ghost sm" onclick="askBulkNext(1)">Tomorrow</button><button class="btn ghost sm" onclick="askBulkNext(3)">+3</button><button class="btn ghost sm" onclick="askBulkNext(7)">+7</button></span>`:''}
+    ${sh.length?`<span class="ask-bar-g"><b>${sh.length} shipment${sh.length===1?'':'s'}</b>
+      <button class="btn sm" onclick="askBulkShip('group')">✓ Bill is in the group</button><button class="btn ghost sm" onclick="askBulkShip('personal')">📱 Bill on personal phone</button>
+      <button class="btn ghost sm" onclick="askBulkShip('later')">Ask tomorrow</button></span>`:''}
+    <span style="flex:1"></span><button class="btn ghost sm" onclick="askCopySel()">📋 Copy ticked</button><button class="btn ghost sm" onclick="askSelClear()">✕ Clear</button>`;}
+function askBulkLog(o){const ids=askSelKeys('po').filter(id=>podocFind(id));if(!ids.length)return;fuLogOpen(ids,o);FULOG.after='asksel';}
+function askBulkNext(days){const ids=askSelKeys('po').filter(id=>podocFind(id));if(!ids.length)return;const d=d8add(t8(),days);
+  ids.forEach(id=>{const p=fuTop(podocFind(id));if(!p)return;p.snoozeUntil=d;_podPersist(p);});
+  ASK_UI.sel.clear();posRender();try{navBadgeDirty();}catch(e){}toast(ids.length+' PO(s) — next follow-up '+d8show(d)+'.');}
+function askBulkShip(v){const sids=askSelKeys('sh').filter(id=>v11ShipById(id));if(!sids.length)return;let n=0;
+  sids.forEach(sid=>{const p=shfHolder(sid);if(!p)return;p.notes=p.notes||[];let r=p.notes.find(x=>x&&x.kind==='ship'&&x.sid===sid);
+    if(!r){r={kind:'ship',sid,done:true,due:''};p.notes.push(r);}
+    if(v==='later')r.next=d8add(t8(),1);else r.bill=v;
+    Object.assign(r,{at:nowStamp(),by:vtBy()});r.text=shfText(r,v11ShipById(sid));_podPersist(p);n++;});
+  ASK_UI.sel.clear();posRender();try{navBadgeDirty();}catch(e){}
+  toast(n+' shipment(s): '+(v==='group'?'bill is in the group':v==='personal'?'bill on a personal phone — to forward':'ask again tomorrow')+'.');}
+function askCopySel(){const pos=new Set(askSelKeys('po')),sh=new Set(askSelKeys('sh'));
+  const L=askBuild().map(x=>Object.assign({},x,{pos:x.pos.filter(r=>pos.has(r.p.poId)),ships:x.ships.filter(r=>sh.has(r.s.shipmentId))})).filter(x=>x.pos.length||x.ships.length);
+  if(!L.length){toast('Tick some POs or shipments first.');return;}askCopy(L.map(askText).join('\n'));}
 function posAskDad(){
-  if(!navOK('buyer'))return `<div class="card"><div class="empty">The ask list shows supplier names — Purchase team / Management only.</div></div>`;
+  if(!navOK('buyer'))return `<div class="card"><div class="empty">Ask by supplier shows supplier names — Purchase team / Management only.</div></div>`;
   const T=t8();const all=askBuild();const q=ASK_UI.q.trim().toLowerCase();
   let list=all.filter(x=>ASK_UI.all?(x.openPos||x.ships.length):x.n);
   if(q)list=list.filter(x=>(x.sup+' '+x.pos.map(r=>fuNo(r.p)).join(' ')+' '+x.ships.map(r=>askShipNo(r.s)).join(' ')).toLowerCase().indexOf(q)>=0);
+  // drop ticks that are no longer on screen
+  const onScreen=new Set();list.forEach(x=>{if(ASK_UI.fold.has(x.sup))return;x.pos.forEach(r=>onScreen.add('po:'+r.p.poId));x.ships.forEach(r=>onScreen.add('sh:'+r.s.shipmentId));});
+  [...ASK_UI.sel].forEach(k=>{if(!onScreen.has(k))ASK_UI.sel.delete(k);});
   const nAsk=all.reduce((a,x)=>a+x.n,0),nHigh=all.reduce((a,x)=>a+x.high,0),nSup=all.filter(x=>x.n).length,nCalls=all.reduce((a,x)=>a+x.calls,0);
   const head=`<div class="card" style="margin-bottom:12px">
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <b>Ask dad — supplier by supplier</b><span class="small muted">everything to ask each supplier today · log dad's answer in one click · open POs only</span>
-      <span style="flex:1"></span>
-      <button class="btn sm" onclick="askCopyAll()" title="copy the whole list — WhatsApp-ready">📋 Copy the list</button>
-      <button class="btn ghost sm" onclick="askCopyAnswers()" title="copy what was logged today — to post after the meeting">📋 Copy today's answers</button></div>
-    <div class="ovgrid" style="margin:10px 0 6px">
+    <div class="ovgrid" style="margin:0 0 8px">
       <div class="card ovc" style="cursor:default"><div class="ovn">${nSup}</div><div class="ovl">Suppliers to discuss</div></div>
-      <div class="card ovc" style="cursor:default;border-left:4px solid var(--non)"><div class="ovn" style="color:var(--non)">${nHigh}</div><div class="ovl">Urgent questions</div><div class="small muted">no date · late · bill · shipped?</div></div>
+      <div class="card ovc" style="cursor:default;border-left:4px solid var(--non)"><div class="ovn" style="color:var(--non)">${nHigh}</div><div class="ovl">Urgent questions</div><div class="small muted vt-c-hide">no date · late · bill · shipped?</div></div>
       <div class="card ovc" style="cursor:default"><div class="ovn">${nAsk}</div><div class="ovl">All questions</div></div>
       <div class="card ovc" style="cursor:default;border-left:4px solid var(--ok)"><div class="ovn" style="color:var(--ok)">${nCalls}</div><div class="ovl">Answers logged today</div></div></div>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <input class="po-in" style="width:230px" placeholder="search supplier / PO / SH…" value="${esc(ASK_UI.q)}" oninput="askSetQ(this.value)">
-      <label class="small" style="display:flex;gap:4px;align-items:center"><input type="checkbox" ${ASK_UI.all?'checked':''} onchange="ASK_UI.all=this.checked;posRender()"> also show suppliers with nothing to ask today</label>
-      <span class="small muted">Tip: answer with <b>📞 Log answer</b> — it sets the next follow-up date, so the question comes back on the right day.</span></div></div>`;
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input class="po-in" style="width:220px" placeholder="search supplier / PO / SH…" value="${esc(ASK_UI.q)}" oninput="askSetQ(this.value)">
+      <label class="small" style="display:flex;gap:4px;align-items:center"><input type="checkbox" ${ASK_UI.all?'checked':''} onchange="ASK_UI.all=this.checked;posRender()"> also suppliers with nothing to ask</label>
+      <span style="flex:1"></span>
+      <button class="btn ghost sm" onclick="askFoldAll(false)">▾ Expand all</button><button class="btn ghost sm" onclick="askFoldAll(true)">▸ Collapse all</button>
+      <button class="btn ghost sm" onclick="askSelAll(true)">☑ Tick all shown</button>
+      <button class="btn sm" onclick="askCopyAll()" title="copy the whole list — WhatsApp-ready">📋 Copy the list</button>
+      <button class="btn ghost sm" onclick="askCopyAnswers()" title="copy what was logged today — to post after the meeting">📋 Copy today's answers</button></div>
+    <div class="small muted vt-c-hide" style="margin-top:6px">Tick POs or shipments (or a whole supplier) and use the bar at the bottom to answer them together. Every answer sets the next follow-up date, so the question comes back on the right day.</div></div>`;
   if(!list.length)return head+`<div class="card"><div class="empty">${nSup?'No supplier matches the search.':'✅ Nothing to ask today. New questions appear here automatically (no promised date, late, bills, LR…).'}</div></div>`;
   const askLi=a=>`<li style="margin:2px 0;${a.sev==='high'?'color:var(--non);font-weight:600':''}">${ASK_ICON[a.kind]||'•'} ${esc(a.text)}</li>`;
+  const tick=k=>`<input type="checkbox" data-k="${esc(k)}" ${ASK_UI.sel.has(k)?'checked':''} onchange="askSel(this.dataset.k,this.checked)" title="tick to answer together" style="margin-right:2px">`;
   const poBlock=r=>{const p=r.p,id=esc(p.poId),pi=poPendingItems(p),lc=fuLastCall(p),nx=fuNext(p);
     const onlySend=r.asks.every(a=>a.kind==='send'||a.kind==='todo');
-    return `<div style="border-top:1px dashed var(--line-2);padding:8px 0">
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><a class="linky mono" style="font-weight:800" onclick="poDetailOpen('${id}')">${esc(fuNo(p))}</a>
+    return `<div class="ask-blk">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${tick('po:'+p.poId)}<a class="linky mono" style="font-weight:800" onclick="poDetailOpen('${id}')">${esc(fuNo(p))}</a>
         <span class="chip ${PODOC_CHIP[poRollup(p)]||'lite'}" style="font-size:.58rem">${PODOC_LABEL[poRollup(p)]||r.stage}</span>
         ${p.sentAt?`<span class="small muted">sent ${esc(d8show(dOnly(p.sentAt)))}</span>`:''}
         ${dOnly(p.promised)?`<span class="chip lite" style="font-size:.58rem">🤝 promised ${esc(d8show(dOnly(p.promised)))}</span>`:''}
         ${fuOutChip(lc)}<span style="flex:1"></span>
         ${r.bal>0?`<span class="small"><b style="color:var(--gst)">${NUM(r.bal)}</b> pending</span>`:''}</div>
-      <ul style="margin:4px 0 4px 18px;padding:0">${r.asks.map(askLi).join('')}</ul>
-      ${r.bal>0&&pi.length?`<div class="small muted" style="margin:0 0 4px 18px">📦 ${esc(pendTxt(pi,4))}</div>`:''}
-      <div class="pos-card-a" style="flex-wrap:wrap;gap:5px">
+      <ul style="margin:4px 0 4px 40px;padding:0">${r.asks.map(askLi).join('')}</ul>
+      ${r.bal>0&&pi.length?`<div class="small muted vt-c-hide" style="margin:0 0 4px 40px">📦 ${esc(pendTxt(pi,4))}</div>`:''}
+      <div class="ask-act">
         ${r.stage==='made'?`<button class="btn sm" onclick="podocMarkSent('${id}');try{navBadgeDirty()}catch(e){}">✈ Mark sent</button>`:''}
         ${onlySend&&r.stage==='made'?'':`<button class="btn sm" onclick="fuLogOpen(['${id}'],'promised')" title="supplier gave a dispatch date">📅 Promised date</button>
         <button class="btn ghost sm" onclick="fuLogOpen(['${id}'],'shipping')">🚚 Shipping today</button>
@@ -10414,19 +10465,19 @@ function posAskDad(){
         ${fuTodos(p).filter(x=>x.n.due&&dOnly(x.n.due)<=T).map(x=>`<button class="btn ghost sm" onclick="podNoteToggle('${id}',${x.idx})" title="${esc(x.n.text||'')}">✓ to-do done</button>`).join('')}
         <label class="small muted" style="display:inline-flex;gap:4px;align-items:center">next follow-up <input type="date" class="po-in" style="width:132px" value="${esc(nx)}" onchange="fuSetNext('${id}',this.value)"></label></div></div>`;};
   const shipBlock=r=>{const s=r.s,sid=esc(s.shipmentId),k=r.asks.map(a=>a.kind);
-    return `<div style="border-top:1px dashed var(--line-2);padding:8px 0">
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><a class="linky mono" style="font-weight:800" onclick="v11ShipEdit('${sid}')">${esc(askShipNo(s))}</a>
+    return `<div class="ask-blk">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${tick('sh:'+s.shipmentId)}<a class="linky mono" style="font-weight:800" onclick="v11ShipEdit('${sid}')">${esc(askShipNo(s))}</a>
         <span class="chip" style="font-size:.58rem;background:${S11_STATE_CHIP[r.st][1]};color:#fff;border-color:transparent">${S11_STATE_CHIP[r.st][0]}</span>
         <span class="small muted">shipped ${esc(d8show(dOnly(s.shipDate))||'—')}${s.lr?' · LR '+esc(s.lr):''}${s.transport?' · '+esc(s.transport):''} · ${esc(v11ShipPos(s.shipmentId).map(v11PoLabel).join(', '))}</span></div>
-      <ul style="margin:4px 0 4px 18px;padding:0">${r.asks.map(askLi).join('')}</ul>
-      <div class="pos-card-a" style="flex-wrap:wrap;gap:5px">
-        ${k.includes('billgroup')?`<button class="btn sm" onclick="shfBill('${sid}','group')">✓ Bill is in the group</button><button class="btn ghost sm" onclick="shfBill('${sid}','personal')">📱 On dad's phone</button>`:''}
+      <ul style="margin:4px 0 4px 40px;padding:0">${r.asks.map(askLi).join('')}</ul>
+      <div class="ask-act">
+        ${k.includes('billgroup')?`<button class="btn sm" onclick="shfBill('${sid}','group')">✓ Bill is in the group</button><button class="btn ghost sm" onclick="shfBill('${sid}','personal')">📱 On personal phone</button>`:''}
         ${k.includes('billfwd')?`<button class="btn sm" onclick="shfBill('${sid}','group')">✓ Forwarded to the group</button>`:''}
         ${(k.includes('lr')||k.includes('eta')||k.includes('shiplate'))?`<button class="btn ghost sm" onclick="v11ShipEdit('${sid}')" title="enter LR, transport, expected date or mark arrived">✎ Enter LR / date / arrived</button><button class="btn ghost sm" onclick="shfLater('${sid}',1)">Ask tomorrow</button>`:''}</div></div>`;};
-  return head+list.map(x=>{const fold=ASK_UI.fold.has(x.sup);
-    const fake={supplier:x.sup};
-    return `<div class="card" data-s="${esc(x.sup)}" style="margin-bottom:10px;${x.high?'border-left:4px solid var(--non)':x.n?'border-left:4px solid var(--gst)':''}">
+  return head+list.map(x=>{const fold=ASK_UI.fold.has(x.sup);const fake={supplier:x.sup};
+    return `<div class="card ask-card" data-s="${esc(x.sup)}" style="margin-bottom:10px;${x.high?'border-left:4px solid var(--non)':x.n?'border-left:4px solid var(--gst)':''}">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        ${fold?'':`<input type="checkbox" data-supsel="1" onchange="askSelSup(this)" title="tick everything of this supplier">`}
         <a class="linky" style="font-weight:800;font-size:1rem" onclick="askFold(this)">${fold?'▸':'▾'} ${esc(x.sup)}</a>
         ${x.high?`<span class="chip" style="background:var(--non);color:#fff;border-color:transparent;font-size:.6rem">${x.high} urgent</span>`:''}
         <span class="small muted">${x.n} question${x.n===1?'':'s'} · ${x.openPos} open PO${x.openPos===1?'':'s'}${x.pend?' · '+NUM(x.pend)+' pcs pending':''}${x.transit?' · '+x.transit+' in transit':''}${x.calls?' · ✓ '+x.calls+' answered today':''}</span>
@@ -10435,10 +10486,10 @@ function posAskDad(){
         <button class="btn ghost sm" onclick="askCopySup(this)" title="copy this supplier's questions for WhatsApp">📋 Copy</button></div>
       ${fold?'':x.pos.map(poBlock).join('')+x.ships.map(shipBlock).join('')}
       ${!fold&&x.waiting.length?`<div class="small muted" style="border-top:1px dashed var(--line-2);padding-top:6px">⏳ Waiting: ${x.waiting.map(w=>`<a class="linky mono" onclick="poDetailOpen('${esc(w.p.poId)}')">${esc(fuNo(w.p))}</a> (next follow-up ${esc(d8show(w.next))})`).join(' · ')}</div>`:''}
-    </div>`;}).join('');
+    </div>`;}).join('')+`<div id="ask-bar" class="ask-bar" style="display:none"></div>`;
 }
 
-/* ---------- log dad's answer (one PO, or all POs of a supplier) ---------- */
+/* ---------- log the supplier's answer (one PO, several ticked POs, or all POs of a supplier) ---------- */
 let FULOG={ids:[],outcome:'',date:'',reason:'',next:''};
 function fuLogEnsure(){if(document.getElementById('fulog-modal'))return;
   const d=document.createElement('div');d.className='modal-bg';d.id='fulog-modal';
@@ -10463,7 +10514,7 @@ function fuLogPaint(){const el=document.getElementById('fulog-body');if(!el)retu
   const pos=FULOG.ids.map(id=>podocFind(id)).filter(Boolean);
   const sup=pos.length?(VT_MODE==='ops'?'':(pos[0].supplier||'')):'';
   const needDate=o==='promised'||o==='delayed';
-  el.innerHTML=`<h3 style="margin:0 0 4px">📞 Log dad's answer</h3>
+  el.innerHTML=`<h3 style="margin:0 0 4px">📞 Log the supplier's answer</h3>
     <div class="small muted" style="margin-bottom:10px">${esc(sup)}${sup?' · ':''}${pos.map(p=>esc(fuNo(p))).join(', ')}</div>
     <div class="lane-toggle wrap" style="margin-bottom:10px">${Object.entries(FU_OUT).map(([k,v])=>`<button class="${o===k?'active':''}" onclick="fuLogPick('${k}')">${v[0]} ${esc(v[1])}</button>`).join('')}</div>
     ${!o?'<div class="small muted">Pick what the supplier said.</div>':`
@@ -10475,7 +10526,7 @@ function fuLogPaint(){const el=document.getElementById('fulog-body');if(!el)retu
     <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:14px">
       <button class="btn ghost sm" onclick="mClose('fulog-modal')">Cancel</button>
       <button class="btn sm" ${o?'':'disabled'} onclick="fuLogSave()">Save${FULOG.ids.length>1?' for '+FULOG.ids.length+' POs':''}</button></div>`;}
-function fuLogSave(){fuLogRead();const o=FULOG.outcome;if(!o)return;
+function fuLogSave(){fuLogRead();const o=FULOG.outcome;if(!o)return;if(FULOG.after==='asksel')ASK_UI.sel.clear();
   if(o==='promised'&&!FULOG.date){alert('Enter the promised dispatch date.');return;}
   if(o==='delayed'&&!String(FULOG.reason||'').trim()){alert('Enter the reason for the delay.');return;}
   const date=FULOG.date,reason=String(FULOG.reason||'').trim(),next=FULOG.next||'';
@@ -10514,20 +10565,20 @@ function todaySecs(){
   // 3 sent, no promised date — get it today
   sec('nopromise','📅','Sent — no promised date','get the dispatch date as soon as possible',open.filter(p=>!dOnly(p.promised)).sort((a,b)=>String(a.sentAt||a.createdAt||'').localeCompare(String(b.sentAt||b.createdAt||''))).map(p=>{
     const age=d8diff(dOnly(p.sentAt)||dOnly(p.createdAt),T),w=fuWaiting(p);
-    return row(poLink(p),`${sup(p)} · sent ${esc(agoTxt(age))}${w?` · <span class="chip lite" style="font-size:.56rem">asked — next follow-up ${esc(d8show(fuNext(p)))}</span>`:''} ${fuOutChip(fuLastCall(p))}`,logBtn(p,'promised','📅 Log answer'),w?'':'hot');}),buyer?'ask':'apo:chase',buyer?'Ask dad':'All POs › To chase');
+    return row(poLink(p),`${sup(p)} · sent ${esc(agoTxt(age))}${w?` · <span class="chip lite" style="font-size:.56rem">asked — next follow-up ${esc(d8show(fuNext(p)))}</span>`:''} ${fuOutChip(fuLastCall(p))}`,logBtn(p,'promised','📅 Log answer'),w?'':'hot');}),buyer?'ask':'apo:chase',buyer?'Ask by supplier':'All POs › To chase');
   // 4 promised date passed
   sec('late','⏰','Promised date passed','balance not shipped and the promised date has gone',open.filter(p=>dOnly(p.promised)&&dOnly(p.promised)<T).sort((a,b)=>String(a.promised).localeCompare(String(b.promised))).map(p=>{
     const late=d8diff(dOnly(p.promised),T),w=fuWaiting(p);
-    return row(poLink(p),`${sup(p)} · promised ${esc(d8show(dOnly(p.promised)))} · <b style="color:var(--non)">${late} day${late===1?'':'s'} late</b>${w?` · <span class="chip lite" style="font-size:.56rem">next follow-up ${esc(d8show(fuNext(p)))}</span>`:''} ${fuOutChip(fuLastCall(p))}`,logBtn(p,'delayed','📞 Log answer'),w?'':'hot');}),buyer?'ask':'apo:chase',buyer?'Ask dad':'All POs › To chase');
+    return row(poLink(p),`${sup(p)} · promised ${esc(d8show(dOnly(p.promised)))} · <b style="color:var(--non)">${late} day${late===1?'':'s'} late</b>${w?` · <span class="chip lite" style="font-size:.56rem">next follow-up ${esc(d8show(fuNext(p)))}</span>`:''} ${fuOutChip(fuLastCall(p))}`,logBtn(p,'delayed','📞 Log answer'),w?'':'hot');}),buyer?'ask':'apo:chase',buyer?'Ask by supplier':'All POs › To chase');
   // 5 follow-ups & to-dos due
   const due=[];tops.forEach(p=>{const nx=fuNext(p);if(nx&&nx<=T&&posStage(p)!=='done')due.push(row(poLink(p),`${sup(p)} · follow-up date ${esc(d8show(nx))} ${fuOutChip(fuLastCall(p))}`,buyer?`<button class="btn ghost sm" onclick="fuLogOpen(['${esc(p.poId)}'],'')">📞 Log answer</button>`:''));
     fuTodos(p).forEach(x=>{const d=dOnly(x.n.due);if(d&&d<=T)due.push(row(poLink(p),`${sup(p)} · 📝 ${esc(x.n.text||'')} <span class="small muted">(due ${esc(d8show(d))})</span>`,`<button class="btn ghost sm" onclick="podNoteToggle('${esc(p.poId)}',${x.idx});try{navBadgeDirty()}catch(e){}">✓ Done</button>`));});});
-  sec('fudue','📝','Follow-ups & to-dos due','the follow-up date has come, or a to-do is due',due,buyer?'ask':'',buyer?'Ask dad':'');
+  sec('fudue','📝','Follow-ups & to-dos due','the follow-up date has come, or a to-do is due',due,buyer?'ask':'',buyer?'Ask by supplier':'');
   // shipments
   const ships=(V11.shipments||[]).filter(s=>s.status!=='Cancelled');
   sec('shiplate','🚚','Shipments overdue','in transit and past the expected date — ask transport',ships.filter(s=>qv11Ok('ships',s,'overdue')).map(s=>row(shLink(s),`${sSup(s)} · expected ${esc(d8show(dOnly(s.expected)))} · ${esc(d8diff(dOnly(s.expected),T))} day(s) late${s.lr?' · LR '+esc(s.lr):''}`,`<button class="btn ghost sm" onclick="v11ShipEdit('${esc(s.shipmentId)}')">Open</button>`,'hot')),'ships:overdue','Shipments › Overdue');
   sec('arrnobill','📦','Arrived, not on a bill','goods are here — the bill is still to be entered',ships.filter(s=>qv11Ok('ships',s,'arrnobill')).map(s=>{const f=shfGet(s.shipmentId);
-    return row(shLink(s),`${sSup(s)} · arrived ${esc(d8show(dOnly(s.arrivedAt)))}${f.bill==='group'?' · <span class="chip lite" style="font-size:.56rem">bill is in the group</span>':f.bill==='personal'?' · <span class="chip warn" style="font-size:.56rem">bill on dad\'s phone</span>':''}`,`<button class="btn ghost sm" onclick="v11ShipEdit('${esc(s.shipmentId)}')">Open</button>`);}),'ships:arrnobill','Shipments › Arrived, not on a bill');
+    return row(shLink(s),`${sSup(s)} · arrived ${esc(d8show(dOnly(s.arrivedAt)))}${f.bill==='group'?' · <span class="chip lite" style="font-size:.56rem">bill is in the group</span>':f.bill==='personal'?' · <span class="chip warn" style="font-size:.56rem">bill on personal phone</span>':''}`,`<button class="btn ghost sm" onclick="v11ShipEdit('${esc(s.shipmentId)}')">Open</button>`);}),'ships:arrnobill','Shipments › Arrived, not on a bill');
   if(buyer){const bills=V11.bills||[];
     const bsec=(k,icon,title,why)=>sec(k,icon,title,why,bills.filter(b=>qv11Ok('bills',b,k)).map(b=>row(blLink(b),`<span class="small muted">${esc(b.supplier||'')}</span> · ${esc(v11BillStage(b).label)}${b.supBillG||b.supBillN?' · supplier bill '+esc([b.supBillG,b.supBillN].filter(Boolean).join(' / ')):''}`,`<button class="btn ghost sm" onclick="v11BillOpen('${esc(b.billId)}')">${esc(v11BillNext(b).label)}</button>`)),'bills:'+k,'Bills');
     bsec('readywait','🧾','Bill ready — goods not arrived','prepared before arrival; upload the MI once the goods are in');
@@ -10551,13 +10602,13 @@ function posToday(){const secs=todaySecs();const shown=secs.filter(s=>s.rows.len
   const head=`<div class="card" style="margin-bottom:12px"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
     <b>${esc(new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'}))}</b><span class="small muted">everything waiting, in workflow order · open POs only</span>
     <span style="flex:1"></span>${hot?`<span class="chip" style="background:var(--non);color:#fff;border-color:transparent">${hot} to chase today</span>`:''}
-    ${navOK('buyer')?`<button class="btn sm" onclick="navGo('today','askdad')">📞 Ask dad — by supplier</button>`:''}</div>${tiles}</div>`;
+    ${navOK('buyer')?`<button class="btn sm" onclick="navGo('today','askdad')">📞 Ask by supplier</button>`:''}</div>${tiles}</div>`;
   if(!shown.length)return head+`<div class="card"><div class="empty">✅ Nothing waiting. ${PODOCS.length?'':'Sync the live sheet to load POs.'}</div></div>`;
   return head+shown.map(s=>{const all=TODAY_ALL.has(s.k),N=8,rows=all?s.rows:s.rows.slice(0,N);
     return `<div class="card" id="today-${s.k}" style="margin-bottom:10px;${s.rows.some(r=>r.cls==='hot')?'border-left:4px solid var(--non)':''}">
-      <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b>${s.icon} ${esc(s.title)}</b><span class="chip lite" style="font-size:.6rem">${s.rows.length}</span><span class="small muted">${esc(s.why)}</span>
+      <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b>${s.icon} ${esc(s.title)}</b><span class="chip lite" style="font-size:.6rem">${s.rows.length}</span><span class="small muted vt-c-hide">${esc(s.why)}</span>
         <span style="flex:1"></span>${s.go&&s.goLbl?`<a class="linky small" onclick="todayGo('${s.go}')">${esc(s.goLbl)} →</a>`:''}</div>
-      <div style="margin-top:6px">${rows.map(r=>`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:5px 0;border-top:1px dashed var(--line-2)">${r.ref}<span class="small" style="flex:1;min-width:200px">${r.text}</span>${r.btn}</div>`).join('')}</div>
+      <div style="margin-top:6px">${rows.map(r=>`<div class="td-row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px dashed var(--line-2)">${r.ref}<span class="small" style="flex:1;min-width:200px">${r.text}</span>${r.btn}</div>`).join('')}</div>
       ${s.rows.length>N?`<div style="text-align:center;margin-top:4px"><a class="linky small" onclick="todayMore('${s.k}')">${all?'▲ show less':'▼ show all '+s.rows.length}</a></div>`:''}</div>`;}).join('');}
 
 /* ---------- bills: the next Vasy step ---------- */
@@ -10726,6 +10777,109 @@ function posSupTerms(){
     <th class="r" style="background:var(--tint-po)">Supplier lead time (days)</th><th class="r" style="background:var(--tint-po)">Supplier MOQ</th><th>Updated</th></tr></thead><tbody>${tb}</tbody></table>
     ${rows.length>shown.length?`<div style="text-align:center;padding:10px"><button class="btn ghost sm" onclick="stSet('n',${ST_UI.n+300})">▼ Show more · ${rows.length-shown.length} hidden</button></div>`:''}</div>`;}
 
+/* ===================== [V1.1.8b R70] OVERVIEW pages for Shipments and Bills (like the PO overview) ===================== */
+function ovWeekKey(ymd){const d=new Date(ymd+'T00:00:00');if(isNaN(d))return '';const k=new Date(d);k.setDate(d.getDate()-((d.getDay()+6)%7));return f11Ymd(k);}
+function ovWeeks(n){const out=[];const m=ovWeekKey(t8());for(let i=n-1;i>=0;i--)out.push(d8add(m,-7*i));return out;}
+function ovGo(go,extra){todayGo(go);if(extra)extra();}
+function ovShipFlag(k){navGo('ships');QV11.ships='';F11.ships.flags=[k];F11_OPEN=true;f11Save();v11ShipsRefresh();}
+function ovTileGo(label,val,sub,go,tone){return ovTile(label,val,sub,go?`todayGo('${go}')`:'',tone);}
+function posShipOverview(){
+  const T=t8();const ships=(V11.shipments||[]).filter(s=>s.status!=='Cancelled');
+  const qty=s=>v11ShipAllocs(s.shipmentId).reduce((a,x)=>a+(+x.qty||0),0);
+  const transit=ships.filter(s=>!s.arrivedAt),arrived=ships.filter(s=>s.arrivedAt);
+  const over=ships.filter(s=>qv11Ok('ships',s,'overdue'));
+  const next7=transit.filter(s=>{const e=dOnly(s.expected);return e&&e>=T&&e<=d8add(T,6);});
+  const noLr=transit.filter(s=>!String(s.lr||'').trim()&&!String(s.transport||'').trim());
+  const noExp=transit.filter(s=>!dOnly(s.expected));
+  const arrNoBill=ships.filter(s=>qv11Ok('ships',s,'arrnobill')),billNoArr=ships.filter(s=>qv11Ok('ships',s,'billnoarr'));
+  const flags=ships.map(s=>({s,f:shfGet(s.shipmentId),bs:v11BillState(s.shipmentId)}));
+  const onPhone=flags.filter(x=>x.bs==='none'&&x.f.bill==='personal'),inGroup=flags.filter(x=>x.bs==='none'&&x.f.bill==='group');
+  const arr30=arrived.filter(s=>{const d=d8diff(dOnly(s.arrivedAt),T);return d!=null&&d<=30;});
+  const transitDays=arrived.map(s=>({s,d:d8diff(dOnly(s.shipDate),dOnly(s.arrivedAt))})).filter(x=>x.d!=null&&x.d>=0&&d8diff(dOnly(x.s.arrivedAt),T)<=180);
+  const ops=v11IsOps();
+  const weeks=ovWeeks(8);const wk=new Map(weeks.map(w=>[w,0]));arrived.forEach(s=>{const k=ovWeekKey(dOnly(s.arrivedAt));if(wk.has(k))wk.set(k,wk.get(k)+1);});
+  const exp7=[];for(let i=0;i<7;i++){const d=d8add(T,i);exp7.push({label:d.slice(5),v:transit.filter(s=>dOnly(s.expected)===d).length});}
+  const bySup=new Map();ships.forEach(s=>{const k=s.supplier||'—';const o=bySup.get(k)||{sup:k,transit:0,over:0,arr90:0,days:[],nobill:0};
+    if(!s.arrivedAt)o.transit++;if(qv11Ok('ships',s,'overdue'))o.over++;if(qv11Ok('ships',s,'arrnobill'))o.nobill++;
+    if(s.arrivedAt&&d8diff(dOnly(s.arrivedAt),T)<=90){o.arr90++;const d=d8diff(dOnly(s.shipDate),dOnly(s.arrivedAt));if(d!=null&&d>=0)o.days.push(d);}bySup.set(k,o);});
+  const supRows=[...bySup.values()].filter(o=>o.transit||o.over||o.arr90||o.nobill).sort((a,b)=>(b.over-a.over)||(b.transit-a.transit)||a.sup.localeCompare(b.sup));
+  const avg=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length*10)/10:null;
+  const soon=transit.slice().sort((a,b)=>String(dOnly(a.expected)||'9999').localeCompare(String(dOnly(b.expected)||'9999'))).slice(0,8);
+  const link=s=>`<a class="linky mono" style="font-weight:700" onclick="v11ShipEdit('${esc(s.shipmentId)}')">${esc(s.shipmentNo||s.shipmentId)}</a>`;
+  return `<div class="ovgrid">
+      ${ovTileGo('In transit',transit.length,NUM(transit.reduce((a,s)=>a+qty(s),0))+' nos on the way','ships:toarrive',transit.length?'#2563eb':'')}
+      ${ovTileGo('Overdue',over.length,'past the expected date','ships:overdue',over.length?'var(--non)':'')}
+      ${ovTile('Arriving in 7 days',next7.length,'by expected date',`todayGo('ships:toarrive')`)}
+      ${ovTile('No LR / transport',noLr.length,'in transit, nothing recorded',`ovShipFlag('nolr')`,noLr.length?'#B8893A':'')}
+      ${ovTile('No expected date',noExp.length,'in transit',`todayGo('ships:toarrive')`,noExp.length?'#B8893A':'')}
+      ${ovTileGo('Arrived, not on a bill',arrNoBill.length,'enter the bill','ships:arrnobill',arrNoBill.length?'#5B4B8A':'')}
+      ${ovTileGo('Billed, not arrived',billNoArr.length,'bill prepared before arrival','ships:billnoarr')}
+      ${ovTile('Arrived — last 30 days',arr30.length,NUM(arr30.reduce((a,s)=>a+qty(s),0))+' nos',`todayGo('ships:all')`,'var(--ok)')}
+      ${ovTile('Bill on a personal phone',onPhone.length,'forward it to the group',navOK('buyer')?`navGo('today','askdad')`:'',onPhone.length?'var(--non)':'')}
+      ${ovTile('Bill in the group, not entered',inGroup.length,'enter it in Bills',navOK('buyer')?`navGo('bills')`:'')}
+      ${ovTile('Average transit',avg(transitDays.map(x=>x.d))!=null?avg(transitDays.map(x=>x.d))+' d':'—','ship date → arrival · last 6 months','')}
+      ${ovTile('Shipments open',ships.filter(s=>!(s.arrivedAt&&v11BillState(s.shipmentId)!=='none')).length,'not arrived, or arrived without a bill','')}
+    </div>
+    <div class="card" style="margin-top:12px"><b class="small">Arrivals</b>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:8px">
+        <div><div class="small muted" style="margin-bottom:4px">Shipments arrived per week (last 8 weeks)</div>${svgBars(weeks.map(w=>({label:w.slice(5),v:wk.get(w)})),{color:'var(--ok)',h:110})}</div>
+        <div><div class="small muted" style="margin-bottom:4px">Expected to arrive — next 7 days</div>${svgBars(exp7,{color:'#2563eb',h:110})}</div></div></div>
+    ${soon.length?`<div class="card" style="margin-top:12px"><b class="small">Arriving next</b>${soon.map(s=>{const e=dOnly(s.expected),late=e&&e<T;
+      return `<div style="display:flex;gap:10px;align-items:center;padding:4px 0;border-top:1px dashed var(--line-2)">${link(s)}<span class="small muted">${esc(v11SupLabel(s.supplier,v11ShipPos(s.shipmentId)))}</span>
+        <span class="small" style="flex:1">${NUM(qty(s))} nos · shipped ${esc(d8show(dOnly(s.shipDate))||'—')}${s.lr?' · LR '+esc(s.lr):''}</span>
+        <span class="small" style="${late?'color:var(--non);font-weight:700':''}">${e?(late?'⚠ was due ':'due ')+esc(d8show(e)):'no expected date'}</span></div>`;}).join('')}</div>`:''}
+    ${!ops&&supRows.length?`<div class="card" style="margin-top:12px;overflow:auto"><b class="small">By supplier</b><table style="margin-top:6px"><thead><tr><th>Supplier</th><th class="r">In transit</th><th class="r">Overdue</th><th class="r">Arrived, no bill</th><th class="r">Arrived (90 d)</th><th class="r">Avg transit</th></tr></thead><tbody>
+      ${supRows.map(o=>`<tr><td class="small">${esc(o.sup)}</td><td class="r num">${o.transit||'·'}</td><td class="r num" style="${o.over?'color:var(--non);font-weight:700':''}">${o.over||'·'}</td><td class="r num">${o.nobill||'·'}</td><td class="r num">${o.arr90||'·'}</td><td class="r num">${avg(o.days)!=null?avg(o.days)+' d':'·'}</td></tr>`).join('')}</tbody></table></div>`:''}`;}
+function posBillOverview(){
+  if(!navOK('buyer'))return `<div class="card"><div class="empty">Bills — Purchase team / Management only.</div></div>`;
+  const T=t8();const bills=V11.bills||[];const st=b=>v11BillStage(b).key;
+  const tot=b=>{try{const t=JSON.parse(b.totalsJson||'{}')||{};return {w:+t.wTotal||0,n:+t.nTotal||0};}catch(e){return {w:0,n:0};}};
+  const inr=v=>'₹'+Math.round(v).toLocaleString('en-IN');
+  const k=key=>bills.filter(b=>qv11Ok('bills',b,key));
+  const open=bills.filter(b=>st(b)!=='billed');
+  const vOpen=open.reduce((a,b)=>{const t=tot(b);return {w:a.w+t.w,n:a.n+t.n};},{w:0,n:0});
+  const mStart=T.slice(0,8)+'01';
+  const billedM=bills.filter(b=>st(b)==='billed'&&dOnly(b.vasyAt)>=mStart);
+  const vBilledM=billedM.reduce((a,b)=>{const t=tot(b);return a+t.w+t.n;},0);
+  const age=b=>d8diff(dOnly(b.readyAt)||dOnly(b.billDate)||dOnly(b.createdAt),T);
+  const waitMI=k('readymi');const oldestMI=waitMI.map(age).filter(x=>x!=null).sort((a,b)=>b-a)[0];
+  // arrival → Vasy bill speed (billed bills, last 90 days)
+  const speed=bills.filter(b=>st(b)==='billed'&&d8diff(dOnly(b.vasyAt),T)<=90).map(b=>{const a=qv11Bill(b).sids.map(id=>dOnly((v11ShipById(id)||{}).arrivedAt)).filter(Boolean).sort();
+    return a.length?d8diff(a[a.length-1],dOnly(b.vasyAt)):null;}).filter(x=>x!=null&&x>=0);
+  const avg=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length*10)/10:null;
+  const weeks=ovWeeks(8);const wk=new Map(weeks.map(w=>[w,0]));bills.forEach(b=>{if(st(b)!=='billed')return;const kk=ovWeekKey(dOnly(b.vasyAt));if(wk.has(kk))wk.set(kk,wk.get(kk)+1);});
+  const mix=[['draft','Draft','#6B6359'],['ready','Ready','#B8893A'],['mi','MI done','#2563eb'],['partbilled','Part billed','#7FA3D8'],['billed','Billed (this month)','#5FA983']]
+    .map(([key,l,c])=>({l,c,v:key==='billed'?billedM.length:bills.filter(b=>st(b)===key).length})).filter(x=>x.v>0);
+  const mixBar=mix.length?`<div style="display:flex;height:20px;border-radius:6px;overflow:hidden">${mix.map(d=>`<div style="flex:${d.v};background:${d.c}" title="${d.l}: ${d.v}"></div>`).join('')}</div>
+    <div class="small muted" style="margin-top:4px;display:flex;gap:12px;flex-wrap:wrap">${mix.map(d=>`<span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${d.c};margin-right:3px"></i>${d.l} ${d.v}</span>`).join('')}</div>`:'<div class="small muted">No bills yet.</div>';
+  const bySup=new Map();open.forEach(b=>{const s=b.supplier||'—';const o=bySup.get(s)||{s,n:0,v:0,old:0};o.n++;const t=tot(b);o.v+=t.w+t.n;o.old=Math.max(o.old,age(b)||0);bySup.set(s,o);});
+  const supRows=[...bySup.values()].sort((a,b)=>b.v-a.v);
+  const oldest=open.slice().sort((a,b)=>(age(b)||0)-(age(a)||0)).slice(0,8);
+  return `<div class="ovgrid">
+      ${ovTileGo('Draft',k('draft').length,'still being entered','bills:draft')}
+      ${ovTileGo('Ready — goods not arrived',k('readywait').length,'prepared before arrival','bills:readywait')}
+      ${ovTileGo('Ready → upload MI',waitMI.length,oldestMI!=null?'oldest waiting '+oldestMI+' d':'goods are here','bills:readymi',waitMI.length?'#B8893A':'')}
+      ${ovTileGo('MI done → Vasy bill',k('mi').length,'record the Vasy bill no.','bills:mi',k('mi').length?'#2563eb':'')}
+      ${ovTileGo('Recheck qty',k('recheck').length,'bill more than shipment','bills:recheck',k('recheck').length?'var(--non)':'')}
+      ${ovTileGo('Billed this month',billedM.length,inr(vBilledM),'bills:billed','var(--ok)')}
+    </div>
+    <div class="ovgrid" style="margin-top:10px">
+      ${ovTile('Open bill value (w)',inr(vOpen.w),'not yet billed in Vasy',`todayGo('bills:')`)}
+      ${ovTile('Open bill value (wo)',inr(vOpen.n),'not yet billed in Vasy',`todayGo('bills:')`)}
+      ${ovTile('Arrival → Vasy bill',avg(speed)!=null?avg(speed)+' d':'—','average · last 90 days','')}
+      ${ovTile('Shipments with no bill',(V11.shipments||[]).filter(s=>s.status!=='Cancelled'&&v11BillState(s.shipmentId)==='none').length,'in transit or arrived',`todayGo('ships:arrnobill')`)}
+    </div>
+    <div class="card" style="margin-top:12px"><b class="small">Bill pipeline</b>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:8px">
+        <div><div class="small muted" style="margin-bottom:4px">Where the bills are</div>${mixBar}</div>
+        <div><div class="small muted" style="margin-bottom:4px">Bills completed in Vasy per week (last 8 weeks)</div>${svgBars(weeks.map(w=>({label:w.slice(5),v:wk.get(w)})),{color:'var(--ok)',h:110})}</div></div></div>
+    ${oldest.length?`<div class="card" style="margin-top:12px"><b class="small">Oldest open bills</b>${oldest.map(b=>{const t=tot(b),a=age(b);
+      return `<div style="display:flex;gap:10px;align-items:center;padding:4px 0;border-top:1px dashed var(--line-2)"><a class="linky mono" style="font-weight:700" onclick="v11BillOpen('${esc(b.billId)}')">${esc(b.billNo||b.billId)}</a>
+        <span class="small muted">${esc(b.supplier||'')}</span><span class="small" style="flex:1">${esc(v11BillStage(b).label)} · ${inr(t.w+t.n)}${a!=null?' · '+a+' d':''}</span>
+        <button class="btn ghost sm" onclick="v11BillOpen('${esc(b.billId)}')">${esc(v11BillNext(b).label)}</button></div>`;}).join('')}</div>`:''}
+    ${supRows.length?`<div class="card" style="margin-top:12px;overflow:auto"><b class="small">Open bills by supplier</b><table style="margin-top:6px"><thead><tr><th>Supplier</th><th class="r">Open bills</th><th class="r">Value</th><th class="r">Oldest</th></tr></thead><tbody>
+      ${supRows.map(o=>`<tr><td class="small">${esc(o.s)}</td><td class="r num">${o.n}</td><td class="r num">${inr(o.v)}</td><td class="r num">${o.old} d</td></tr>`).join('')}</tbody></table></div>`:''}`;}
+
 /* ===================== [V1.1.7 R49 phase 1] WORKFLOW MENU =====================
    POs (Requests · New PO · All POs) → Shipments → Bills → Track → Analyse.
    The old screens and views are reused; this layer only decides where they live. */
@@ -10737,11 +10891,11 @@ function navOK(need){const m=navWho();
   if(need==='intel')return typeof acIntelOn==='function'&&acIntelOn();
   return true;}
 const NAV_G=[
-  {g:'today',label:'🏠 Today',items:[{k:'today',label:'Today',s:'pos',v:'today'},{k:'askdad',label:'📞 Ask dad · by supplier',s:'pos',v:'askdad',need:'buyer'},{k:'fucal',label:'Follow-up calendar',s:'pos',v:'fucal'}]},   // [V1.1.8]
-  {g:'pos',label:'📋 POs',items:[{k:'requests',label:'Requests',s:'requests'},{k:'newpo',label:'＋ New PO',s:'po'},{k:'allpos',label:'All POs',s:'pos',v:'allpos'}]},
-  {g:'ships',label:'🚚 Shipments',items:[{k:'ships',label:'Shipments',s:'ships',sv:'ships'}]},
-  {g:'bills',label:'🧾 Bills',need:'buyer',items:[{k:'bills',label:'Bills',s:'ships',sv:'bills'}]},
-  {g:'track',label:'🔎 Track',items:[{k:'dash',label:'Overview',s:'pos',v:'dash'},{k:'brief',label:'Daily brief',s:'pos',v:'brief',need:'mgmt'},{k:'kanban',label:'Board',s:'pos',v:'kanban'},
+  {g:'today',label:'🏠 Today',items:[{k:'today',label:'Today',s:'pos',v:'today'},{k:'askdad',label:'📞 Ask by supplier',s:'pos',v:'askdad',need:'buyer'},{k:'fucal',label:'Follow-up calendar',s:'pos',v:'fucal'}]},   // [V1.1.8]
+  {g:'pos',label:'📋 POs',items:[{k:'poov',label:'Overview',s:'pos',v:'dash'},{k:'requests',label:'Requests',s:'requests'},{k:'newpo',label:'＋ New PO',s:'po'},{k:'allpos',label:'All POs',s:'pos',v:'allpos',def:true}]},
+  {g:'ships',label:'🚚 Shipments',items:[{k:'shipov',label:'Overview',s:'pos',v:'shipov'},{k:'ships',label:'Shipments',s:'ships',sv:'ships',def:true}]},
+  {g:'bills',label:'🧾 Bills',need:'buyer',items:[{k:'billov',label:'Overview',s:'pos',v:'billov'},{k:'bills',label:'Bills',s:'ships',sv:'bills',def:true}]},
+  {g:'track',label:'🔎 Track',items:[{k:'brief',label:'Daily brief',s:'pos',v:'brief',need:'mgmt'},{k:'kanban',label:'Board',s:'pos',v:'kanban'},
     {k:'product',label:'By product',s:'pos',v:'product'},{k:'goods',label:'Goods check',s:'pos',v:'goods'}]},
   {g:'analyse',label:'📊 Analyse',need:'buyer',items:[{k:'fund',label:'Fund planning',s:'pos',v:'fund',need:'buyer'},{k:'history',label:'PO History (closed)',s:'pos',v:'history',need:'buyer'},
     {k:'analytics',label:'PO analytics',s:'pos',v:'analytics',need:'mgmt'},{k:'dashboard',label:'Register · Dashboard',s:'dashboard',need:'intel'},
@@ -10750,7 +10904,7 @@ let NAV_CUR={g:'',k:''}, NAV_BUSY=false;
 function navItem(g,k){const G=NAV_G.find(x=>x.g===g);return G&&G.items.find(i=>i.k===k);}
 function navTitle(){const G=NAV_G.find(x=>x.g===NAV_CUR.g),it=navItem(NAV_CUR.g,NAV_CUR.k);if(!G||!it)return;
   const h=document.querySelector('#scr-pos h2.sect');if(h&&it.s==='pos'){
-    const sub={today:'everything waiting, in workflow order',askdad:'for the daily meeting — what to ask each supplier today',fucal:'next follow-ups, to-dos, promised dates and arrivals, day by day',supterms:'lead time and MOQ for each product × supplier',allpos:'open POs — send, chase, ship, close · closed POs are in Analyse › PO History',fund:'value of open POs — finance & purchase planning',history:'closed POs',analytics:'purchase analytics',goods:'what is still coming — no supplier, no rate'}[it.v]||'open POs only';
+    const sub={dash:'POs at a glance — click a tile for the list',shipov:'shipments at a glance — click a tile for the list',billov:'bills at a glance — click a tile for the list',today:'everything waiting, in workflow order',askdad:'for the daily meeting — what to ask each supplier today · tick several to answer together',fucal:'next follow-ups, to-dos, promised dates and arrivals, day by day',supterms:'lead time and MOQ for each product × supplier',allpos:'open POs — send, chase, ship, close · closed POs are in Analyse › PO History',fund:'value of open POs — finance & purchase planning',history:'closed POs',analytics:'purchase analytics',goods:'what is still coming — no supplier, no rate'}[it.v]||'open POs only';
     h.innerHTML=((G.g==='pos'||G.g==='today')?'':G.label.replace(/^\S+\s/,'')+' · ')+it.label+` <span class="sub">${sub}</span>`;}
   const hs=document.querySelector('#scr-ships h2.sect');if(hs&&it.s==='ships')hs.innerHTML=it.sv==='bills'
     ?'Bills <span class="sub">prepare before or after the goods arrive · Vasy MI and bill numbers · locked once a Vasy number is recorded</span>'
@@ -10764,7 +10918,7 @@ function navPaint(){const ng=document.getElementById('navgroups'),sn=document.ge
   sn.innerHTML=items.map(i=>`<button class="${i.k===NAV_CUR.k?'active':''}" onclick="navGo('${G.g}','${i.k}')">${i.label}${nb(iB[i.k])}</button>`).join('');}
 function navGo(g,k){const G=NAV_G.find(x=>x.g===g);if(!G)return;
   const items=G.items.filter(i=>navOK(i.need));if(!items.length)return;
-  const it=(k&&items.find(i=>i.k===k))||items.find(i=>i.k===(NAV_LAST[g]||''))||items[0];
+  const it=(k&&items.find(i=>i.k===k))||items.find(i=>i.k===(NAV_LAST[g]||''))||items.find(i=>i.def)||items[0];
   NAV_CUR={g,k:it.k};NAV_LAST[g]=it.k;NAV_BUSY=true;
   try{
     if(it.s==='pos'){switchScreen('pos');posSetView(it.v);}

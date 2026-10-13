@@ -5,7 +5,7 @@ Numbers are never reused. New items are added at the bottom.
 
 Status: ✅ LIVE · 🧪 Built, in TEST (next release) · 📝 Planned · ⏳ Owner action / decision · 🧊 Deferred
 
-Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5, live Oct 2026 · **V1.1.2** = server 2.6 + ProductsApi + ShipmentTools, live Oct 2026 · **V1.1.3** = server 2.7 · **V1.1.4** = dashboard file only — all live Oct 2026 (staff deployment version 6) · **V1.1.5** + **V1.1.6** = staff deployment version 7 (13 Oct 2026) · **V1.1.7** = restructure phase 1 · **V1.1.8** = phase 3 (both in test, dashboard file only)
+Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5, live Oct 2026 · **V1.1.2** = server 2.6 + ProductsApi + ShipmentTools, live Oct 2026 · **V1.1.3** = server 2.7 · **V1.1.4** = dashboard file only — all live Oct 2026 (staff deployment version 6) · **V1.1.5** + **V1.1.6** = staff deployment version 7 (13 Oct 2026) · **V1.1.7** = restructure phase 1 · **V1.1.8 / 8b** = phase 3 (both in test, dashboard file only)
 
 | No. | Area | What was raised | Type | Status | Notes |
 |---|---|---|---|---|---|
@@ -76,3 +76,7 @@ Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5
 | R65 | All POs / Fund planning | Sort and filter panel has too many options — structure and order it | Change | 🧪 V1.1.8 | Main row: supplier · PO stage · has · one Sort list · clear. "More filters" (category, product, matching lines, custom 3-level order) and "Columns & sharing" fold away |
 | R66 | Analyse | Remove the MOQ / EOQ Levels module (inventory analysis will own it). Add a module to enter supplier-given lead time and MOQ per product × supplier, next to the real lead time from our POs. No Apps Script change | Change | 🧪 V1.1.8 | Analyse › Lead time & MOQ. Saved in PO Meta rows "~ST\|supplier\|n". Levels removed from the menu (old code dormant) |
 | R67 | Restructure phase 3 extras | PO window progress strip; bills "next Vasy step" button; follow-up calendar | Change | 🧪 V1.1.8 | Dashboard file only |
+| R68 | Ask by supplier | Rename "Ask dad · by supplier" → "Ask by supplier" (no "dad" on screen). Expand all / collapse all; tick POs and shipments (or a whole supplier) and act on all ticked at once | Change | 🧪 V1.1.8b | Bottom bar: POs → promised / shipping / no answer / delayed / next follow-up; shipments → bill in group / on personal phone / ask tomorrow; copy ticked |
+| R69 | Layout | The Detailed / Condensed switch at the top looked irrelevant and duplicated module switches — one place only | Change | 🧪 V1.1.8b | Kept ONE global switch at the top; it now drives every screen (tables, PO cards, Today, Ask by supplier). Module "Density" switch removed; PO builder "Condensed" renamed "Summary" (it is a read-only summary, not spacing) |
+| R70 | Overviews | Overview for Shipments and Bills like the PO overview | Change | 🧪 V1.1.8b | POs › Overview (moved from Track), Shipments › Overview, Bills › Overview; tiles open the matching list |
+| R71 | Review | Re-analyse everything and suggest more ideas | Proposal | ⏳ Owner to pick | `DASHBOARD_STRUCTURE_PROPOSAL.md` §7, ideas I1–I21 |

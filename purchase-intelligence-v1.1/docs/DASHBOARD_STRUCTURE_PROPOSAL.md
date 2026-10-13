@@ -151,3 +151,38 @@ For each step: **who · where · see · do · filters / sort · new or better ·
 | **4 — Speed-ups** | V1.1.10 | menu search box; saved views; supplier page; bulk send / close / bill export; WhatsApp chase text; Requests: "already on PO / in transit", last rate, date filter; New PO duplicate warning | no |
 
 Not in this restructure: data saving, numbering, Vasy files, GST rules, the request app. V1.1-06 (arrival with rejections) and V1.1-07 (Vasy validation) stay separate but have their place (Arrivals, Bills).
+
+## 7. Idea list after the phase 3 review (14 Oct 2026) — owner to pick for phase 4
+
+Numbers are for picking. ★ = recommended.
+
+**Daily meeting (Ask by supplier)**
+- I1 ★ "✓ Discussed" per supplier + progress (6 of 14 done); discussed suppliers fold to the bottom.
+- I2 ★ Promise score per supplier from the answer log: promises kept / broken, average days late, "no answer" count — shown on the supplier card.
+- I3 ★ Escalate flag: promise broken twice, or "no answer" 3 days running → red "Escalate" at the top.
+- I4 Bill reminder text (WhatsApp) for shipments that arrived without a bill.
+
+**POs and requests**
+- I5 ★ New PO uses Lead time & MOQ: expected arrival = today + supplier lead time; warn below MOQ; suggest rounding up.
+- I6 ★ Requests: "already on PO-x / in transit SH-y", last rate and supplier (was phase 4).
+- I7 ★ Duplicate-order warning on New PO (was phase 4).
+- I8 ★ Bulk ✈ send / ✓ close in All POs (was phase 4).
+- I9 "Ready to close" = fully received AND billed in Vasy → close all in one click.
+
+**Shipments and bills**
+- I10 ★ Expected date filled from the supplier's real transit days when a shipment is entered without one.
+- I11 Bills waiting for MI more than 2 days turn red on Today.
+- I12 Remember a supplier's usual charges (freight, packing) on new bills.
+
+**Seeing what matters**
+- I13 ★ "Since yesterday" strip on Today: new POs, shipments arrived, bills completed, answers logged.
+- I14 ★ Browser tab shows the Today count, e.g. "(6) Purchase Intelligence".
+- I15 Supplier statement (PDF / Excel): open POs, pending items, shipments — to send to the supplier.
+- I16 ★ Fix list: shipments with no expected date, bills with no supplier bill no., products with MRP 0, POs with no supplier.
+
+**Team**
+- I17 To-dos assigned to a person + "My tasks" (ready for separate data-entry and follow-up people).
+- I18 PO history of changes (who changed what) from the audit log.
+- I19 ★ Menu search across PO / SH / BL / product / LR (was phase 4).
+- I20 Saved views (was phase 4).
+- I21 Supplier page: contacts (Management only), open POs, shipments, bills, promise score, lead time & MOQ (was phase 4).
