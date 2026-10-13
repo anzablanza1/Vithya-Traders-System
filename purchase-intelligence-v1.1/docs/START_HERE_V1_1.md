@@ -49,4 +49,4 @@ Script Properties (values never in Git): `VT_API_TOKEN`, `VT_SB_KEY`, `VT_PIN_SA
 
 - LIVE: V1.1.6 · server 2.7 · products 1.2 (deployment version 7, 13 Oct 2026).
 - In progress: see the top of `PROJECT_STATE.md` → "Current next items".
-- Proposal waiting for approval: `DASHBOARD_STRUCTURE_PROPOSAL.md` v2 (R49 — workflow-ordered menu, All POs on the Fund-planning filter engine, Today screen).
+- Restructure plan v3 approved in principle: `DASHBOARD_STRUCTURE_PROPOSAL.md` (R49, phases 1–4; four modes R56; closed POs only in Analyse R57; bills before or after arrival R58).

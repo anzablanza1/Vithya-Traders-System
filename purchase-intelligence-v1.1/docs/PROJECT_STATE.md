@@ -44,7 +44,7 @@ V1.1.1 onwards were tested in simulation first, then on a separate trial deploym
 
 ## Current next items
 
-0. R49 dashboard restructure — detailed proposal v2 in `DASHBOARD_STRUCTURE_PROPOSAL.md`, waiting for owner approval; then split into phases.
+0. R49 dashboard restructure — plan v3 approved in principle; phases 1–4 in `DASHBOARD_STRUCTURE_PROPOSAL.md`; phase 1 (V1.1.7) waits for the owner's go.
 0. R50 Apps Script clean-up — owner action.
 1. R41 — product charge insight should also read V1.1 bill charges.
 2. V1.1-06 — line-level Goods Check / receipt with rejections (replaces the interim "Mark arrived").
