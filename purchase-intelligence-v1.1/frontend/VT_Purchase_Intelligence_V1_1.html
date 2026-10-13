@@ -569,6 +569,7 @@ nav#mainnav{align-items:center}
 .f11 .fc.on{background:#0F766E;border-color:#0F766E;color:#fff}.f11.bills .fc.on{background:#B45309;border-color:#B45309}
 .f11-tog{font-size:.72rem}.f11-n{display:inline-block;min-width:16px;padding:0 5px;border-radius:8px;background:#0F766E;color:#fff;font-size:.6rem;margin-left:4px}
 .s11-sn{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 5px;border-radius:11px;background:#0F766E;color:#fff;font-size:.66rem;font-weight:700;font-variant-numeric:tabular-nums}
+.b11-need{border-color:var(--danger,#D93025)!important;background:#FFF1F0!important}
 .gtag{display:inline-block;font-size:.52rem;font-weight:700;letter-spacing:.02em;padding:0 4px;border-radius:4px;margin-left:3px;vertical-align:middle;line-height:1.5;white-space:nowrap}
 .gtag.in{background:#E7F3EC;color:#1E6B3A;border:1px solid #9CCBAE}.gtag.ex{background:#FDF0E2;color:#8A4B0F;border:1px solid #E5B98A}
 html[data-theme="dark"] .gtag.in{background:#1d3326;color:#9CDDB4}html[data-theme="dark"] .gtag.ex{background:#3a2a19;color:#F0C597}
@@ -643,7 +644,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
     <button data-s="ships" disabled title="V1.1 — shipments that can carry several POs">Shipments <span id="ships-badge" class="po-badge" style="display:none;background:#0F766E">0</span></button>
 
     <span class="nav-right"><span id="mode-chip" class="mode-chip ops" title="Your current access level">PO Tracking</span>
-    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.5 · Vaigai</span></span>
+    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.6 · Vaigai</span></span>
   </nav>
 </header>
 
@@ -5171,7 +5172,13 @@ function v11DefMS(sid,canon,lane){const l=v11PoLineFor(sid,canon,lane)||{code:ca
     const it=(typeof ITEMS!=='undefined')&&ITEMS.get(canon);const itM=it&&((lane==='n'?it.n:it.g)||{}).lastMRP;
     const ms=(typeof PRODUCTS!=='undefined')&&PRODUCTS.get(canon);const msM=ms&&miMasterMrp(ms,lane,0);
     if(!(+itM)&&!(+msM)&&(+l.mrp>0))mrp=+l.mrp;
-    return {mrp:r3(mrp),sp:r3(+m.sp||0)};}catch(e){return {mrp:0,sp:0};}}
+    let sp=+m.sp||0;
+    // [V1.1.6] still nothing → the MRP / selling typed for this product on an earlier bill (newest first)
+    if(!(mrp>0)||!(sp>0)){const M=lane==='n'?'mrpN':'mrpG',S=lane==='n'?'spN':'spG';
+      const prev=(V11.billLines||[]).filter(x=>x.canon===canon&&(+x[M]>0||+x[S]>0)).sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')))[0];
+      if(prev){if(!(mrp>0)&&+prev[M]>0)mrp=+prev[M];if(!(sp>0)&&+prev[S]>0)sp=+prev[S];}
+      if(!(sp>0)&&mrp>0)sp=mrp;}
+    return {mrp:r3(mrp),sp:r3(sp)};}catch(e){return {mrp:0,sp:0};}}
 function v11FillMS(l){['g','n'].forEach(ln=>{const q=ln==='g'?l.qtyG:l.qtyN;const M='mrp'+ln.toUpperCase(),S='sp'+ln.toUpperCase();
   if(+q>0&&(l[M]===''||l[M]==null||l[S]===''||l[S]==null)){const d=v11DefMS(l.shipmentId,l.canon,ln);
     if(l[M]===''||l[M]==null)l[M]=d.mrp||'';if(l[S]===''||l[S]==null)l[S]=d.sp||'';}});return l;}
@@ -5256,12 +5263,13 @@ function v11BillModal(){
     const mine=B.lines.filter(x=>x.shipmentId===l.shipmentId&&x.canon===l.canon).reduce((a,x)=>a+(+x.qtyG||0)+(+x.qtyN||0),0);
     const flag=Math.abs(billedOther+mine-shipQ)>0.0005?`<span class="chip" style="font-size:.52rem;background:var(--non);color:#fff;border-color:transparent" title="all bills: ${NUM(billedOther+mine)} · shipment: ${NUM(shipQ)}">recheck</span>`:'';
     const shSel=`<select class="po-in" style="max-width:230px;font-size:.7rem"${dis} onchange="v11BillLineShip('${k}',this.value)">${v11ShipsCarrying(l.canon).map(s=>`<option value="${esc(s.shipmentId)}"${s.shipmentId===l.shipmentId?' selected':''}>${esc(v11ShipLabel(s.shipmentId))}</option>`).join('')}</select>`;
-    const inp=(f,w,step)=>`<input class="po-in" id="b11-${f}-${k}" type="number" min="0" step="${step||'any'}" style="width:${w}px" value="${l[f]===''||l[f]==null?'':l[f]}"${dis} oninput="v11BillSet('${k}','${f}',this.value)"${(f==='qtyG'||f==='qtyN')?` onchange="v11BillQtyDone('${k}')"`:''}>`;
+    const inp=(f,w,step)=>`<input class="po-in${/^(mrp|sp)[GN]$/.test(f)&&!(+l[f]>0)?' b11-need':''}" id="b11-${f}-${k}" type="number" min="0" step="${step||'any'}" style="width:${w}px" value="${l[f]===''||l[f]==null?'':l[f]}"${dis} oninput="v11BillSet('${k}','${f}',this.value)"${(f==='qtyG'||f==='qtyN')?` onchange="v11BillQtyDone('${k}')"`:''}>`;
     return `<tr><td class="r small muted">${ix+1}</td>
       <td class="small" style="min-width:150px">${esc(prodName(l.code,l.name))}<div class="mono small muted">${esc(l.canon)} ${flag}</div></td>
       <td>${shSel}<div class="small muted">shipped ${NUM(shipQ)}${billedOther>0?' · on other bills '+NUM(billedOther):''}</div></td>
       <td class="sp-w">${inp('qtyG',62)}</td><td class="sp-w">${inp('rateG',72,'0.001')}</td>
       <td class="sp-n">${inp('qtyN',62)}</td><td class="sp-n">${inp('rateN',72,'0.001')}</td>
+      <td class="r num" id="b11-tq-${k}" title="w + wo"><b>${NUM((+l.qtyG||0)+(+l.qtyN||0))}</b></td>
       <td>${inp('tax',48,'0.5')}</td>
       <td class="c"><input type="checkbox" title="upload the w side under the Non-GST (/) item code"${l.upName?' checked':''}${dis} onchange="v11BillSet('${k}','upName',this.checked)"></td>
       <td class="small">${+l.qtyG>0?`<div>w ${inp('mrpG',62,'0.01')}</div>`:''}${+l.qtyN>0?`<div>wo ${inp('mrpN',62,'0.01')}</div>`:''}</td>
@@ -5288,11 +5296,13 @@ function v11BillModal(){
       <div class="f"><label class="small muted">…or add one product (then pick its shipment on the line)</label><input class="po-in" list="b11-pl" id="b11-addprod" placeholder="type name or code…" style="min-width:260px">
         <datalist id="b11-pl">${[...prodMap.values()].sort((a,b)=>a.name.localeCompare(b.name)).map(o=>`<option value="${esc(o.c)} — ${esc(o.name)} · unbilled ${NUM(o.u)} · ${esc([...o.sh].join(', '))}"></option>`).join('')}</datalist></div>
       <div class="f"><label>&nbsp;</label><button class="btn ghost sm" onclick="v11BillAddProdUI()">＋ add</button></div></div>`}
+    ${(()=>{const n=B.lines.filter(l=>(+l.qtyG>0&&(!(+l.mrpG>0)||!(+l.spG>0)))||(+l.qtyN>0&&(!(+l.mrpN>0)||!(+l.spN>0)))).length;
+      return n?`<div class="small" style="color:var(--danger,#D93025);margin:4px 0">⚠ ${n} line(s) have no MRP / selling price (red boxes). Vasy has none for these products yet — type it here, and set it in Vasy too.</div>`:'';})()}
     <div style="overflow:auto"><table class="sp-tbl"><thead><tr><th>#</th><th>Product</th><th>Shipment (POs)</th>
       <th class="sp-w" style="background:var(--gst);color:#fff">w qty</th><th class="sp-w" style="background:var(--gst);color:#fff">w rate ₹ ${GT(0)}</th>
-      <th class="sp-n" style="background:var(--non);color:#fff">wo qty</th><th class="sp-n" style="background:var(--non);color:#fff">wo rate ₹ <span class="gtag ex" title="Non-GST bill — no tax">no GST</span></th>
+      <th class="sp-n" style="background:var(--non);color:#fff">wo qty</th><th class="sp-n" style="background:var(--non);color:#fff">wo rate ₹ <span class="gtag ex" title="Non-GST bill — no tax">no GST</span></th><th class="r" title="w qty + wo qty">Total qty</th>
       <th>GST%</th><th title="upload the w side under the / code">/ name</th><th title="filled from the last purchase / Vasy / master / PO — change if needed">MRP ${GT(1)}</th><th title="filled from the last purchase / Vasy / master / PO — incl GST, goes into the file as typed">Selling ${GT(1)}</th><th></th></tr></thead>
-      <tbody>${rows||'<tr><td colspan="12" class="small muted" style="padding:10px">No lines yet — assign a shipment.</td></tr>'}</tbody></table></div>
+      <tbody>${rows||'<tr><td colspan="13" class="small muted" style="padding:10px">No lines yet — assign a shipment.</td></tr>'}</tbody></table></div>
     ${assigned.length?`<div class="small" style="margin:6px 0"><b>Shipments on this bill:</b> ${assigned.map(sid=>`<span class="chip lite" style="font-size:.62rem">${esc(v11ShipLabel(sid))}${B.billId&&!B.locked?` · <a class="linky" title="unassign this shipment from the bill (the shipment is NOT deleted)" onclick="v11BillUnassign('${esc(sid)}')">unassign</a>`:''}</span>`).join(' ')}</div>`:''}
     <datalist id="b11-chg-list">${['Freight','Transport / Lorry hire','Packing & Forwarding','Loading / Unloading','Hamali','Courier','Insurance','Handling charges','Door delivery','Cartage','Octroi / Entry tax','Other'].map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist>
     <div class="card" style="padding:9px 11px;margin-top:10px"><b class="small">Additional charges</b> <span class="small muted">— saved here, but NOT in the upload file: enter them manually in Vasy.</span>
@@ -5321,8 +5331,10 @@ function v11BillSet(k,f,v){const l=v11BillLine(k);if(!l)return;const ms=/^(mrp|s
     // [V1.1.3 R47] never redraw while typing (the redraw re-selected the box, so the 2nd digit replaced the 1st).
     // The w / wo MRP & selling boxes are redrawn when you leave the box (v11BillQtyDone).
     if(l._lanes==null)l._lanes=before.join(',');
+    const tq=document.getElementById('b11-tq-'+k);if(tq)tq.innerHTML='<b>'+NUM((+l.qtyG||0)+(+l.qtyN||0))+'</b>';
     v11BillTot();return;}
   l[f]=(f==='upName')?!!v:(v===''&&ms?'':(+v||0));
+  if(ms){const el=document.getElementById('b11-'+f+'-'+k);if(el)el.classList.toggle('b11-need',!(+l[f]>0));}
   v11BillTot();}
 function v11BillQtyDone(k){const l=v11BillLine(k);if(!l)return;const now=[+l.qtyG>0,+l.qtyN>0].join(',');
   const was=l._lanes;delete l._lanes;if(was!=null&&was!==now)v11BillModal();}
@@ -7695,6 +7707,31 @@ let FUND_SHOW={po:true,transit:true,received:true,pending:true}, FUND_RATE=true,
 let FUND_AMT={po:true,transit:true,received:true,pending:true};
 let FUND_ORDER=['supplier','status','date'];let FUND_DIR=1;let FUND_Q='';   // hierarchy + direction + free-text search
 let FUND_NOTES=false;
+/* [V1.1.6 R52/R53] Fund planning: "has" filter (a PO can be part received AND have goods in transit), only-matching-lines,
+   order controls on the home page (same order as the preview / PDF). */
+let FUND_HAS=new Set(), FUND_LINES_ONLY=false;
+const FUND_HAS_OPT=[['pending','⏳ Pending to ship'],['transit','🚚 In transit'],['received','📦 Received'],['notsent','✉ Not sent yet'],['overdue','⏰ Overdue']];
+function fundHasTog(k){FUND_HAS.has(k)?FUND_HAS.delete(k):FUND_HAS.add(k);posRender();}
+function fundLinesOnly(on){FUND_LINES_ONLY=!!on;posRender();}
+function fundLineHas(l,k){return k==='pending'?l.pending>0:k==='transit'?l.transit>0:k==='received'?l.rec>0:false;}
+function fundRowHas(r,k){if(k==='notsent')return r.status==='made';if(k==='overdue')return posOverdue(r.p);return r.lines.some(l=>fundLineHas(l,k));}
+function fundTot(lines){const T={ord:0,transit:0,pending:0,rec:0,vPo:0,vTransit:0,vPending:0,vRec:0};
+  lines.forEach(r=>{T.ord+=r.ord;T.transit+=r.transit;T.pending+=r.pending;T.rec+=r.rec;T.vPo+=r.vPo;T.vTransit+=r.vTransit;T.vPending+=r.vPending;T.vRec+=r.vRec;});return T;}
+const FUND_KEYS=[['','—'],['supplier','Supplier'],['status','PO stage'],['date','PO date'],['po','PO number'],['product','Product'],['pendingv','Pending ₹'],['transitv','Transit ₹'],['povalue','PO value ₹']];
+function fundSort(rows){
+  const pad=v=>String(Math.round((+v||0)*100)).padStart(16,'0');
+  const keyf={supplier:r=>String(r.supplier||'').toLowerCase(), status:r=>PODOC_LABEL[r.status]||r.status, date:r=>String(_createdTs(r.p)).padStart(15,'0'),
+    product:r=>r.lines[0]?String(r.lines[0].name).toLowerCase():'', po:r=>String(r.no), pendingv:r=>pad(r.T.vPending), transitv:r=>pad(r.T.vTransit), povalue:r=>pad(r.T.vPo)};
+  const ord=FUND_ORDER.filter(k=>keyf[k]);
+  return rows.sort((a,b)=>{for(const k of ord){const x=keyf[k](a),y=keyf[k](b);if(x<y)return -1*FUND_DIR;if(x>y)return 1*FUND_DIR;}return String(a.no).localeCompare(String(b.no));});}
+function fundOrderHTML(){const pick=(i,cur)=>`<select class="po-in" style="width:118px" onchange="fundSetOrder(${i},this.value)">${FUND_KEYS.map(o=>`<option value="${o[0]}"${cur===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select>`;
+  return `<b>Order by:</b> ${pick(0,FUND_ORDER[0])} then ${pick(1,FUND_ORDER[1])} then ${pick(2,FUND_ORDER[2])} <button class="btn ghost sm" onclick="FUND_DIR*=-1;fundReorder()">${FUND_DIR>0?'▲ ascending':'▼ descending'}</button> <span class="muted">— same order in Preview, PDF and Excel</span>`;}
+function fundReorder(){posRender();try{if(document.getElementById('fundprev-modal').classList.contains('on'))fundPreview();}catch(e){}}
+// keep a multi-select's summary, count and ticks in step without closing it
+function fundMsPaint(which){const m={status:FUND_STATUS,sup:FUND_SUP,cat:FUND_CAT,prod:FUND_PROD}[which];const d=document.querySelector('.fund-ms[data-w="'+which+'"]');if(!m||!d)return;
+  const sum=d.querySelector('.fund-ms-sum');if(sum&&sum.firstChild)sum.firstChild.nodeValue=m.size?m.size+' selected':'All';
+  const lc=document.getElementById('fund-ms-n-'+which);if(lc)lc.textContent=m.size?'('+m.size+')':'';
+  d.querySelectorAll('input[type=checkbox][data-v]').forEach(cb=>{cb.checked=m.has(cb.getAttribute('data-v'));});}
 function fundToggleAmt(k){FUND_AMT[k]=!FUND_AMT[k];posRender();}
 function fundToggleNotes(){FUND_NOTES=!FUND_NOTES;posRender();}
 function fundSetQ(v){FUND_Q=v;fundRenderBody();}
@@ -7718,9 +7755,7 @@ function fundRateEdit(poId,code,v){const p=podocFind(poId);if(!p)return;const ca
   let n=0;p.lines.forEach(l=>{if(String(l.code||'').replace(/\/+$/,'')===canon){l.price=+v||0;n++;}});
   if(n){_podPersist(p);posRender();}}
 function fundExpandAll(on){const rows=fundFilter(fundBuild());FUND_OPEN=new Set(on?rows.map(r=>r.poId):[]);posRender();}
-function fundMSet(which,v){const m={status:FUND_STATUS,sup:FUND_SUP,cat:FUND_CAT,prod:FUND_PROD}[which];if(!m)return;m.has(v)?m.delete(v):m.add(v);fundRenderBody();
-  // keep the dropdown open + update its summary count without a full re-render
-  const sum=document.querySelector&&event&&event.target?event.target.closest('.fund-ms'):null;}
+function fundMSet(which,v){const m={status:FUND_STATUS,sup:FUND_SUP,cat:FUND_CAT,prod:FUND_PROD}[which];if(!m)return;m.has(v)?m.delete(v):m.add(v);fundRenderBody();fundMsPaint(which);}
 function fundMSearch(inp){const q=(inp.value||'').toLowerCase().trim();const body=inp.closest?inp.closest('.fund-ms-body'):null;if(!body||!body.querySelectorAll)return;
   body.querySelectorAll('.fund-ms-opt').forEach(o=>{const t=o.getAttribute('data-t')||'';o.style.display=(!q||t.indexOf(q)>=0)?'':'none';});}
 function fundMAll(which){const m={status:FUND_STATUS,sup:FUND_SUP,cat:FUND_CAT,prod:FUND_PROD}[which];if(!m)return;
@@ -7729,9 +7764,9 @@ function fundMAll(which){const m={status:FUND_STATUS,sup:FUND_SUP,cat:FUND_CAT,p
     :which==='sup'?[...new Set(allRows.map(r=>r.supplier))]
     :which==='cat'?[...new Set(allRows.flatMap(r=>r.cats))]
     :[...new Set(allRows.flatMap(r=>r.lines.map(l=>l.code)))];
-  vals.forEach(v=>m.add(v));fundRenderBody();fundSyncSummaries();}
+  vals.forEach(v=>m.add(v));fundRenderBody();fundMsPaint(which);}
 function fundSyncSummaries(){}
-function fundClear(which){({status:FUND_STATUS,sup:FUND_SUP,cat:FUND_CAT,prod:FUND_PROD}[which]||new Set()).clear();fundRenderBody();}
+function fundClear(which){({status:FUND_STATUS,sup:FUND_SUP,cat:FUND_CAT,prod:FUND_PROD}[which]||new Set()).clear();fundRenderBody();fundMsPaint(which);}
 function fundSelAll(ids){FUND_SEL=new Set(ids);posRender();}
 function fundSelClear(){FUND_SEL=new Set();posRender();}
 function fundSelToggle(id){FUND_SEL.has(id)?FUND_SEL.delete(id):FUND_SEL.add(id);posRender();}
@@ -7761,7 +7796,9 @@ function fundBuild(){
 }
 function fundFilter(rows){
   const toks=FUND_Q?sTokens(FUND_Q):null;
+  const lineKeys=[...FUND_HAS].filter(k=>k==='pending'||k==='transit'||k==='received');
   return rows.filter(r=>{
+    if(FUND_HAS.size&&![...FUND_HAS].some(k=>fundRowHas(r,k)))return false;
     if(FUND_STATUS.size&&!FUND_STATUS.has(r.status))return false;
     if(FUND_SUP.size&&!FUND_SUP.has(r.supplier))return false;
     if(FUND_CAT.size&&!r.cats.some(c=>FUND_CAT.has(c)))return false;
@@ -7769,7 +7806,10 @@ function fundFilter(rows){
     if(toks){const hay=sCompact(r.no+' '+r.supplier+' '+r.lines.map(l=>l.name+' '+l.code+' '+l.cat).join(' '));
       if(!sMatch(hay,sRev(hay),toks))return false;}
     return true;
-  });
+  }).map(r=>{   // [V1.1.6] "only those lines": keep just the lines that have what was ticked, and total only them
+    if(!FUND_LINES_ONLY||!lineKeys.length)return r;
+    const lines=r.lines.filter(l=>lineKeys.some(k=>fundLineHas(l,k)));return Object.assign({},r,{lines,T:fundTot(lines)});
+  }).filter(r=>r.lines.length);
 }
 /* ===================== [v8.1] GOODS CHECK MODULE — read-only PO status for sales/inventory ===================== */
 let GC_Q='', GC_STATUS=new Set(), GC_SUP=new Set(), GC_CAT=new Set(), GC_PROD=new Set(), GC_OPEN=new Set(), GC_SHOW_SUP=false, GC_SEL=new Set();
@@ -7953,12 +7993,12 @@ function posFund(){
   const prodName2=new Map();allRows.forEach(r=>r.lines.forEach(l=>{if(!prodName2.has(l.code))prodName2.set(l.code,l.name);}));
   const STLBL={made:'Created',sent:'Sent',partshipped:'Part shipped',shipped:'In transit',partial:'Part received'};
   const dispOf=(which,v)=>which==='status'?(STLBL[v]||v):(which==='prod'?(prodName2.get(v)||v):v);
-  const msChips=(which,list,sel,lbl)=>`<div class="f fund-f"><label>${lbl}${sel.size?` <span class="small muted">(${sel.size})</span>`:''}</label>
-    <details class="fund-ms"><summary class="fund-ms-sum">${sel.size?sel.size+' selected':'All'}<span class="fund-ms-car">\u25BE</span></summary>
+  const msChips=(which,list,sel,lbl)=>`<div class="f fund-f"><label>${lbl} <span class="small muted" id="fund-ms-n-${which}">${sel.size?'('+sel.size+')':''}</span></label>
+    <details class="fund-ms" data-w="${which}"><summary class="fund-ms-sum">${sel.size?sel.size+' selected':'All'}<span class="fund-ms-car">\u25BE</span></summary>
       <div class="fund-ms-body">
         <input class="po-in fund-ms-q" placeholder="search ${esc(lbl.toLowerCase())}\u2026" oninput="fundMSearch(this)" onclick="event.stopPropagation()">
         <div style="display:flex;gap:6px;margin:6px 0"><button class="btn ghost sm" style="flex:1" onclick="fundMAll('${which}')">All</button><button class="btn ghost sm" style="flex:1" onclick="fundClear('${which}')">Clear</button></div>
-        <div class="fund-ms-list">${list.length?list.map(v=>{const dn=dispOf(which,v);return `<label class="fund-ms-opt" data-t="${esc(String(dn).toLowerCase()+' '+String(v).toLowerCase())}"><input type="checkbox" ${sel.has(v)?'checked':''} onchange="fundMSet('${which}','${esc(String(v).replace(/'/g,"\\'"))}')"> <span>${esc(dn)}</span></label>`;}).join(''):'<span class="small muted">none available</span>'}</div>
+        <div class="fund-ms-list">${list.length?list.map(v=>{const dn=dispOf(which,v);return `<label class="fund-ms-opt" data-t="${esc(String(dn).toLowerCase()+' '+String(v).toLowerCase())}"><input type="checkbox" data-v="${esc(String(v))}" ${sel.has(v)?'checked':''} onchange="fundMSet('${which}',this.getAttribute('data-v'))"> <span>${esc(dn)}</span></label>`;}).join(''):'<span class="small muted">none available</span>'}</div>
       </div></details></div>`;
   const showBtn=(k,l)=>`<button class="${FUND_SHOW[k]?'active':''}" onclick="fundToggleShow('${k}')">${l}</button>`;
   const amtBtn=(k,l)=>`<button class="${FUND_AMT[k]?'active':''}" onclick="fundToggleAmt('${k}')">${l}</button>`;
@@ -7969,7 +8009,7 @@ function posFund(){
       <span style="flex:1"></span>
       <button class="btn red sm" onclick="fundPreview()">⬇ Preview & download</button><button class="btn ghost sm" onclick="fundPushSheet()">⇪ Push to sheet</button></div>
     <div class="filters" style="align-items:flex-end">
-      ${msChips('status',allStatus,FUND_STATUS,'Status')}
+      ${msChips('status',allStatus,FUND_STATUS,'PO stage')}
       ${msChips('sup',allSup,FUND_SUP,'Supplier')}
       ${msChips('cat',allCat,FUND_CAT,'Category')}
       ${msChips('prod',allProd,FUND_PROD,'Product')}
@@ -7985,13 +8025,19 @@ function posFund(){
       <button class="btn ghost sm" onclick="fundExpandAll(true)">▾ Expand all</button>
       <button class="btn ghost sm" onclick="fundExpandAll(false)">▸ Collapse all</button>
       <span class="small muted" style="align-self:center">${rows.length} PO(s)${FUND_SEL.size?' · '+FUND_SEL.size+' selected':''}</span></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;border-top:1px dashed var(--line-2);padding-top:8px">
+      <b class="small">Show POs that have:</b>${FUND_HAS_OPT.map(([k,l])=>`<button class="btn ${FUND_HAS.has(k)?'':'ghost '}sm" style="font-size:.66rem" onclick="fundHasTog('${k}')">${l}</button>`).join('')}
+      ${FUND_HAS.size?`<a class="linky small" onclick="FUND_HAS.clear();posRender()">clear</a>`:''}
+      <label class="small" style="display:flex;gap:4px;align-items:center" title="hide the other lines of those POs and total only the matching lines"><input type="checkbox" ${FUND_LINES_ONLY?'checked':''} onchange="fundLinesOnly(this.checked)"> only those lines &amp; amounts</label>
+      <span class="small muted">a PO can be in several at once (e.g. part received + in transit)</span></div>
+    <div class="small" style="margin-top:8px">${fundOrderHTML()}</div>
   </div>`;
   return controls+`<div id="fund-body">`+fundBodyHTML()+`</div>`;
 }
 function fundBodyHTML(){
   const inr=v=>'\u20B9'+Math.round(v).toLocaleString('en-IN');
   const allRows=fundBuild();
-  const rows=fundFilter(allRows);
+  const rows=fundSort(fundFilter(allRows));
   const G={transit:0,pending:0,rec:0,po:0};
   rows.forEach(r=>{G.transit+=r.T.vTransit;G.pending+=r.T.vPending;G.rec+=r.T.vRec;G.po+=r.T.vPo;});
   const totals=`<div class="ovgrid" style="margin-bottom:12px">
@@ -8037,12 +8083,9 @@ async function fundPushSheet(){
 /* [v7.1] ordered rows for PDF/Excel using the FUND_ORDER hierarchy */
 function fundOrderedRows(){
   let rows=fundFilter(fundBuild());if(FUND_SEL.size)rows=rows.filter(r=>FUND_SEL.has(r.poId));
-  const keyf={supplier:r=>r.supplier||'', status:r=>PODOC_LABEL[r.status]||r.status, date:r=>String(_createdTs(r.p)).padStart(15,'0'), product:r=>r.lines[0]?r.lines[0].name:''};
-  const ord=FUND_ORDER.filter(k=>keyf[k]);
-  rows.sort((a,b)=>{for(const k of ord){const x=keyf[k](a),y=keyf[k](b);if(x<y)return -1*FUND_DIR;if(x>y)return 1*FUND_DIR;}return String(a.no).localeCompare(String(b.no));});
-  return rows;
+  return fundSort(rows);
 }
-function fundSetOrder(i,v){FUND_ORDER[i]=v;posRender();}
+function fundSetOrder(i,v){FUND_ORDER[i]=v;fundReorder();}
 // build the export column plan (respects qty + amount toggles); PDF uses short labels
 function fundExpCols(){return fundColumns().filter(c=>!c.amt||FUND_SHOW_RATE);}
 function fundPreview(){
@@ -8061,7 +8104,7 @@ function fundPreview(){
     const foot=`<tr style="border-top:2px solid var(--line-2);font-weight:700;background:var(--surface-2)"><td></td><td>Total</td><td></td>${FUND_SHOW_RATE?'<td></td>':''}${cols.map(c=>c.amt?`<td class="r num">${inr(r.T[c.vk])}</td>`:`<td class="r num" style="${c.key==='pending'?'color:var(--non)':''}">${NUM(r.T[c.qk])}</td>`).join('')}${FUND_NOTES?'<td></td>':''}</tr>`;
     return `<div style="margin-bottom:10px;border:1px solid var(--line-2);border-radius:6px;overflow:hidden">${head}
       <table class="pod-tbl"><thead><tr><th>#</th><th>Item</th><th>UOM</th>${FUND_SHOW_RATE?'<th class="r">Rate</th>':''}${cols.map(c=>`<th class="r">${esc(c.label)}</th>`).join('')}${FUND_NOTES?'<th style="min-width:120px">Notes</th>':''}</tr></thead><tbody>${rowsH}${foot}</tbody></table></div>`;}).join('');
-  document.getElementById('fp-order').innerHTML=`Order by: ${orderPick(0,FUND_ORDER[0])} then ${orderPick(1,FUND_ORDER[1])} then ${orderPick(2,FUND_ORDER[2])} · <button class="btn ghost sm" onclick="FUND_DIR*=-1;fundPreview()">${FUND_DIR>0?'▲ ascending':'▼ descending'}</button>`;
+  document.getElementById('fp-order').innerHTML=fundOrderHTML();
   document.getElementById('fp-body').innerHTML=
     `<div class="card" style="margin-bottom:10px;display:flex;gap:16px;flex-wrap:wrap;font-weight:700">
       <div><div class="ovn" style="font-size:1.3rem;color:#B8893A"><b>${inr(G.vTransit)}</b></div><div class="ovl">Transit value</div></div>

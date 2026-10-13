@@ -101,7 +101,7 @@ function getOrCreate_(ss, name) { return ss.getSheetByName(name) || ss.insertShe
 function installTriggers_() {
   var trigs = ScriptApp.getProjectTriggers();
   for (var i = 0; i < trigs.length; i++) if (trigs[i].getHandlerFunction() === 'syncProducts') ScriptApp.deleteTrigger(trigs[i]);
-  ScriptApp.newTrigger('syncProducts').timeBased().everyDays(1).atHour(2).create();
+  ScriptApp.newTrigger('syncProducts').timeBased().everyDays(1).atHour(5).create();   // [V1.1.6] after the ~3 am Vasy → Supabase load
 }
 
 function onOpen() {

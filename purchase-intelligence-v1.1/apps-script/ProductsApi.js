@@ -18,7 +18,7 @@
  * A comparison is written to the tab "V1.1 Product Sync Report" on every run.
  */
 
-var PRODUCTS_V11_VERSION = 'products 1.1 (V1.1.3)';
+var PRODUCTS_V11_VERSION = 'products 1.2 (V1.1.6)';
 var PROD_REPORT_TAB = 'V1.1 Product Sync Report';
 
 function prodSbGetAll_(table, select, order) {
@@ -97,7 +97,7 @@ function syncProductsV11_() {
   });
   Object.keys(master).forEach(function (c) { var p = get(c); p.inMaster = true; });
 
-  var rows = [], rep = [], cBoth = 0, cSb = 0, cMa = 0, cDiff = 0, cPrice = 0, cFb = 0, cSpDiff = 0;
+  var rows = [], rep = [], repTop = [], cNoMrp = 0, cBoth = 0, cSb = 0, cMa = 0, cDiff = 0, cPrice = 0, cFb = 0, cSpDiff = 0;
   order.forEach(function (c) {
     var p = P[c], m = master[c] || {};
     var eg = p.gstCode ? E[p.gstCode] : null, en = p.nonCode ? E[p.nonCode] : null;
@@ -125,7 +125,9 @@ function syncProductsV11_() {
     else if (src === 'Supabase') note = 'only in Supabase';
     var mg = Number(m.gstMrp) || 0, vg = (eg && Number(eg.mrp)) || 0;
     if (mg && vg && Math.abs(mg - vg) / vg > 0.01) { note = (note ? note + '; ' : '') + 'MRP w differs (master ' + mg + ' vs Vasy ' + vg + ')'; cDiff++; }
-    if (note && rep.length < 6000) rep.push([c, name, src, m.gstMrp === undefined ? '' : m.gstMrp, eg ? eg.mrp : '', m.nonMrp === undefined ? '' : m.nonMrp, en ? en.mrp : '', note]);
+    var noMrp = (eg || en) && gstMrp === '' && nonMrp === '';                       // [V1.1.6] in Vasy, but no MRP anywhere
+    if (noMrp) { cNoMrp++; note = 'NO MRP — Vasy has MRP 0 / blank and the master has none: set the MRP in Vasy' + (note ? '; ' + note : ''); }
+    if (note && rep.length < 6000) (noMrp ? repTop : rep).push([c, name, src, m.gstMrp === undefined ? '' : m.gstMrp, eg ? eg.mrp : '', m.nonMrp === undefined ? '' : m.nonMrp, en ? en.mrp : '', note]);
   });
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -142,7 +144,7 @@ function syncProductsV11_() {
     st.getRange('A7:B7').setValues([['Product source', 'Supabase + master (' + PRODUCTS_V11_VERSION + ')']]);
   }
   prodReport_(started, { total: rows.length, both: cBoth, sbOnly: cSb, masterOnly: cMa, withVasyPrice: cPrice, mrpDiff: cDiff,
-    skuRows: sku.length, erpRows: erp.length, masterRows: Object.keys(master).length, masterErr: masterErr, fallback: cFb, spDiff: cSpDiff }, '', rep);
+    skuRows: sku.length, erpRows: erp.length, masterRows: Object.keys(master).length, masterErr: masterErr, fallback: cFb, spDiff: cSpDiff, noMrp: cNoMrp }, '', repTop.concat(rep));
   return rows.length;
 }
 
@@ -154,7 +156,7 @@ function prodReport_(started, s, err, rep) {
     var head = [['V1.1 Product Sync Report', PRODUCTS_V11_VERSION], ['Run at', started], ['Took (seconds)', Math.round((new Date() - started) / 1000)]];
     if (err) head.push(['RESULT', err]);
     if (s) {
-      head.push(['Products written', s.total], ['In Supabase AND master', s.both], ['Only in Supabase', s.sbOnly], ['Only in master sheet', s.masterOnly],
+      head.push(['IN VASY BUT NO MRP ANYWHERE (fix in Vasy — listed first below)', s.noMrp], ['Products written', s.total], ['In Supabase AND master', s.both], ['Only in Supabase', s.sbOnly], ['Only in master sheet', s.masterOnly],
         ['With a Vasy MRP / selling price', s.withVasyPrice], ['MRP filled from the master sheet (Vasy had none / 0)', s.fallback],
         ['Vasy selling price differs from Vasy MRP', s.spDiff], ['MRP (w) differs master vs Vasy by more than 1%', s.mrpDiff],
         ['Supabase sku_master rows', s.skuRows], ['Supabase erp_snapshot rows', s.erpRows], ['Master sheet products', s.masterRows]);
@@ -170,4 +172,13 @@ function prodReport_(started, s, err, rep) {
       sh.getRange(r0 + 1, 1, rep.length, h.length).setValues(rep);
     }
   } catch (e) { }
+}
+
+// [V1.1.6] Vasy prices reach Supabase every night at about 3:05 am IST, so the product sync must run AFTER that.
+// Run this ONCE from the editor: it replaces the 2 am product-sync trigger with a 5 am one.
+function v11ProductSyncAt5am() {
+  var trigs = ScriptApp.getProjectTriggers(), n = 0;
+  for (var i = 0; i < trigs.length; i++) if (trigs[i].getHandlerFunction() === 'syncProducts') { ScriptApp.deleteTrigger(trigs[i]); n++; }
+  ScriptApp.newTrigger('syncProducts').timeBased().everyDays(1).atHour(5).create();
+  return 'Product sync now runs daily at about 5 am (removed ' + n + ' old trigger(s)).';
 }

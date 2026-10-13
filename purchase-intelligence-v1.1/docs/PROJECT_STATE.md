@@ -44,8 +44,8 @@ V1.1.1 onwards were tested in simulation first, then on a separate trial deploym
 
 ## Current next items
 
-0. R48 sort + filter for Shipments / Bills — built as V1.1.5, waiting for LIVE check.
-0. R49 dashboard restructure — proposal in `DASHBOARD_STRUCTURE_PROPOSAL.md`, waiting for owner decision.
+0. R48 (V1.1.5) and R52–R55 (V1.1.6) — built, waiting for LIVE check.
+0. R49 dashboard restructure — option C approved; phase 1 plan waiting for owner OK (with R56 mode names).
 0. R50 Apps Script clean-up — owner action.
 1. R41 — product charge insight should also read V1.1 bill charges.
 2. V1.1-06 — line-level Goods Check / receipt with rejections (replaces the interim "Mark arrived").

@@ -294,3 +294,25 @@ No production change is complete until this log is updated.
 - LIVE checks: <<LIVE_CHECKS_115>>
 
 **Result** — <<RESULT_115>>
+
+---
+
+### <<LIVE_DATE_116>> — V1.1.6 (dashboard + Code + ProductsApi) — R52 · R53 · R54 · R55
+
+**Requirement** — R52 order-by on the Fund planning home page; R53 Fund planning status / supplier filters; R54 Total qty on bill lines; R55 MRP 0 in Vasy upload files.
+
+**Files changed**
+- `frontend/VT_Purchase_Intelligence_V1_1.html` (chip "V1.1.6 · Vaigai", includes V1.1.5): `fundSort` / `fundOrderHTML` / `fundReorder` (one order for home, Preview, PDF, Excel; keys supplier, PO stage, PO date, PO number, product, Pending ₹, Transit ₹, PO value ₹); `FUND_HAS` "Show POs that have" + `FUND_LINES_ONLY`; `fundMsPaint` keeps the multi-select summary / count / ticks in step; Status → "PO stage". Bill: Total qty column (`b11-tq-…`), red MRP / selling boxes (`b11-need`) + warning line, `v11DefMS` falls back to the MRP / selling typed for the same product on an earlier bill.
+- `apps-script/ProductsApi.js` (products 1.2): report counts and lists first the products that are in Vasy but have no MRP anywhere; new `v11ProductSyncAt5am()` (run once) moves the daily sync to ~5 am.
+- `apps-script/Code.js`: `installTriggers_` creates the sync trigger at 5 am (was 2 am).
+
+**Data / Sheet / API changes** — trigger time only. **Backward-compatibility impact** — none; server stays 2.7.
+
+**Root cause R55** — the products concerned have MRP 0 in Vasy (166 item codes in the 13 Oct snapshot, e.g. CPG143957A — new, never purchased) and no MRP in the master; nothing can fill them automatically. Separately, the 2 am sync ran before the ~3:05 am Vasy → Supabase load, so new Vasy prices arrived a day late.
+
+**Deployment** — <<NEW_VERSION_116>>.
+
+**Tests performed** — `tests/dashboard/t36.js`, `t37.js`, `tests/server/hprod_nomrp.js`; full `run_all.sh` (self-tests 42 + 54, sync, conversion / undo, all dashboard tests, 976 buttons pressed — 0 problems).
+- LIVE checks: <<LIVE_CHECKS_116>>
+
+**Result** — <<RESULT_116>>
