@@ -26,6 +26,8 @@ with a fake Google Sheets (server) and a simulated browser (dashboard). Nothing 
 | `server/hprod_nomrp.js` | A product that is in Vasy with MRP 0 is listed first in the sync report. |
 | `dashboard/t36.js` | Fund planning: "has" filter (pending / in transit / received / not sent), only-those-lines totals, order by on the home page, supplier multi-select. |
 | `dashboard/t37.js` | Bill: Total qty column, red MRP boxes + warning, MRP taken from an earlier bill. |
+| `dashboard/t38.js` | Workflow menu per mode, All POs quick views / row actions / own filters, Shipments + Bills quick views, closed POs only in History. |
+| `dashboard/t39.js` | Entering the dashboard shows the new menu; old buttons hidden; mode chip "Operations". |
 | `dashboard/audit2.js` | Opens every screen / window / view with sample data and presses every button; 0 problems expected. |
 
 The self-tests inside `ShipmentApi.gs` / `BillApi.gs` refuse to run on any workbook except the old TEST copy.

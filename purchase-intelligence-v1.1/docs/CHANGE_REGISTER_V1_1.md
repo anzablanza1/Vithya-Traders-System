@@ -316,3 +316,25 @@ No production change is complete until this log is updated.
 - LIVE checks: owner deployed version 7 to staff on 13 Oct 2026 after checking.
 
 **Result** — LIVE (version 7).
+
+---
+
+### <<LIVE_DATE_117>> — V1.1.7 (dashboard file only) — R49 phase 1 · R57 · R58 · R61
+
+**Requirement** — restructure phase 1 (`DASHBOARD_STRUCTURE_PROPOSAL.md` §6): workflow-ordered menu; POs (Requests · New PO · All POs); Bills as its own tab; quick views on Shipments and Bills (bills may be prepared before or after arrival); Track and Analyse split; closed POs only in Analyse › PO History; Fund planning for the Purchase team; By PO / By bill retired; mode names Operations / Purchase team. Phases 3 and 4 next; phase 2 (server PIN) only after owner approval.
+
+**Files changed** — `frontend/VT_Purchase_Intelligence_V1_1.html` (chip "V1.1.7 · Vaigai"):
+- Menu: `NAV_G`, `navGo`, `navPaint`, `navSync`, `navTitle`, `#navgroups` + `#subnav`; the old menu buttons stay hidden in `#navold` so existing code keeps working; old view toggles hidden (`navInitHide`).
+- All POs: the Fund-planning engine with two separate filter contexts (`fundCtx('fund'|'allpos')`); All POs includes fully received (not closed) POs; quick views To send / To chase / Waiting for goods / Fully received → close (`APO_QV`, `apoQV`); row info (promised / expected / sent, overdue, SH numbers, open to-do) and next action (Send / Ship / Close / ⋯). In Operations mode: no supplier, no ₹, no supplier / ₹ sort keys, no export buttons.
+- Shipments / Bills quick views (`QV11`, `qv11Ok`, `qv11HTML`): To arrive · Overdue · Arrived not on a bill · Billed not arrived · All; Draft · Ready goods not arrived · Ready → MI · MI done → Vasy bill · Billed · Recheck · All.
+- `posRender`: `fund` for Purchase team + Management; `allpos`; `po` / `bill` views redirect to All POs.
+- Mode labels: Operations (was PO Tracking), Purchase team (was Follow-up). Supplier contact stays Management-only.
+
+**Data / Sheet / API changes** — none. **Backward-compatibility impact** — none; server stays 2.7.
+
+**Deployment** — <<NEW_VERSION_117>>.
+
+**Tests performed** — `tests/dashboard/t38.js`, `t39.js`; all earlier dashboard tests; button audit 1,735 buttons across 33 screens / views incl. the new menu in Operations and Purchase team — 0 problems.
+- LIVE checks: <<LIVE_CHECKS_117>>
+
+**Result** — <<RESULT_117>>

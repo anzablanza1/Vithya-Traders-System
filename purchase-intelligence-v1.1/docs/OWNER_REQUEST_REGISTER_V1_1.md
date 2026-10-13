@@ -5,7 +5,7 @@ Numbers are never reused. New items are added at the bottom.
 
 Status: ✅ LIVE · 🧪 Built, in TEST (next release) · 📝 Planned · ⏳ Owner action / decision · 🧊 Deferred
 
-Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5, live Oct 2026 · **V1.1.2** = server 2.6 + ProductsApi + ShipmentTools, live Oct 2026 · **V1.1.3** = server 2.7 · **V1.1.4** = dashboard file only — all live Oct 2026 (staff deployment version 6) · **V1.1.5** + **V1.1.6** = staff deployment version 7 (13 Oct 2026)
+Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5, live Oct 2026 · **V1.1.2** = server 2.6 + ProductsApi + ShipmentTools, live Oct 2026 · **V1.1.3** = server 2.7 · **V1.1.4** = dashboard file only — all live Oct 2026 (staff deployment version 6) · **V1.1.5** + **V1.1.6** = staff deployment version 7 (13 Oct 2026) · **V1.1.7** = restructure phase 1 (in test)
 
 | No. | Area | What was raised | Type | Status | Notes |
 |---|---|---|---|---|---|
@@ -65,5 +65,8 @@ Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5
 | R54 | Bills | Total qty column (w + wo) per line in the bill split | Change | ✅ LIVE (V1.1.6) | Updates while typing |
 | R55 | Bills / products | MRP 0 in some Vasy upload files | Bug | ✅ LIVE (V1.1.6) | Cause: the product has MRP 0 in Vasy itself (e.g. CPG143957A — new, never purchased; 166 such codes in Vasy) and none in the master. Fixes: red MRP boxes + warning on the bill; MRP typed on an earlier bill is reused; sync report lists "in Vasy but no MRP" first; product sync moved from 2 am to 5 am (Vasy → Supabase load runs ~3:05 am, so 2 am always used yesterday's prices) |
 | R56 | Access modes | Mode names / rights | Change | 📝 Phase 2 | Four modes: View only (display, no changes) · Operations (was PO Tracking — enters shipments and records status, never sees supplier names or rates) · Purchase team (was Follow-up) · Management |
-| R57 | Workflow | Closed POs must not appear in workflow / tracking screens — they are history; open POs are time-sensitive | Decision | 📝 Phase 1 | Closed POs only in Analyse › PO History and in search (marked closed) |
-| R58 | Bills | Bills are prepared before OR after the goods arrive — both normal | Decision | 📝 Phase 1 | Bill quick views "Ready — goods not arrived" / "Ready → upload MI"; shipments quick view "Billed, not arrived" |
+| R57 | Workflow | Closed POs must not appear in workflow / tracking screens — they are history; open POs are time-sensitive | Decision | 🧪 V1.1.7 | Closed POs only in Analyse › PO History and in search (marked closed) |
+| R58 | Bills | Bills are prepared before OR after the goods arrive — both normal | Decision | 🧪 V1.1.7 | Bill quick views "Ready — goods not arrived" / "Ready → upload MI"; shipments quick view "Billed, not arrived" |
+| R59 | Modes | Supplier contact details visible only in Management; Purchase team vs Management difference stays as it is | Decision | ✅ kept | Already Management-only in code (`supCallHtml`) — unchanged |
+| R60 | Follow-up | Redesign tasks, snooze and follow-up per the workflow | Change | 📝 Phase 3 | Folded into the Today screen design |
+| R61 | Restructure phase 1 | Workflow menu, All POs, Bills tab, quick views, Track / Analyse, Operations / Purchase team names | Change | 🧪 V1.1.7 | Dashboard file only |

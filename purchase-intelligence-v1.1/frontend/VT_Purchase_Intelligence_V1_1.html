@@ -570,6 +570,13 @@ nav#mainnav{align-items:center}
 .f11-tog{font-size:.72rem}.f11-n{display:inline-block;min-width:16px;padding:0 5px;border-radius:8px;background:#0F766E;color:#fff;font-size:.6rem;margin-left:4px}
 .s11-sn{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 5px;border-radius:11px;background:#0F766E;color:#fff;font-size:.66rem;font-weight:700;font-variant-numeric:tabular-nums}
 .b11-need{border-color:var(--danger,#D93025)!important;background:#FFF1F0!important}
+#navgroups{display:flex;gap:4px;flex-wrap:wrap}
+#navgroups button.ng{font-weight:700}
+#subnav{display:flex;gap:6px;flex-wrap:wrap;padding:6px 18px 8px;border-top:1px solid var(--line-2);background:var(--surface-2)}
+#subnav button{border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);border-radius:16px;padding:4px 12px;font-size:.76rem;cursor:pointer}
+#subnav button.active{background:#0F766E;border-color:#0F766E;color:#fff}
+.qv{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}.qv button{font-size:.7rem;padding:4px 10px;border-radius:14px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);cursor:pointer}
+.qv button.on{background:#0F766E;border-color:#0F766E;color:#fff}.qv button .n{opacity:.75;margin-left:4px}
 .gtag{display:inline-block;font-size:.52rem;font-weight:700;letter-spacing:.02em;padding:0 4px;border-radius:4px;margin-left:3px;vertical-align:middle;line-height:1.5;white-space:nowrap}
 .gtag.in{background:#E7F3EC;color:#1E6B3A;border:1px solid #9CCBAE}.gtag.ex{background:#FDF0E2;color:#8A4B0F;border:1px solid #E5B98A}
 html[data-theme="dark"] .gtag.in{background:#1d3326;color:#9CDDB4}html[data-theme="dark"] .gtag.ex{background:#3a2a19;color:#F0C597}
@@ -634,6 +641,8 @@ html[data-theme="dark"] .live-conn{background:#23201c}
     </div>
   </div>
   <nav id="mainnav">
+    <span id="navgroups"></span>
+    <span id="navold" style="display:none">
     <button data-s="dashboard" disabled>Dashboard</button>
     <button data-s="search" disabled>Search</button>
     <button data-s="fulldata" disabled>Full Data</button>
@@ -642,10 +651,12 @@ html[data-theme="dark"] .live-conn{background:#23201c}
     <button data-s="po" disabled>PO Builder <span id="po-badge" class="po-badge" style="display:none">0</span></button>
     <button data-s="pos" disabled>PO Tracking <span id="pos-badge" class="po-badge" style="display:none;background:var(--gst)">0</span></button>
     <button data-s="ships" disabled title="V1.1 — shipments that can carry several POs">Shipments <span id="ships-badge" class="po-badge" style="display:none;background:#0F766E">0</span></button>
+    </span>
 
-    <span class="nav-right"><span id="mode-chip" class="mode-chip ops" title="Your current access level">PO Tracking</span>
-    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.6 · Vaigai</span></span>
+    <span class="nav-right"><span id="mode-chip" class="mode-chip ops" title="Your current access level">Operations</span>
+    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.7 · Vaigai</span></span>
   </nav>
+  <nav id="subnav" style="display:none"></nav>
 </header>
 
 <main>
@@ -968,11 +979,11 @@ html[data-theme="dark"] .live-conn{background:#23201c}
   <div class="modal" style="max-width:560px">
     <div style="display:flex;align-items:center;gap:10px;margin:0 0 6px">
       <h3 style="margin:0">Settings &amp; access</h3><span style="flex:1"></span>
-      <span class="muted small">Current: <span id="mode-chip2" class="mode-chip ops">PO Tracking</span></span>
+      <span class="muted small">Current: <span id="mode-chip2" class="mode-chip ops">Operations</span></span>
     </div>
-    <div class="foot-note" style="margin:0 0 12px">Tiers — <b>PO Tracking</b> (open) ▸ <b>Follow-up</b> (PIN) ▸ <b>Management</b> (PIN). Higher unlocks more; lock back any time.</div>
+    <div class="foot-note" style="margin:0 0 12px">Tiers — <b>Operations</b> (open) ▸ <b>Purchase team</b> (PIN) ▸ <b>Management</b> (PIN). Higher unlocks more; lock back any time.</div>
 
-    <div class="set-row"><div class="lbl"><b>Follow-up mode</b><div class="small muted">PO tracking + follow-up worklist. No supplier phone / WhatsApp.</div></div>
+    <div class="set-row"><div class="lbl"><b>Purchase team mode</b> <span class="small muted">(was Follow-up)</span><div class="small muted">Data entry + follow-up, suppliers and rates, bills, Fund planning. No supplier phone / WhatsApp.</div></div>
       <button class="btn ghost sm" onclick="acEnter('followup')">Enter Follow-up</button></div>
     <div class="set-row"><div class="lbl"><b>Management mode</b><div class="small muted">Everything — register intelligence, supplier contacts, cost &amp; margin.</div></div>
       <button class="btn red sm" onclick="acEnter('mgmt')">Enter Management</button></div>
@@ -1001,7 +1012,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
         <button class="btn ghost sm" style="border-color:var(--non);color:var(--non)" onclick="acResetLocal()">Reset local data</button></div></div>
 
     <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:16px">
-      <button class="btn ghost sm" id="set-lock" style="display:none" onclick="acLock()">🔒 Lock to PO Tracking</button>
+      <button class="btn ghost sm" id="set-lock" style="display:none" onclick="acLock()">🔒 Lock to Operations</button>
       <button class="btn ghost sm" onclick="acCloseSettings()">Close</button>
     </div>
   </div>
@@ -4694,6 +4705,29 @@ function v11SupplierOptions(cur){
 
 /* ---------- [V1.1.5 R48] SORT + FILTER for the Shipments and Bills lists ----------
    Kept per PC (browser storage). "Open / All" still works; these filters narrow it further. */
+/* [V1.1.7 R58] quick views — one click, applied before the filters; bills may be prepared before OR after arrival */
+let QV11={ships:'',bills:''};
+const QV11_OPT={ships:[['','Open (default)'],['toarrive','🚚 To arrive'],['overdue','⏰ Overdue'],['arrnobill','📦 Arrived, not on a bill'],['billnoarr','🧾 Billed, not arrived'],['all','All']],
+  bills:[['','Open (default)'],['draft','Draft'],['readywait','⬇ Ready — goods not arrived'],['readymi','⬇ Ready → upload MI'],['mi','MI done → record Vasy bill'],['billed','✅ Billed'],['recheck','⚠ Recheck qty'],['all','All']]};
+function qv11Bill(b){const sids=[...new Set(v11BillLinesOf(b.billId).map(l=>l.shipmentId))];return {sids,arrived:sids.length>0&&sids.every(id=>{const x=v11ShipById(id);return x&&x.arrivedAt;})};}
+function qv11Ok(v,x,k){const today=f11Ymd(new Date());
+  if(v==='ships'){const st=v11ShipState(x),bs=v11BillState(x.shipmentId);
+    if(k==='toarrive')return st==='transit';
+    if(k==='overdue')return st==='transit'&&x.expected&&dOnly(x.expected)<today;
+    if(k==='arrnobill')return st==='arrived'&&bs==='none';
+    if(k==='billnoarr')return st==='transit'&&bs!=='none';
+    return true;}
+  const g=v11BillStage(x).key,a=qv11Bill(x);
+  if(k==='draft')return g==='draft';
+  if(k==='readywait')return g==='ready'&&!a.arrived;
+  if(k==='readymi')return g==='ready'&&a.arrived;
+  if(k==='mi')return g==='mi'||g==='partbilled';
+  if(k==='billed')return g==='billed';
+  if(k==='recheck')return a.sids.some(id=>v11BillState(id)==='recheck');
+  return true;}
+function qv11Set(v,k){QV11[v]=k;v11ShipsRefresh();}
+function qv11HTML(v,all){return `<div class="qv">${QV11_OPT[v].map(([k,l])=>{const n=k?all.filter(x=>qv11Ok(v,x,k)).length:null;
+  return `<button class="${QV11[v]===k?'on':''}" onclick="qv11Set('${v}','${k}')">${l}${n!=null?`<span class="n">${n}</span>`:''}</button>`;}).join('')}</div>`;}
 const F11_DEF={ships:{date:'ship',from:'',to:'',st:[],bill:[],sup:'',flags:[],sort:'no-desc'},
                bills:{date:'bill',from:'',to:'',st:[],sup:'',flags:[],sort:'no-desc'}};
 let F11=(()=>{try{const o=JSON.parse(localStorage.getItem('vt_f11')||'null');if(o&&o.ships&&o.bills)return Object.assign(JSON.parse(JSON.stringify(F11_DEF)),o);}catch(e){}return JSON.parse(JSON.stringify(F11_DEF));})();
@@ -4802,12 +4836,14 @@ function v11ShipsRender(){
   if(!V11.loaded){el.innerHTML='<div class="card small muted">Sync with the live sheet to load shipments.</div>';return;}
   const q=S11_Q.trim().toLowerCase();
   let list=(V11.shipments||[]).slice();
-  if(S11_SCOPE==='open')list=list.filter(s=>s.status!=='Cancelled'&&(!s.arrivedAt||v11ShipBillChip(s.shipmentId)[0]!=='✅ billed'));
+  const _all11=list.filter(s=>s.status!=='Cancelled');
+  if(QV11.ships&&QV11.ships!=='all')list=_all11.filter(s=>qv11Ok('ships',s,QV11.ships));
+  else if(!QV11.ships&&S11_SCOPE==='open')list=list.filter(s=>s.status!=='Cancelled'&&(!s.arrivedAt||v11ShipBillChip(s.shipmentId)[0]!=='✅ billed'));
   if(q)list=list.filter(s=>{const al=v11ShipAllocs(s.shipmentId);
     return [s.shipmentNo,v11IsOps()?'':s.supplier,s.lr,s.transport,s.note].concat(v11ShipPos(s.shipmentId).map(v11PoLabel),al.map(a=>a.canon+' '+(a.name||''))).join(' ').toLowerCase().indexOf(q)>=0;});
   list=f11Apply('ships',list);   // [V1.1.5 R48] filters + sort
   const cnt=document.getElementById('ships-count');if(cnt)cnt.textContent=list.length+' shipment(s)';
-  f11Paint('ships');
+  f11Paint('ships');try{document.getElementById('ships-fbar').insertAdjacentHTML('afterbegin',qv11HTML('ships',_all11));}catch(e){}
   if(!list.length){el.innerHTML='<div class="card small muted">'+(f11Count('ships')?'No shipments match these filters. <a class="linky" onclick="f11Clear(\'ships\')">Clear filters</a>':'No shipments '+(S11_SCOPE==='open'?'open ':'')+'yet. Use <b>＋ New shipment</b>.')+'</div>';return;}
   el.innerHTML=`<div class="card" style="overflow:auto"><table><thead><tr><th>Shipment</th><th>Ship date</th><th>Supplier</th><th>POs</th><th>Products</th><th class="r">Qty</th><th>Status</th><th>Bill</th><th></th></tr></thead><tbody>${
     list.map(s=>{const al=v11ShipAllocs(s.shipmentId);const st=v11ShipState(s);const bs=v11BillState(s.shipmentId);
@@ -5120,7 +5156,7 @@ const B11_STATUS_CHIP={'Draft':['draft','#6B6359'],'Ready':['⬇ ready for uploa
 const B11_HEAD=['Item Code *','UNIT','Qty *','Price *','Mrp *','Selling Price *','UNIT','MRP (2)','Selling Price (2)','UNIT','MRP (3)','Selling Price (3)','Discount 1 Type*','Discount 1*','Discount 2 Type*','Discount 2*','Calculate Expiry On?(MFG/EXP)','EXP/MFG Date(DD-MM-YYYY)'];
 function v11BillById(id){return (V11.bills||[]).find(b=>b.billId===id)||null;}
 function v11BillLinesOf(id){return (V11.billLines||[]).filter(l=>l.billId===id);}
-function v11NoBills(){if(v11IsOps()){alert('Bills are available in Follow-up and Management mode only.');return true;}return false;}
+function v11NoBills(){if(v11IsOps()){alert('Bills are available in Purchase team and Management mode only.');return true;}return false;}
 function r2(v){return Math.round(((+v||0)+Number.EPSILON)*100)/100;}
 // qty of a product on a shipment, and how much of it is not yet on any bill (optionally ignoring one bill)
 function v11ShipQty(sid,canon){return v11ShipAllocs(sid).filter(a=>a.canon===canon).reduce((a,x)=>a+(+x.qty||0),0);}
@@ -5135,17 +5171,19 @@ function v11ShipsCarrying(canon){const ids=new Set((V11.allocs||[]).filter(a=>a.
 function v11ShipsView(v){if(v==='bills'&&v11NoBills())v='ships';S11_VIEW=v;
   document.querySelectorAll('#ships-view button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));
   const nb=document.getElementById('ships-newbill');if(nb)nb.style.display=v11IsOps()?'none':'';
-  if(v==='bills')v11BillsRender();else v11ShipsRender();}
+  if(v==='bills')v11BillsRender();else v11ShipsRender();try{navSync();}catch(e){}}
 function v11BillsRender(){
   const el=document.getElementById('ships-list');if(!el)return;el.classList.add('bills');try{document.getElementById('scr-ships').classList.add('bills-on');}catch(e){}
   if(v11IsOps()){S11_VIEW='ships';v11ShipsRender();return;}
   const q=S11_Q.trim().toLowerCase();
   let list=(V11.bills||[]).slice();
-  if(S11_SCOPE==='open')list=list.filter(b=>v11BillStage(b).key!=='billed');
+  const _allb=list.slice();
+  if(QV11.bills&&QV11.bills!=='all')list=list.filter(b=>qv11Ok('bills',b,QV11.bills));
+  else if(!QV11.bills&&S11_SCOPE==='open')list=list.filter(b=>v11BillStage(b).key!=='billed');
   if(q)list=list.filter(b=>[b.billNo,b.supplier,b.supBillG,b.supBillN,b.miG,b.miN,b.vasyG,b.vasyN].concat(v11BillLinesOf(b.billId).map(l=>(v11ShipById(l.shipmentId)||{}).shipmentNo+' '+l.canon)).join(' ').toLowerCase().indexOf(q)>=0);
   list=f11Apply('bills',list);   // [V1.1.5 R48] filters + sort
   const cnt=document.getElementById('ships-count');if(cnt)cnt.textContent=list.length+' bill(s)';
-  f11Paint('bills');
+  f11Paint('bills');try{document.getElementById('ships-fbar').insertAdjacentHTML('afterbegin',qv11HTML('bills',_allb));}catch(e){}
   if(!list.length){el.innerHTML='<div class="card small muted">'+(f11Count('bills')?'No bills match these filters. <a class="linky" onclick="f11Clear(\'bills\')">Clear filters</a>':'No bills '+(S11_SCOPE==='open'?'open ':'')+'yet. Use <b>＋ New bill</b>, or <b>🧾</b> on a shipment.')+'</div>';return;}
   el.innerHTML=`<div class="card" style="overflow:auto"><table><thead><tr><th>Bill</th><th>Bill date</th><th>Supplier</th><th>Supplier bill no.</th><th>Shipments</th><th class="r">w total</th><th class="r">wo total</th><th>Status</th><th>Vasy</th></tr></thead><tbody>${
     list.map(b=>{let t={};try{t=JSON.parse(b.totalsJson||'{}')||{};}catch(e){}
@@ -6661,7 +6699,7 @@ function posSyncFilterButtons(){
   document.querySelectorAll('#pos-filter button').forEach(b=>{const f=b.dataset.f;if(!f)return;
     b.classList.toggle('active',POS_FILTERS.has(f));});
 }
-function posSetView(v){POS_VIEW=v;document.querySelectorAll('#pos-view button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));posControlsRender();posRender();}
+function posSetView(v){POS_VIEW=v;document.querySelectorAll('#pos-view button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));posControlsRender();posRender();try{navSync();}catch(e){}}
 function posSetSortPO(v){POS_SORT_PO=v;posRender();}
 function posSetSortProd(v){POS_SORT_PROD=v;posRender();}
 function posSetDate(w,v){if(w==='from')POS_FROM=v;else POS_TO=v;posRender();}
@@ -6681,7 +6719,7 @@ function posBrandOptions(){const s=new Set();PODOCS.filter(p=>!p.parentPoId).for
 function posControlsRender(){
   const el=document.getElementById('pos-controls');if(!el)return;const v=POS_VIEW;let h='';
   // [v7.4] value modules (fund/analytics/history) carry their own filters — hide the shared scope/status/search
-  const ownFilters=(v==='fund'||v==='analytics'||v==='history'||v==='goods');
+  const ownFilters=(v==='fund'||v==='allpos'||v==='analytics'||v==='history'||v==='goods');
   document.querySelectorAll('.pos-filterset').forEach(x=>{x.style.display=ownFilters?'none':'';});
   if(ownFilters){el.innerHTML='';return;}
   if(v==='po'||v==='product'||v==='timeline'||v==='kanban'){
@@ -7710,6 +7748,31 @@ let FUND_NOTES=false;
 /* [V1.1.6 R52/R53] Fund planning: "has" filter (a PO can be part received AND have goods in transit), only-matching-lines,
    order controls on the home page (same order as the preview / PDF). */
 let FUND_HAS=new Set(), FUND_LINES_ONLY=false;
+/* [V1.1.7] the same engine drives two screens with their own filters: Analyse › Fund planning and POs › All POs */
+let FUND_CTX='fund', FUND_QV='';
+const FUND_BAG={};
+function fundCtxGet(){return {st:FUND_STATUS,sup:FUND_SUP,cat:FUND_CAT,prod:FUND_PROD,has:FUND_HAS,lo:FUND_LINES_ONLY,q:FUND_Q,ord:FUND_ORDER,dir:FUND_DIR,sel:FUND_SEL,open:FUND_OPEN,
+  show:FUND_SHOW,amt:FUND_AMT,notes:FUND_NOTES,ss:FUND_SHOW_SUP,sr:FUND_SHOW_RATE,qv:FUND_QV};}
+function fundCtxSet(o){FUND_STATUS=o.st;FUND_SUP=o.sup;FUND_CAT=o.cat;FUND_PROD=o.prod;FUND_HAS=o.has;FUND_LINES_ONLY=o.lo;FUND_Q=o.q;FUND_ORDER=o.ord;FUND_DIR=o.dir;FUND_SEL=o.sel;FUND_OPEN=o.open;
+  FUND_SHOW=o.show;FUND_AMT=o.amt;FUND_NOTES=o.notes;FUND_SHOW_SUP=o.ss;FUND_SHOW_RATE=o.sr;FUND_QV=o.qv;}
+function fundCtx(ctx){if(ctx===FUND_CTX)return;FUND_BAG[FUND_CTX]=fundCtxGet();
+  fundCtxSet(FUND_BAG[ctx]||(ctx==='allpos'
+    ?{st:new Set(),sup:new Set(),cat:new Set(),prod:new Set(),has:new Set(),lo:false,q:'',ord:['date','',''],dir:-1,sel:new Set(),open:new Set(),
+      show:{po:true,transit:true,received:true,pending:true},amt:{po:false,transit:false,received:false,pending:false},notes:false,ss:true,sr:false,qv:''}
+    :{st:new Set(),sup:new Set(),cat:new Set(),prod:new Set(),has:new Set(),lo:false,q:'',ord:['supplier','status','date'],dir:1,sel:new Set(),open:new Set(),
+      show:{po:true,transit:true,received:true,pending:true},amt:{po:true,transit:true,received:true,pending:true},notes:false,ss:true,sr:true,qv:''}));
+  FUND_CTX=ctx;}
+function fundIsOps(){return typeof VT_MODE!=='undefined'&&VT_MODE==='ops';}
+// All POs quick views (one at a time)
+const APO_QV=[['','All open'],['send','✈ To send'],['chase','📞 To chase'],['waiting','⏳ Waiting for goods'],['close','✓ Fully received → close']];
+function apoQV(r,k){const st=r.status;
+  if(k==='send')return st==='made';
+  if(k==='chase')return st!=='made'&&st!=='done'&&r.T.pending>0&&(posOverdue(r.p)||!(r.p.promised||r.p.expected));
+  if(k==='waiting')return st!=='made'&&st!=='done'&&(r.T.pending>0||r.T.transit>0);
+  if(k==='close')return st==='done';
+  return true;}
+function apoSetQV(k){FUND_QV=k;posRender();}
+function apoLastNote(p){const n=(p.notes||[]).filter(x=>x&&!x.done);return n.length?n[n.length-1]:null;}
 const FUND_HAS_OPT=[['pending','⏳ Pending to ship'],['transit','🚚 In transit'],['received','📦 Received'],['notsent','✉ Not sent yet'],['overdue','⏰ Overdue']];
 function fundHasTog(k){FUND_HAS.has(k)?FUND_HAS.delete(k):FUND_HAS.add(k);posRender();}
 function fundLinesOnly(on){FUND_LINES_ONLY=!!on;posRender();}
@@ -7724,7 +7787,7 @@ function fundSort(rows){
     product:r=>r.lines[0]?String(r.lines[0].name).toLowerCase():'', po:r=>String(r.no), pendingv:r=>pad(r.T.vPending), transitv:r=>pad(r.T.vTransit), povalue:r=>pad(r.T.vPo)};
   const ord=FUND_ORDER.filter(k=>keyf[k]);
   return rows.sort((a,b)=>{for(const k of ord){const x=keyf[k](a),y=keyf[k](b);if(x<y)return -1*FUND_DIR;if(x>y)return 1*FUND_DIR;}return String(a.no).localeCompare(String(b.no));});}
-function fundOrderHTML(){const pick=(i,cur)=>`<select class="po-in" style="width:118px" onchange="fundSetOrder(${i},this.value)">${FUND_KEYS.map(o=>`<option value="${o[0]}"${cur===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select>`;
+function fundOrderHTML(){const pick=(i,cur)=>`<select class="po-in" style="width:118px" onchange="fundSetOrder(${i},this.value)">${FUND_KEYS.filter(o=>!fundIsOps()||!(o[0]==='supplier'||/v$|value/.test(o[0]))).map(o=>`<option value="${o[0]}"${cur===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select>`;
   return `<b>Order by:</b> ${pick(0,FUND_ORDER[0])} then ${pick(1,FUND_ORDER[1])} then ${pick(2,FUND_ORDER[2])} <button class="btn ghost sm" onclick="FUND_DIR*=-1;fundReorder()">${FUND_DIR>0?'▲ ascending':'▼ descending'}</button> <span class="muted">— same order in Preview, PDF and Excel</span>`;}
 function fundReorder(){posRender();try{if(document.getElementById('fundprev-modal').classList.contains('on'))fundPreview();}catch(e){}}
 // keep a multi-select's summary, count and ticks in step without closing it
@@ -7784,7 +7847,8 @@ function fundLineData(p,i){
 }
 function fundBuild(){
   // open POs only (this module is about money still committed / in flight)
-  const docs=PODOCS.filter(p=>p&&!p.parentPoId&&!p.closed&&posStage(p)!=='done');
+  // All POs also lists fully received (not yet closed) POs so they can be closed; closed POs are history (Analyse)
+  const docs=PODOCS.filter(p=>p&&!p.parentPoId&&!p.closed&&(FUND_CTX==='allpos'||posStage(p)!=='done'));
   const rows=docs.map(p=>{
     const lines=poUnitLines(p).map(u=>fundLineData(u.doc,u.di)).filter(r=>r.ord>0);
     const T={ord:0,transit:0,pending:0,rec:0,vPo:0,vTransit:0,vPending:0,vRec:0};
@@ -7794,16 +7858,18 @@ function fundBuild(){
   });
   return rows;
 }
+function fundFilterNoQV(rows,k){const keep=FUND_QV;FUND_QV=k;try{return fundFilter(rows);}finally{FUND_QV=keep;}}
 function fundFilter(rows){
   const toks=FUND_Q?sTokens(FUND_Q):null;
   const lineKeys=[...FUND_HAS].filter(k=>k==='pending'||k==='transit'||k==='received');
   return rows.filter(r=>{
+    if(FUND_CTX==='allpos'&&FUND_QV&&!apoQV(r,FUND_QV))return false;
     if(FUND_HAS.size&&![...FUND_HAS].some(k=>fundRowHas(r,k)))return false;
     if(FUND_STATUS.size&&!FUND_STATUS.has(r.status))return false;
     if(FUND_SUP.size&&!FUND_SUP.has(r.supplier))return false;
     if(FUND_CAT.size&&!r.cats.some(c=>FUND_CAT.has(c)))return false;
     if(FUND_PROD.size&&!r.lines.some(l=>FUND_PROD.has(l.code)))return false;
-    if(toks){const hay=sCompact(r.no+' '+r.supplier+' '+r.lines.map(l=>l.name+' '+l.code+' '+l.cat).join(' '));
+    if(toks){const hay=sCompact(r.no+' '+(fundIsOps()?'':r.supplier)+' '+r.lines.map(l=>l.name+' '+l.code+' '+l.cat).join(' '));
       if(!sMatch(hay,sRev(hay),toks))return false;}
     return true;
   }).map(r=>{   // [V1.1.6] "only those lines": keep just the lines that have what was ticked, and total only them
@@ -7976,8 +8042,11 @@ function gcPreview(){
 }
 
 function posFund(){
-  if(typeof VT_MODE!=='undefined'&&VT_MODE==='ops')
-    return `<div class="card"><div class="empty">Fund planning shows supplier names, rates and values — Management / Follow-up only.</div></div>`;
+  const APO=FUND_CTX==='allpos';
+  if(fundIsOps()&&!APO)
+    return `<div class="card"><div class="empty">Fund planning shows supplier names, rates and values — Purchase team / Management only.</div></div>`;
+  if(APO&&fundIsOps()){FUND_SHOW_SUP=false;FUND_SHOW_RATE=false;Object.keys(FUND_AMT).forEach(k=>FUND_AMT[k]=false);FUND_SUP.clear();
+    FUND_ORDER=FUND_ORDER.map(k=>(k==='supplier'||/v$|value/.test(k))?'':k);}
   const inr=v=>'₹'+Math.round(v).toLocaleString('en-IN');
   const allRows=fundBuild();
   let rows=fundFilter(allRows);
@@ -8004,19 +8073,22 @@ function posFund(){
   const amtBtn=(k,l)=>`<button class="${FUND_AMT[k]?'active':''}" onclick="fundToggleAmt('${k}')">${l}</button>`;
   const controls=`<div class="card" style="margin-bottom:12px">
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
-      <b>Fund planning</b><span class="small muted">value of open POs — for finance & purchase planning</span>
-      <input class="po-in" style="width:230px" placeholder="search PO / supplier / product" value="${esc(FUND_Q)}" oninput="fundSetQ(this.value)">
+      <b>${APO?'All POs':'Fund planning'}</b><span class="small muted">${APO?'open POs — the next action is on each row':'value of open POs — for finance & purchase planning'}</span>
+      <input class="po-in" style="width:230px" placeholder="search PO / ${fundIsOps()?'':'supplier / '}product" value="${esc(FUND_Q)}" oninput="fundSetQ(this.value)">
       <span style="flex:1"></span>
-      <button class="btn red sm" onclick="fundPreview()">⬇ Preview & download</button><button class="btn ghost sm" onclick="fundPushSheet()">⇪ Push to sheet</button></div>
+      ${APO?`<button class="btn sm" onclick="navGo('pos','newpo')">＋ New PO</button>`:''}
+      ${fundIsOps()?'':`<button class="btn ${APO?'ghost':'red'} sm" onclick="fundPreview()">⬇ Preview & download</button>${APO?'':`<button class="btn ghost sm" onclick="fundPushSheet()">⇪ Push to sheet</button>`}`}</div>
+    ${APO?`<div class="qv" style="margin:0 0 8px">${APO_QV.map(([k,l])=>{const n=fundFilterNoQV(allRows,k).length;return `<button class="${FUND_QV===k?'on':''}" onclick="apoSetQV('${k}')">${l}<span class="n">${n}</span></button>`;}).join('')}</div>`:''}
     <div class="filters" style="align-items:flex-end">
       ${msChips('status',allStatus,FUND_STATUS,'PO stage')}
-      ${msChips('sup',allSup,FUND_SUP,'Supplier')}
+      ${fundIsOps()?'':msChips('sup',allSup,FUND_SUP,'Supplier')}
       ${msChips('cat',allCat,FUND_CAT,'Category')}
       ${msChips('prod',allProd,FUND_PROD,'Product')}
       <div class="f"><label>Quantity columns</label><span class="lane-toggle wrap">${showBtn('po','PO qty')}${showBtn('transit','Transit')}${showBtn('pending','Pending')}${showBtn('received','Received')}</span></div>
-      <div class="f"><label>Amount (₹) columns</label><span class="lane-toggle wrap">${amtBtn('po','PO ₹')}${amtBtn('transit','Transit ₹')}${amtBtn('pending','Pending ₹')}${amtBtn('received','Received ₹')}</span></div>
+      ${fundIsOps()?'':`<div class="f"><label>Amount (₹) columns</label><span class="lane-toggle wrap">${amtBtn('po','PO ₹')}${amtBtn('transit','Transit ₹')}${amtBtn('pending','Pending ₹')}${amtBtn('received','Received ₹')}</span></div>
+`}
       <div class="f"><label>Notes column</label><span class="lane-toggle"><button class="${FUND_NOTES?'active':''}" onclick="fundToggleNotes()">${FUND_NOTES?'✓ notes':'add notes'}</button></span></div>
-      <div class="f"><label>Share mode</label><span class="lane-toggle"><button class="${FUND_SHOW_SUP?'active':''}" onclick="fundToggleSup()" title="show / hide supplier names">${FUND_SHOW_SUP?'✓ supplier':'supplier off'}</button><button class="${FUND_SHOW_RATE?'active':''}" onclick="fundToggleRateCol()" title="show / hide rate & amount">${FUND_SHOW_RATE?'✓ rate & ₹':'rate & ₹ off'}</button></span></div>
+      ${fundIsOps()?'':`<div class="f"><label>Share mode</label><span class="lane-toggle"><button class="${FUND_SHOW_SUP?'active':''}" onclick="fundToggleSup()" title="show / hide supplier names">${FUND_SHOW_SUP?'✓ supplier':'supplier off'}</button><button class="${FUND_SHOW_RATE?'active':''}" onclick="fundToggleRateCol()" title="show / hide rate & amount">${FUND_SHOW_RATE?'✓ rate & ₹':'rate & ₹ off'}</button></span></div>`}
     </div>
     <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
       <button class="btn ghost sm" onclick="fundSelAll(${JSON.stringify(rows.map(r=>r.poId)).replace(/"/g,'&quot;')})">☑ Select all shown</button>
@@ -8034,13 +8106,29 @@ function posFund(){
   </div>`;
   return controls+`<div id="fund-body">`+fundBodyHTML()+`</div>`;
 }
+// [V1.1.7] All POs row extras: dates, overdue, open to-do, shipments, and the next action
+function apoRowInfo(r){const p=r.p;const bits=[];
+  const pr=dOnly(p.promised),ex=dOnly(p.expected);
+  if(pr)bits.push('promised '+posDispDate(pr));else if(ex)bits.push('expected '+posDispDate(ex));
+  if(p.sentAt)bits.push('sent '+posDispDate(dOnly(p.sentAt)));
+  const od=posOverdue(p)?`<span class="chip" style="font-size:.55rem;background:var(--danger,#D93025);color:#fff;border-color:transparent">⏰ overdue</span>`:'';
+  const sh=(typeof v11PoShipNos==='function')?v11PoShipNos(p.poId):[];
+  const n=apoLastNote(p);
+  return `${od}<span class="small muted">${bits.join(' · ')}</span>${sh&&sh.length?`<span class="small mono">${sh.slice(0,3).map(x=>esc(x)).join(', ')}${sh.length>3?' …':''}</span>`:''}${n?`<span class="small" title="${esc(n.text||'')}" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 ${esc(n.text||'')}${n.due?' · due '+esc(posDispDate(dOnly(n.due))):''}</span>`:''}`;}
+function apoRowActions(r){const p=r.p,st=r.status,id=esc(r.poId);let b='';
+  if(st==='made')b+=`<button class="btn sm" onclick="podocMarkSent('${id}')" title="mark sent to supplier">✈ Send</button>`;
+  else if(st!=='done'&&r.T.pending>0)b+=`<button class="btn sm" style="background:var(--ok);border-color:var(--ok)" onclick="poReceiveUnit('${id}')" title="record a shipment with this PO's pending lines">🚚 Ship</button>`;
+  if(st==='done')b+=`<button class="btn sm" onclick="poClose('${id}')">✓ Close</button>`;
+  b+=`<button class="btn ghost sm" onclick="poDetailOpen('${id}')" title="all actions: notes, promised date, snooze, edit, cancel balance…">⋯</button>`;
+  return b;}
 function fundBodyHTML(){
   const inr=v=>'\u20B9'+Math.round(v).toLocaleString('en-IN');
   const allRows=fundBuild();
   const rows=fundSort(fundFilter(allRows));
   const G={transit:0,pending:0,rec:0,po:0};
   rows.forEach(r=>{G.transit+=r.T.vTransit;G.pending+=r.T.vPending;G.rec+=r.T.vRec;G.po+=r.T.vPo;});
-  const totals=`<div class="ovgrid" style="margin-bottom:12px">
+  const APO=FUND_CTX==='allpos';
+  const totals=(APO&&fundIsOps())?'':`<div class="ovgrid" style="margin-bottom:12px">
     <div class="card ovc" style="cursor:default;border-left:4px solid #B8893A"><div class="ovn" style="color:#B8893A">${inr(G.transit)}</div><div class="ovl">In transit value</div><div class="small muted">shipped, not received</div></div>
     <div class="card ovc" style="cursor:default;border-left:4px solid var(--gst)"><div class="ovn" style="color:var(--gst)">${inr(G.pending)}</div><div class="ovl">Pending value</div><div class="small muted">not yet shipped</div></div>
     <div class="card ovc" style="cursor:default;border-left:4px solid #5B4B8A"><div class="ovn" style="color:#5B4B8A">${inr(G.transit+G.pending)}</div><div class="ovl">Total committed</div><div class="small muted">to plan funds for</div></div>
@@ -8062,9 +8150,12 @@ function fundBodyHTML(){
         <a class="linky mono" style="font-weight:800" onclick="poDetailOpen('${esc(r.poId)}')">${esc(r.no)}</a>
         <span class="chip ${PODOC_CHIP[r.status]||'lite'}" style="font-size:.6rem">${PODOC_LABEL[r.status]||r.status}</span>
         ${FUND_SHOW_SUP?`<b class="small" style="color:var(--gst)">${esc(r.supplier)}</b>`:''}
+        ${APO?apoRowInfo(r):''}
         <span style="flex:1"></span>
+        ${APO?apoRowActions(r):''}
         <span class="small muted">${r.lines.length} item(s) \u00B7 ${NUM(r.T.ord)} nos</span>
-        <span class="small">${r.T.transit?`<b style="color:#B8893A">${inr(r.T.vTransit)}</b> transit \u00B7 `:''}<b style="color:var(--non)">${inr(r.T.vPending)}</b> pending</span></div>
+        ${(APO&&!FUND_SHOW_RATE)?`<span class="small">${r.T.transit?`<b style="color:#B8893A">${NUM(r.T.transit)}</b> transit \u00B7 `:''}<b style="color:var(--non)">${NUM(r.T.pending)}</b> pending${r.T.rec?` \u00B7 <b style="color:var(--ok)">${NUM(r.T.rec)}</b> recd`:''}</span>`
+          :`<span class="small">${r.T.transit?`<b style="color:#B8893A">${inr(r.T.vTransit)}</b> transit \u00B7 `:''}<b style="color:var(--non)">${inr(r.T.vPending)}</b> pending</span>`}</div>
       ${open?`<div style="overflow:auto;border-top:1px solid var(--line-2)"><table class="pod-tbl"><thead><tr><th>Item</th>${FUND_SHOW_RATE?'<th class="r">Rate \u20B9</th>':''}${COLS.filter(c=>!c.amt||FUND_SHOW_RATE).map(c=>`<th class="r">${c.label}</th>`).join('')}${FUND_NOTES?'<th>Notes</th>':''}</tr></thead><tbody>${body}${tot}</tbody></table></div>`:''}</div>`;
   }).join('');
   return totals+(rows.length?cards:'<div class="card"><div class="empty">No open POs match these filters.</div></div>');
@@ -9615,7 +9706,9 @@ function posRender(){
     if(!PODOCS.length){el.innerHTML=posEmptyCard();return;}el.innerHTML=posBrief();return;}
   if(POS_VIEW==='history'){if(VT_MODE==='ops'){POS_VIEW='dash';}else{el.innerHTML=posHistory();return;}}
   if(POS_VIEW==='analytics'){if(VT_MODE!=='mgmt'){POS_VIEW='dash';}else{document.getElementById('pos-count').textContent='';el.innerHTML=posAnalytics();return;}}
-  if(POS_VIEW==='fund'){if(VT_MODE!=='mgmt'){POS_VIEW='dash';}else{document.getElementById('pos-count').textContent='';el.innerHTML=posFund();return;}}
+  if(POS_VIEW==='fund'){if(VT_MODE!=='mgmt'&&VT_MODE!=='followup'){POS_VIEW='dash';}else{fundCtx('fund');document.getElementById('pos-count').textContent='';el.innerHTML=posFund();return;}}
+  if(POS_VIEW==='allpos'){fundCtx('allpos');document.getElementById('pos-count').textContent='';el.innerHTML=posFund();return;}   // [V1.1.7]
+  if(POS_VIEW==='po'||POS_VIEW==='bill'){POS_VIEW='allpos';fundCtx('allpos');el.innerHTML=posFund();return;}                  // [V1.1.7] By PO → All POs; By bill (old lots) retired
   if(POS_VIEW==='goods'){document.getElementById('pos-count').textContent='';el.innerHTML=posGoodsCheck();return;}
   if(POS_VIEW==='dash'){document.getElementById('pos-count').textContent='';
     if(!PODOCS.length){el.innerHTML=posEmptyCard();return;}el.innerHTML=posOverview();return;}
@@ -10015,7 +10108,7 @@ function acApply(){
     const ops=(s==='requests'||s==='po'||s==='pos'||s==='ships');
     b.disabled=ops?false:!intel;
     b.style.display=(!ops&&!intel)?'none':'';});
-  const lbl={ops:'PO Tracking',followup:'Follow-up',mgmt:'Management'}[VT_MODE];
+  const lbl={ops:'Operations',followup:'Purchase team',mgmt:'Management'}[VT_MODE];
   ['mode-chip','mode-chip2'].forEach(id=>{const c=document.getElementById(id);if(c){c.textContent=lbl;c.className='mode-chip '+VT_MODE;}});
   const m=document.getElementById('set-mgmt-only');if(m)m.style.display=(VT_MODE==='mgmt')?'block':'none';
   const lk=document.getElementById('set-lock');if(lk)lk.style.display=(VT_MODE==='ops')?'none':'inline-flex';
@@ -10023,10 +10116,13 @@ function acApply(){
   document.querySelectorAll('#pos-view button').forEach(b=>{const v=b.dataset.v;if(!v)return;
     let allowed=true;
     if(v==='history')allowed=(VT_MODE==='followup'||VT_MODE==='mgmt');
-    else if(v==='analytics'||v==='fund')allowed=(VT_MODE==='mgmt');
+    else if(v==='analytics')allowed=(VT_MODE==='mgmt');
+    else if(v==='fund')allowed=(VT_MODE==='followup'||VT_MODE==='mgmt');   // [V1.1.7] Purchase team sees Fund planning
     b.style.display=allowed?'':'none';
     if(!allowed&&POS_VIEW===v){POS_VIEW='dash';}});
   try{if(typeof enableNav==='function')enableNav(VT_MODE==='ops'&&!REGISTER_LOADED?true:(VT_MODE==='ops'));}catch(e){}
+  try{const G=NAV_G.find(x=>x.g===NAV_CUR.g),it=G&&G.items.find(i=>i.k===NAV_CUR.k);
+    if(NAV_CUR.g&&(!G||!navOK(G.need)||!it||!navOK(it.need)))navGo('pos','allpos');else navPaint();}catch(e){}
 }
 /* [v5.6] masked PIN entry — replaces prompt(), which showed the PIN in clear text */
 let PIN_RESOLVE=null;
@@ -10060,12 +10156,12 @@ async function acEnter(tier){
   VT_MODE=tier;acApply();
   if(tier==='mgmt')setTimeout(()=>{try{acRestoreAfterUnlock();}catch(e){}},60);
   if(tier==='mgmt')toast('Management mode unlocked. Upload the purchase register in Settings to load the intelligence layer.');
-  else toast('Follow-up mode unlocked. The follow-up worklist arrives in the next build phase.');
+  else toast('Purchase team mode unlocked.');
 }
 function acLock(){
   VT_MODE='ops';REGISTER_LOADED=false;RAW=[];ITEMS=new Map();SUPS=new Map();CATS=new Map();DEPTS=new Set();POS_SHOW_COST=false;
   acApply();acCloseSettings();
-  const pr=document.getElementById('pill-range');if(pr)pr.innerHTML='<b>PO Tracking mode</b> · no register loaded';
+  const pr=document.getElementById('pill-range');if(pr)pr.innerHTML='<b>Operations / Purchase team</b> · no register loaded';
   switchScreen('pos');poRender();posRender();
   // [v5.4] the register stays safely cached on this device (behind the PIN) — unlocking restores it instantly
   toast('Locked to PO Tracking. The register is hidden — it comes straight back when you unlock.');
@@ -10132,6 +10228,62 @@ function acOpenSettings(){mOpen('settings-modal');try{regStatusPaint();}catch(e)
 function acCloseSettings(){mClose('settings-modal');}
 function acGoUpload(){if(VT_MODE!=='mgmt'){alert('Management mode required.');return;}acCloseSettings();switchScreen('upload');}
 
+/* ===================== [V1.1.7 R49 phase 1] WORKFLOW MENU =====================
+   POs (Requests · New PO · All POs) → Shipments → Bills → Track → Analyse.
+   The old screens and views are reused; this layer only decides where they live. */
+function navWho(){return (typeof VT_MODE==='undefined')?'ops':VT_MODE;}
+function navOK(need){const m=navWho();
+  if(!need)return true;
+  if(need==='buyer')return m==='followup'||m==='mgmt';
+  if(need==='mgmt')return m==='mgmt';
+  if(need==='intel')return typeof acIntelOn==='function'&&acIntelOn();
+  return true;}
+const NAV_G=[
+  {g:'pos',label:'📋 POs',items:[{k:'requests',label:'Requests',s:'requests'},{k:'newpo',label:'＋ New PO',s:'po'},{k:'allpos',label:'All POs',s:'pos',v:'allpos'}]},
+  {g:'ships',label:'🚚 Shipments',items:[{k:'ships',label:'Shipments',s:'ships',sv:'ships'}]},
+  {g:'bills',label:'🧾 Bills',need:'buyer',items:[{k:'bills',label:'Bills',s:'ships',sv:'bills'}]},
+  {g:'track',label:'🔎 Track',items:[{k:'dash',label:'Overview',s:'pos',v:'dash'},{k:'brief',label:'Daily brief',s:'pos',v:'brief',need:'mgmt'},{k:'kanban',label:'Board',s:'pos',v:'kanban'},
+    {k:'timeline',label:'Follow-up',s:'pos',v:'timeline'},{k:'product',label:'By product',s:'pos',v:'product'},{k:'goods',label:'Goods check',s:'pos',v:'goods'}]},
+  {g:'analyse',label:'📊 Analyse',need:'buyer',items:[{k:'fund',label:'Fund planning',s:'pos',v:'fund',need:'buyer'},{k:'history',label:'PO History (closed)',s:'pos',v:'history',need:'buyer'},
+    {k:'analytics',label:'PO analytics',s:'pos',v:'analytics',need:'mgmt'},{k:'dashboard',label:'Register · Dashboard',s:'dashboard',need:'intel'},
+    {k:'search',label:'Register · Search',s:'search',need:'intel'},{k:'fulldata',label:'Register · Full data',s:'fulldata',need:'intel'},{k:'levels',label:'Register · MOQ / Levels',s:'levels',need:'intel'}]}];
+let NAV_CUR={g:'',k:''}, NAV_BUSY=false;
+function navItem(g,k){const G=NAV_G.find(x=>x.g===g);return G&&G.items.find(i=>i.k===k);}
+function navTitle(){const G=NAV_G.find(x=>x.g===NAV_CUR.g),it=navItem(NAV_CUR.g,NAV_CUR.k);if(!G||!it)return;
+  const h=document.querySelector('#scr-pos h2.sect');if(h&&it.s==='pos'){
+    const sub={allpos:'open POs — send, chase, ship, close · closed POs are in Analyse › PO History',fund:'value of open POs — finance & purchase planning',history:'closed POs',analytics:'purchase analytics',goods:'what is still coming — no supplier, no rate'}[it.v]||'open POs only';
+    h.innerHTML=(G.g==='pos'?'':G.label.replace(/^\S+\s/,'')+' · ')+it.label+` <span class="sub">${sub}</span>`;}
+  const hs=document.querySelector('#scr-ships h2.sect');if(hs&&it.s==='ships')hs.innerHTML=it.sv==='bills'
+    ?'Bills <span class="sub">prepare before or after the goods arrive · Vasy MI and bill numbers · locked once a Vasy number is recorded</span>'
+    :'Shipments <span class="sub">one shipment can carry several POs · numbered by the server · In Transit until marked arrived</span>';}
+function navPaint(){const ng=document.getElementById('navgroups'),sn=document.getElementById('subnav');if(!ng||!sn)return;
+  const vis=NAV_G.filter(G=>navOK(G.need)&&G.items.some(i=>navOK(i.need)));
+  ng.innerHTML=vis.map(G=>`<button class="ng${G.g===NAV_CUR.g?' active':''}" onclick="navGo('${G.g}')">${G.label}</button>`).join('');
+  const G=vis.find(x=>x.g===NAV_CUR.g);const items=G?G.items.filter(i=>navOK(i.need)):[];
+  sn.style.display=items.length>1?'flex':'none';
+  sn.innerHTML=items.map(i=>`<button class="${i.k===NAV_CUR.k?'active':''}" onclick="navGo('${G.g}','${i.k}')">${i.label}</button>`).join('');}
+function navGo(g,k){const G=NAV_G.find(x=>x.g===g);if(!G)return;
+  const items=G.items.filter(i=>navOK(i.need));if(!items.length)return;
+  const it=(k&&items.find(i=>i.k===k))||items.find(i=>i.k===(NAV_LAST[g]||''))||items[0];
+  NAV_CUR={g,k:it.k};NAV_LAST[g]=it.k;NAV_BUSY=true;
+  try{
+    if(it.s==='pos'){switchScreen('pos');posSetView(it.v);}
+    else if(it.s==='ships'){switchScreen('ships');v11ShipsView(it.sv);}
+    else switchScreen(it.s);
+  }finally{NAV_BUSY=false;}
+  navPaint();navTitle();}
+const NAV_LAST={};
+function navInitHide(){try{const a=document.getElementById('pos-view');if(a)a.closest('.f').style.display='none';
+  const b=document.getElementById('ships-view');if(b)b.closest('.f').style.display='none';
+  const sc=document.getElementById('ships-scope');if(sc)sc.closest('.f').style.display='none';}catch(e){}}
+// keep the menu in step when other code switches screens / views
+function navSync(){if(NAV_BUSY)return;const on=document.querySelector('.screen.on');if(!on)return;const s=on.id.replace('scr-','');
+  for(const G of NAV_G)for(const it of G.items){
+    if(it.s!==s)continue;
+    if(s==='pos'&&it.v!==POS_VIEW)continue;
+    if(s==='ships'&&it.sv!==(typeof S11_VIEW!=='undefined'?S11_VIEW:'ships'))continue;
+    NAV_CUR={g:G.g,k:it.k};NAV_LAST[G.g]=it.k;navPaint();navTitle();return;}
+  navPaint();}
 function switchScreen(s){
   // [P1] gate intelligence screens; 'upload' reachable only in Management mode (to load the register)
   if(s==='upload'){ if(VT_MODE!=='mgmt'){acOpenSettings();return;} }
@@ -10142,6 +10294,7 @@ function switchScreen(s){
   document.getElementById('lane-toggle').style.display=(s==='po'||s==='pos'||s==='ships'||s==='levels'||s==='requests'||s==='upload')?'none':'inline-flex';
   if(s==='pos')posRender();
   if(s==='ships')v11ShipsRefresh();
+  try{navInitHide();navSync();}catch(e){}
 }
 let REGISTER_LOADED=false;
 function enableNav(opsOnly){
@@ -10175,7 +10328,7 @@ function enterOps(){
   VT_MODE='ops';acApply();if(typeof posControlsRender==='function')posControlsRender();
   window.__rendered=true;
   document.getElementById('btn-reload').style.display='none';
-  document.getElementById('pill-range').innerHTML='<b>PO Tracking mode</b> · no register loaded';
+  document.getElementById('pill-range').innerHTML='<b>Operations / Purchase team</b> · no register loaded';
   outboxLoad();const hadSession=loadSession();reqLoadState();
   poRender();posRender();
   switchScreen('requests');
