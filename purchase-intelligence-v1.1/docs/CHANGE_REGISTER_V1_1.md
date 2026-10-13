@@ -277,7 +277,7 @@ No production change is complete until this log is updated.
 
 ---
 
-### <<LIVE_DATE_115>> — V1.1.5 (dashboard file only) — R48
+### 2026-10-13 — V1.1.5 (dashboard file only) — R48
 
 **Requirement** — R48: sort and filter on the Shipments and Bills lists — custom date range, status, supplier and other relevant options.
 
@@ -288,16 +288,16 @@ No production change is complete until this log is updated.
 
 **Data / Sheet / API changes** — none. **Backward-compatibility impact** — none; server stays 2.7.
 
-**Deployment** — <<NEW_VERSION_115>>.
+**Deployment** — LIVE staff deployment **version 7** (together with V1.1.6).
 
 **Tests performed** — `tests/dashboard/t35.js` (overdue, excess, date range, billed / not billed, sort by qty, supplier, quick range, bills value sort / stage / converted / wo); earlier regressions; button audit 970 buttons, 0 problems (incl. both filter bars open).
-- LIVE checks: <<LIVE_CHECKS_115>>
+- LIVE checks: owner deployed version 7 to staff on 13 Oct 2026 after checking.
 
-**Result** — <<RESULT_115>>
+**Result** — LIVE (version 7).
 
 ---
 
-### <<LIVE_DATE_116>> — V1.1.6 (dashboard + Code + ProductsApi) — R52 · R53 · R54 · R55
+### 2026-10-13 — V1.1.6 (dashboard + Code + ProductsApi) — R52 · R53 · R54 · R55
 
 **Requirement** — R52 order-by on the Fund planning home page; R53 Fund planning status / supplier filters; R54 Total qty on bill lines; R55 MRP 0 in Vasy upload files.
 
@@ -310,9 +310,9 @@ No production change is complete until this log is updated.
 
 **Root cause R55** — the products concerned have MRP 0 in Vasy (166 item codes in the 13 Oct snapshot, e.g. CPG143957A — new, never purchased) and no MRP in the master; nothing can fill them automatically. Separately, the 2 am sync ran before the ~3:05 am Vasy → Supabase load, so new Vasy prices arrived a day late.
 
-**Deployment** — <<NEW_VERSION_116>>.
+**Deployment** — LIVE staff deployment **version 7**; dashboard chip "V1.1.6 · Vaigai".
 
 **Tests performed** — `tests/dashboard/t36.js`, `t37.js`, `tests/server/hprod_nomrp.js`; full `run_all.sh` (self-tests 42 + 54, sync, conversion / undo, all dashboard tests, 976 buttons pressed — 0 problems).
-- LIVE checks: <<LIVE_CHECKS_116>>
+- LIVE checks: owner deployed version 7 to staff on 13 Oct 2026 after checking.
 
-**Result** — <<RESULT_116>>
+**Result** — LIVE (version 7).

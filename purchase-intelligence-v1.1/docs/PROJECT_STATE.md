@@ -1,6 +1,6 @@
 # Purchase Intelligence V1.1 — Project State
 
-Status: LIVE — release "Vaigai" V1.1.4 (server 2.7), staff deployment version 6, confirmed by the owner 7 Oct 2026 · old V1 frozen at version 36
+Status: LIVE — release "Vaigai" V1.1.6 (server 2.7, products 1.2), staff deployment version 7 (13 Oct 2026) · old V1 frozen at version 36
 
 New chat? Read `START_HERE_V1_1.md` first.
 Branch: `purchase-v1.1-transition`
@@ -33,8 +33,8 @@ The V1.1 physical implementation is only a reference/design candidate for V2 unl
 
 - LIVE sheet `1SuQsKP9JwE4DGk8RELGdqMpfQjquVhK_vWC6pmIcJfE`, Apps Script `1R3cGa6vgyOkdwF3qFsZ38Tmu48YXBe0qLnyg3ArmEM2TeGWSbfczRNT9` (a new copy of the old live sheet; the old V1 is frozen — token changed, access owner-only).
 - Server: ping label `V1.1 "Vaigai" · server 2.7`. Files: Code, LiveApi 7.2, goodscheckapi, ShipmentApi, BillApi, ProductsApi, ShipmentTools, RegisterApi, Untitled.
-- Dashboard: `VT_Purchase_Intelligence_V1_1.html` (chip "V1.1.4 · Vaigai"), distributed as a file to each PC.
-- Script Properties: `V11_LOT_LOCK = on` (no new V1 lots), `V11_PRODUCTS_SB = on` (products from Supabase, master sheet as fallback), counters `V11_SEQ_…`, `V11_CONV_CODEFIX` (record of PO code corrections made by the lot conversion).
+- Dashboard: `VT_Purchase_Intelligence_V1_1.html` (chip "V1.1.6 · Vaigai"), distributed as a file to each PC.
+- Script Properties: `V11_LOT_LOCK = on` (no new V1 lots), `V11_PRODUCTS_SB = on` (products from Supabase, master sheet as fallback; daily sync at ~5 am), counters `V11_SEQ_…`, `V11_CONV_CODEFIX` (record of PO code corrections made by the lot conversion).
 - Tabs added: Shipments, Shipment Allocations, Bills, Bill Lines, V1.1 Product Sync Report, V1.1 Conversion Report (and V1.1 Speed Check when run) — see `DATA_MODEL_V1_1.md`.
 - Owner requests and bugs are numbered in `OWNER_REQUEST_REGISTER_V1_1.md` (R01–R47).
 
@@ -44,8 +44,7 @@ V1.1.1 onwards were tested in simulation first, then on a separate trial deploym
 
 ## Current next items
 
-0. R48 (V1.1.5) and R52–R55 (V1.1.6) — built, waiting for LIVE check.
-0. R49 dashboard restructure — option C approved; phase 1 plan waiting for owner OK (with R56 mode names).
+0. R49 dashboard restructure — detailed proposal v2 in `DASHBOARD_STRUCTURE_PROPOSAL.md`, waiting for owner approval; then split into phases.
 0. R50 Apps Script clean-up — owner action.
 1. R41 — product charge insight should also read V1.1 bill charges.
 2. V1.1-06 — line-level Goods Check / receipt with rejections (replaces the interim "Mark arrived").
