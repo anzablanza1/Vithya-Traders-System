@@ -577,6 +577,9 @@ nav#mainnav{align-items:center}
 #subnav button.active{background:#0F766E;border-color:#0F766E;color:#fff}
 .qv{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}.qv button{font-size:.7rem;padding:4px 10px;border-radius:14px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);cursor:pointer}
 .qv button.on{background:#0F766E;border-color:#0F766E;color:#fff}.qv button .n{opacity:.75;margin-left:4px}
+.qv button[disabled]{opacity:.45;cursor:default}
+.nb{display:inline-block;min-width:16px;padding:0 5px;margin-left:5px;border-radius:9px;background:var(--non);color:#fff;font-size:.62rem;line-height:16px;text-align:center;font-weight:700}
+details.fund-more{border:1px solid var(--line-2);border-radius:8px;padding:5px 9px;background:var(--surface)}details.fund-more>summary{cursor:pointer}
 .gtag{display:inline-block;font-size:.52rem;font-weight:700;letter-spacing:.02em;padding:0 4px;border-radius:4px;margin-left:3px;vertical-align:middle;line-height:1.5;white-space:nowrap}
 .gtag.in{background:#E7F3EC;color:#1E6B3A;border:1px solid #9CCBAE}.gtag.ex{background:#FDF0E2;color:#8A4B0F;border:1px solid #E5B98A}
 html[data-theme="dark"] .gtag.in{background:#1d3326;color:#9CDDB4}html[data-theme="dark"] .gtag.ex{background:#3a2a19;color:#F0C597}
@@ -654,7 +657,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
     </span>
 
     <span class="nav-right"><span id="mode-chip" class="mode-chip ops" title="Your current access level">Operations</span>
-    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.7 · Vaigai</span></span>
+    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.8 · Vaigai</span></span>
   </nav>
   <nav id="subnav" style="display:none"></nav>
 </header>
@@ -2947,6 +2950,7 @@ async function outboxFlush(){
     let fn=null;
     if(o.kind==='po'){const p=podocFind(o.ref);if(p)fn=()=>liveRecordPO(p);}
     else if(o.kind==='meta'){const p=podocFind(o.ref);if(p)fn=()=>liveMetaPush(p);}
+    else if(o.kind==='st'){fn=()=>stPush(o.ref);}   // [V1.1.8 R66] lead time & MOQ
     else if(o.kind==='lot'){const [pid,lid]=o.ref.split('||');const p=podocFind(pid);const L=p&&lotFind(p,lid);if(p&&L)fn=()=>liveLotPush(p,L);}
     if(!fn){outboxDone(o.kind,o.ref);continue;}   // referent gone — drop
     try{const r=await fn();if(r&&r.ok!==false){outboxDone(o.kind,o.ref);SYNC.lastOk=Date.now();}
@@ -3221,6 +3225,7 @@ function applyLiveData(d){
     }
     // [v3] apply PO-level follow-up meta
     const metaMap=new Map((d.poMeta||[]).map(m=>[String(m.poNumber),m]));
+    try{stFromMeta(d.poMeta);}catch(e){console.warn('lead time rows',e);}   // [V1.1.8 R66]
     PODOCS.forEach(p=>{if(!p)return;const m=metaMap.get(p.poId);if(!m)return;const fromLive=!!p._fromLive;
       if(m.supplier)p.supplier=p.supplier||m.supplier;
       if(fromLive){p.approvedAt=m.approvedAt||'';p.billAt=m.billAt||'';p.promised=m.promised||'';p.snoozeUntil=m.snoozeUntil||'';if(m.notes)p.notes=m.notes;
@@ -3237,6 +3242,7 @@ function applyLiveData(d){
   document.getElementById('req-badge').style.display=REQ.length?'inline-block':'none';
   document.getElementById('req-badge').textContent=REQ.length;
   REQ_SEL=new Set();
+  try{navBadgeDirty();}catch(e){}
   if(document.getElementById('req-user'))document.getElementById('req-user').dataset.filled='';
   reqRender();saveSession();
 }
@@ -5194,7 +5200,7 @@ function v11BillsRender(){
         <td class="small mono">${[b.supBillG&&('w '+b.supBillG),b.supBillN&&('wo '+b.supBillN)].filter(Boolean).map(esc).join('<br>')||'—'}</td>
         <td class="small mono">${sh.map(v11ShipLink).join('<br>')||'<span class="muted">none — empty</span>'}</td>
         <td class="r num">${t.wTotal!=null?INR2(t.wTotal):'—'}</td><td class="r num">${t.nTotal!=null?INR2(t.nTotal):'—'}</td>
-        <td><span class="chip" style="font-size:.6rem;background:${c[1]};color:#fff;border-color:transparent">${c[0]}</span></td>
+        <td><span class="chip" style="font-size:.6rem;background:${c[1]};color:#fff;border-color:transparent">${c[0]}</span>${(()=>{const nx=v11BillNext(b);return nx.key==='billed'?'':`<div><button class="btn ghost sm" style="margin-top:3px;font-size:.62rem" onclick="v11BillOpen('${esc(b.billId)}')" title="next step in Vasy">${esc(nx.label)}</button></div>`;})()}</td>
         <td class="small mono">${[b.miG&&('MI w '+b.miG),b.miN&&('MI wo '+b.miN),b.vasyG&&('Bill w '+b.vasyG),b.vasyN&&('Bill wo '+b.vasyN)].filter(Boolean).map(esc).join('<br>')||'—'}</td></tr>`;}).join('')}</tbody></table></div>`;
 }
 
@@ -6719,7 +6725,7 @@ function posBrandOptions(){const s=new Set();PODOCS.filter(p=>!p.parentPoId).for
 function posControlsRender(){
   const el=document.getElementById('pos-controls');if(!el)return;const v=POS_VIEW;let h='';
   // [v7.4] value modules (fund/analytics/history) carry their own filters — hide the shared scope/status/search
-  const ownFilters=(v==='fund'||v==='allpos'||v==='analytics'||v==='history'||v==='goods');
+  const ownFilters=(v==='fund'||v==='allpos'||v==='analytics'||v==='history'||v==='goods'||v==='today'||v==='askdad'||v==='fucal'||v==='supterms');
   document.querySelectorAll('.pos-filterset').forEach(x=>{x.style.display=ownFilters?'none':'';});
   if(ownFilters){el.innerHTML='';return;}
   if(v==='po'||v==='product'||v==='timeline'||v==='kanban'){
@@ -7209,7 +7215,7 @@ function briefBuild(){
     if(stage!=='made'&&bal>0&&!p.promised&&!posSnoozed(p)){
       S.noPromise++;
       const age=briefDays(dOnly(p.sentAt)||dOnly(p.createdAt),t0);
-      push(age!=null&&age>3?'high':'med','promise',
+      push('high','promise',   // [V1.1.8] get it as soon as possible
         'No promised date from '+sup,
         (p.realNo||p.poId)+' · '+NUM(bal)+' nos still to ship'+(age!=null?' · sent '+age+'d ago':''),
         'Ask the team to get a committed delivery date today.',{po:p.poId});
@@ -7767,7 +7773,7 @@ function fundIsOps(){return typeof VT_MODE!=='undefined'&&VT_MODE==='ops';}
 const APO_QV=[['','All open'],['send','✈ To send'],['chase','📞 To chase'],['waiting','⏳ Waiting for goods'],['close','✓ Fully received → close']];
 function apoQV(r,k){const st=r.status;
   if(k==='send')return st==='made';
-  if(k==='chase')return st!=='made'&&st!=='done'&&r.T.pending>0&&(posOverdue(r.p)||!(r.p.promised||r.p.expected));
+  if(k==='chase')return st!=='made'&&st!=='done'&&r.T.pending>0&&!fuWaiting(r.p)&&(posOverdue(r.p)||!dOnly(r.p.promised)||dOnly(r.p.promised)<t8());   // [V1.1.8]
   if(k==='waiting')return st!=='made'&&st!=='done'&&(r.T.pending>0||r.T.transit>0);
   if(k==='close')return st==='done';
   return true;}
@@ -8041,6 +8047,15 @@ function gcPreview(){
   toast("All POs expanded — open any PO’s PDF for the A5 goods-check sheet.");
 }
 
+// [V1.1.8 R65] one sort list instead of three "order by" boxes (the three boxes stay under More filters)
+let FUND_UI={more:false,cols:false};
+const FUND_SORTS=[['new','Newest PO first',['date','',''],-1],['old','Oldest PO first',['date','',''],1],['sup','Supplier A–Z',['supplier','date',''],1],['stage','PO stage',['status','date',''],1],
+  ['fund','Supplier → stage → date',['supplier','status','date'],1],['pend','Pending ₹ — highest',['pendingv','',''],-1],['transit','Transit ₹ — highest',['transitv','',''],-1],['value','PO value ₹ — highest',['povalue','',''],-1],['po','PO number',['po','',''],1]];
+function fundSortPick(){const cur=FUND_SORTS.find(x=>x[2].join()===FUND_ORDER.join()&&x[3]===FUND_DIR);
+  const ok=x=>!fundIsOps()||!(x[2][0]==='supplier'||/v$|value/.test(x[2][0]));
+  return `<select class="po-in" style="width:auto;min-width:190px" onchange="fundSortSet(this.value)">${cur?'':'<option value="" selected>Custom — see More filters</option>'}${FUND_SORTS.filter(ok).map(x=>`<option value="${x[0]}"${cur&&cur[0]===x[0]?' selected':''}>${x[1]}</option>`).join('')}</select>`;}
+function fundSortSet(k){const x=FUND_SORTS.find(y=>y[0]===k);if(!x)return;FUND_ORDER=x[2].slice();FUND_DIR=x[3];fundReorder();}
+function fundClearAll(){[FUND_STATUS,FUND_SUP,FUND_CAT,FUND_PROD,FUND_HAS].forEach(z=>z.clear());FUND_LINES_ONLY=false;posRender();}
 function posFund(){
   const APO=FUND_CTX==='allpos';
   if(fundIsOps()&&!APO)
@@ -8071,6 +8086,7 @@ function posFund(){
       </div></details></div>`;
   const showBtn=(k,l)=>`<button class="${FUND_SHOW[k]?'active':''}" onclick="fundToggleShow('${k}')">${l}</button>`;
   const amtBtn=(k,l)=>`<button class="${FUND_AMT[k]?'active':''}" onclick="fundToggleAmt('${k}')">${l}</button>`;
+  const nMore=FUND_CAT.size+FUND_PROD.size+(FUND_LINES_ONLY?1:0), nAll=FUND_STATUS.size+FUND_SUP.size+FUND_HAS.size+nMore;   // [V1.1.8 R65] simpler panel
   const controls=`<div class="card" style="margin-bottom:12px">
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
       <b>${APO?'All POs':'Fund planning'}</b><span class="small muted">${APO?'open POs — the next action is on each row':'value of open POs — for finance & purchase planning'}</span>
@@ -8079,30 +8095,34 @@ function posFund(){
       ${APO?`<button class="btn sm" onclick="navGo('pos','newpo')">＋ New PO</button>`:''}
       ${fundIsOps()?'':`<button class="btn ${APO?'ghost':'red'} sm" onclick="fundPreview()">⬇ Preview & download</button>${APO?'':`<button class="btn ghost sm" onclick="fundPushSheet()">⇪ Push to sheet</button>`}`}</div>
     ${APO?`<div class="qv" style="margin:0 0 8px">${APO_QV.map(([k,l])=>{const n=fundFilterNoQV(allRows,k).length;return `<button class="${FUND_QV===k?'on':''}" onclick="apoSetQV('${k}')">${l}<span class="n">${n}</span></button>`;}).join('')}</div>`:''}
-    <div class="filters" style="align-items:flex-end">
-      ${msChips('status',allStatus,FUND_STATUS,'PO stage')}
+    <div class="filters" style="align-items:flex-end;margin:8px 0 0">
       ${fundIsOps()?'':msChips('sup',allSup,FUND_SUP,'Supplier')}
-      ${msChips('cat',allCat,FUND_CAT,'Category')}
-      ${msChips('prod',allProd,FUND_PROD,'Product')}
-      <div class="f"><label>Quantity columns</label><span class="lane-toggle wrap">${showBtn('po','PO qty')}${showBtn('transit','Transit')}${showBtn('pending','Pending')}${showBtn('received','Received')}</span></div>
-      ${fundIsOps()?'':`<div class="f"><label>Amount (₹) columns</label><span class="lane-toggle wrap">${amtBtn('po','PO ₹')}${amtBtn('transit','Transit ₹')}${amtBtn('pending','Pending ₹')}${amtBtn('received','Received ₹')}</span></div>
-`}
-      <div class="f"><label>Notes column</label><span class="lane-toggle"><button class="${FUND_NOTES?'active':''}" onclick="fundToggleNotes()">${FUND_NOTES?'✓ notes':'add notes'}</button></span></div>
-      ${fundIsOps()?'':`<div class="f"><label>Share mode</label><span class="lane-toggle"><button class="${FUND_SHOW_SUP?'active':''}" onclick="fundToggleSup()" title="show / hide supplier names">${FUND_SHOW_SUP?'✓ supplier':'supplier off'}</button><button class="${FUND_SHOW_RATE?'active':''}" onclick="fundToggleRateCol()" title="show / hide rate & amount">${FUND_SHOW_RATE?'✓ rate & ₹':'rate & ₹ off'}</button></span></div>`}
+      ${msChips('status',allStatus,FUND_STATUS,'PO stage')}
+      <div class="f"><label>Has</label><span class="lane-toggle wrap">${FUND_HAS_OPT.map(([k,l])=>`<button class="${FUND_HAS.has(k)?'active':''}" onclick="fundHasTog('${k}')">${l}</button>`).join('')}</span></div>
+      <div class="f"><label>Sort</label>${fundSortPick()}</div>
+      ${nAll?`<div class="f"><label>&nbsp;</label><button class="btn ghost sm" onclick="fundClearAll()">✕ Clear filters</button></div>`:''}
     </div>
-    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-      <button class="btn ghost sm" onclick="fundSelAll(${JSON.stringify(rows.map(r=>r.poId)).replace(/"/g,'&quot;')})">☑ Select all shown</button>
-      <button class="btn ghost sm" onclick="fundSelClear()">Clear selection${FUND_SEL.size?` (${FUND_SEL.size})`:''}</button>
-      <span style="width:1px;background:var(--line-2);margin:0 3px"></span>
-      <button class="btn ghost sm" onclick="fundExpandAll(true)">▾ Expand all</button>
-      <button class="btn ghost sm" onclick="fundExpandAll(false)">▸ Collapse all</button>
-      <span class="small muted" style="align-self:center">${rows.length} PO(s)${FUND_SEL.size?' · '+FUND_SEL.size+' selected':''}</span></div>
-    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;border-top:1px dashed var(--line-2);padding-top:8px">
-      <b class="small">Show POs that have:</b>${FUND_HAS_OPT.map(([k,l])=>`<button class="btn ${FUND_HAS.has(k)?'':'ghost '}sm" style="font-size:.66rem" onclick="fundHasTog('${k}')">${l}</button>`).join('')}
-      ${FUND_HAS.size?`<a class="linky small" onclick="FUND_HAS.clear();posRender()">clear</a>`:''}
-      <label class="small" style="display:flex;gap:4px;align-items:center" title="hide the other lines of those POs and total only the matching lines"><input type="checkbox" ${FUND_LINES_ONLY?'checked':''} onchange="fundLinesOnly(this.checked)"> only those lines &amp; amounts</label>
-      <span class="small muted">a PO can be in several at once (e.g. part received + in transit)</span></div>
-    <div class="small" style="margin-top:8px">${fundOrderHTML()}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;margin-top:8px">
+      <details class="fund-more" ${FUND_UI.more?'open':''} ontoggle="FUND_UI.more=this.open"><summary class="small"><b>More filters</b>${nMore?` <span class="chip lite" style="font-size:.56rem">${nMore} on</span>`:''} <span class="muted">category · product · custom sort</span></summary>
+        <div class="filters" style="align-items:flex-end;margin:8px 0 0">
+          ${msChips('cat',allCat,FUND_CAT,'Category')}
+          ${msChips('prod',allProd,FUND_PROD,'Product')}
+          <label class="small" style="display:flex;gap:4px;align-items:center;align-self:center;margin-top:14px" title="hide the other lines of those POs and total only the matching lines"><input type="checkbox" ${FUND_LINES_ONLY?'checked':''} onchange="fundLinesOnly(this.checked)"> only the matching lines &amp; amounts</label>
+        </div>
+        <div class="small" style="margin-top:8px">${fundOrderHTML()}</div></details>
+      <details class="fund-more" ${FUND_UI.cols?'open':''} ontoggle="FUND_UI.cols=this.open"><summary class="small"><b>Columns${fundIsOps()?'':' &amp; sharing'}</b> <span class="muted">qty${fundIsOps()?'':' · ₹'} · notes</span></summary>
+        <div class="filters" style="align-items:flex-end;margin:8px 0 0">
+          <div class="f"><label>Quantity columns</label><span class="lane-toggle wrap">${showBtn('po','PO qty')}${showBtn('transit','Transit')}${showBtn('pending','Pending')}${showBtn('received','Received')}</span></div>
+          ${fundIsOps()?'':`<div class="f"><label>Amount (₹) columns</label><span class="lane-toggle wrap">${amtBtn('po','PO ₹')}${amtBtn('transit','Transit ₹')}${amtBtn('pending','Pending ₹')}${amtBtn('received','Received ₹')}</span></div>`}
+          <div class="f"><label>Notes column</label><span class="lane-toggle"><button class="${FUND_NOTES?'active':''}" onclick="fundToggleNotes()">${FUND_NOTES?'✓ notes':'add notes'}</button></span></div>
+          ${fundIsOps()?'':`<div class="f"><label>Share mode</label><span class="lane-toggle"><button class="${FUND_SHOW_SUP?'active':''}" onclick="fundToggleSup()" title="show / hide supplier names">${FUND_SHOW_SUP?'✓ supplier':'supplier off'}</button><button class="${FUND_SHOW_RATE?'active':''}" onclick="fundToggleRateCol()" title="show / hide rate & amount">${FUND_SHOW_RATE?'✓ rate & ₹':'rate & ₹ off'}</button></span></div>`}
+        </div></details>
+      <span style="flex:1"></span>
+      <span class="small muted" style="align-self:center">${rows.length} PO(s)${FUND_SEL.size?' · '+FUND_SEL.size+' selected':''}</span>
+      <button class="btn ghost sm" onclick="fundSelAll(${JSON.stringify(rows.map(r=>r.poId)).replace(/"/g,'&quot;')})" title="select for export">☑ Select all</button>
+      ${FUND_SEL.size?`<button class="btn ghost sm" onclick="fundSelClear()">Clear selection (${FUND_SEL.size})</button>`:''}
+      <button class="btn ghost sm" onclick="fundExpandAll(true)" title="expand all">▾</button><button class="btn ghost sm" onclick="fundExpandAll(false)" title="collapse all">▸</button>
+    </div>
   </div>`;
   return controls+`<div id="fund-body">`+fundBodyHTML()+`</div>`;
 }
@@ -8114,12 +8134,14 @@ function apoRowInfo(r){const p=r.p;const bits=[];
   const od=posOverdue(p)?`<span class="chip" style="font-size:.55rem;background:var(--danger,#D93025);color:#fff;border-color:transparent">⏰ overdue</span>`:'';
   const sh=(typeof v11PoShipNos==='function')?v11PoShipNos(p.poId):[];
   const n=apoLastNote(p);
-  return `${od}<span class="small muted">${bits.join(' · ')}</span>${sh&&sh.length?`<span class="small mono">${sh.slice(0,3).map(x=>esc(x)).join(', ')}${sh.length>3?' …':''}</span>`:''}${n?`<span class="small" title="${esc(n.text||'')}" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 ${esc(n.text||'')}${n.due?' · due '+esc(posDispDate(dOnly(n.due))):''}</span>`:''}`;}
+  const lc=fuLastCall(p),nx=fuNext(p);   // [V1.1.8] dad's last answer + next follow-up
+  return `${od}<span class="small muted">${bits.join(' · ')}</span>${fuOutChip(lc)}${nx?`<span class="small ${nx<=t8()?'':'muted'}" style="${nx<=t8()?'color:var(--non)':''}">📞 next ${esc(d8show(nx))}</span>`:''}${sh&&sh.length?`<span class="small mono">${sh.slice(0,3).map(x=>esc(x)).join(', ')}${sh.length>3?' …':''}</span>`:''}${n?`<span class="small" title="${esc(n.text||'')}" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 ${esc(n.text||'')}${n.due?' · due '+esc(posDispDate(dOnly(n.due))):''}</span>`:''}`;}
 function apoRowActions(r){const p=r.p,st=r.status,id=esc(r.poId);let b='';
   if(st==='made')b+=`<button class="btn sm" onclick="podocMarkSent('${id}')" title="mark sent to supplier">✈ Send</button>`;
   else if(st!=='done'&&r.T.pending>0)b+=`<button class="btn sm" style="background:var(--ok);border-color:var(--ok)" onclick="poReceiveUnit('${id}')" title="record a shipment with this PO's pending lines">🚚 Ship</button>`;
   if(st==='done')b+=`<button class="btn sm" onclick="poClose('${id}')">✓ Close</button>`;
-  b+=`<button class="btn ghost sm" onclick="poDetailOpen('${id}')" title="all actions: notes, promised date, snooze, edit, cancel balance…">⋯</button>`;
+  if(st!=='made'&&st!=='done')b+=`<button class="btn ghost sm" onclick="fuLogOpen(['${id}'],'')" title="log dad's answer · next follow-up">📞</button>`;   // [V1.1.8]
+  b+=`<button class="btn ghost sm" onclick="poDetailOpen('${id}')" title="all actions: notes, promised date, follow-up, edit, cancel balance…">⋯</button>`;
   return b;}
 function fundBodyHTML(){
   const inr=v=>'\u20B9'+Math.round(v).toLocaleString('en-IN');
@@ -8630,7 +8652,7 @@ function v11LotCard(p,L){const st=lotStatus(L);const [sLbl,sCol]=LOT_STATUS_CHIP
       <button class="btn ghost sm" title="copy summary for WhatsApp" onclick="lotWhatsApp('${esc(p.poId)}','${esc(L.lotId)}')">💬</button>
       <span class="small muted">open it to edit · arrival · bill</span></div>
   </div>`;}
-function posSnoozed(p){return !!(p.snoozeUntil&&p.snoozeUntil>new Date().toISOString().slice(0,10));}
+function posSnoozed(p){return fuWaiting(p);}   // [V1.1.8] 'snooze' is now the next follow-up date
 /* [v5] Follow-up = two tracks. Left: status derived from data. Right: to-dos you entered. */
 let FU_MODE='both';
 function fuSetMode(m){FU_MODE=m;posRender();}
@@ -8817,6 +8839,7 @@ function poDetailRender(){
     <div class="small" style="margin:2px 0;display:flex;gap:14px;flex-wrap:wrap">${(()=>{const dd=poDates(p);const chip=(lbl,v,tone)=>`<span title="${lbl}"><b class="small muted">${lbl}:</b> ${v?`<b style="color:${tone||'var(--ink)'}">${esc(v)}</b>`:'<span class="muted">—</span>'}</span>`;
       return chip('Promised ship',dd.promisedShip,'#5B4B8A')+chip('Shipped',dd.shipped,'#B8893A')+chip('Expected delivery',dd.expectedDelivery,'var(--gst)');})()}</span>
     </div>
+    ${poStripHTML(p)}
     <div class="lane-toggle" style="margin-top:6px">
       <button class="${POD_TAB==='products'?'active':''}" onclick="podSetTab('products')">📦 Products &amp; lots</button>
       <button class="${POD_TAB==='actions'?'active':''}" onclick="podSetTab('actions')">⚡ Actions</button>
@@ -8925,7 +8948,7 @@ function podActionsTab(p,pr){
 
 function podNotesHTML(p){
   const notes=(p.notes||[]);const t0=new Date().toISOString().slice(0,10);
-  const noteRow=(n,idx)=>`<div class="small" style="display:flex;gap:6px;align-items:center;padding:3px 0;border-bottom:1px dashed var(--line-2);${n.done?'opacity:.55':''}">
+  const noteRow=(n,idx)=>n.kind?`<div class="small" style="padding:3px 0;border-bottom:1px dashed var(--line-2)">${n.kind==='call'?(FU_OUT[n.outcome]||['📞'])[0]:'🧾'} <span class="muted mono" style="font-size:.62rem">${esc(n.at||'')}</span> ${esc(n.text||'')} <span class="muted">${esc(n.by||'')}</span></div>`:`<div class="small" style="display:flex;gap:6px;align-items:center;padding:3px 0;border-bottom:1px dashed var(--line-2);${n.done?'opacity:.55':''}">
      <input type="checkbox" ${n.done?'checked':''} onchange="podNoteToggle('${esc(p.poId)}',${idx})" title="mark done">
      <input type="date" class="po-in" value="${esc(n.due||'')}" style="width:120px" title="follow-up date" onchange="podNoteEdit('${esc(p.poId)}',${idx},'due',this.value)">
      <span class="muted mono" style="font-size:.62rem">${esc((n.at||'').slice(0,10))}</span>
@@ -8933,7 +8956,11 @@ function podNotesHTML(p){
      <button class="btn ghost sm" style="padding:0 6px;color:var(--non)" title="delete" onclick="podNoteDel('${esc(p.poId)}',${idx})">✕</button></div>`;
   return `<div style="margin-top:12px;border-top:1px solid var(--line-2);padding-top:10px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><b class="small">Follow-up notes &amp; to-do</b><span class="small muted">${notes.length||'no'} note${notes.length===1?'':'s'}</span>
-      <span style="flex:1"></span>${p.snoozeUntil?`<span class="chip warn" style="font-size:.62rem">💤 snoozed → ${esc(p.snoozeUntil)}</span> <button class="btn ghost sm" onclick="poSnooze('${esc(p.poId)}','')">wake</button>`:`<button class="btn ghost sm" onclick="poSnooze('${esc(p.poId)}',3)">💤 3d</button><button class="btn ghost sm" onclick="poSnooze('${esc(p.poId)}',7)">7d</button>`}</div>
+      <span style="flex:1"></span><button class="btn sm" onclick="fuLogOpen(['${esc(p.poId)}'],'')" title="what the supplier said — sets the next follow-up">📞 Log dad's answer</button></div>
+    <div class="small" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><b class="small muted">Next follow-up</b>
+      <input type="date" class="po-in" style="width:136px" value="${esc(fuNext(p))}" onchange="fuSetNext('${esc(p.poId)}',this.value)">
+      <button class="btn ghost sm" onclick="fuNextIn('${esc(p.poId)}',1)">Tomorrow</button><button class="btn ghost sm" onclick="fuNextIn('${esc(p.poId)}',3)">+3 days</button><button class="btn ghost sm" onclick="fuNextIn('${esc(p.poId)}',7)">+7 days</button>
+      ${fuNext(p)?`<a class="linky small" onclick="fuSetNext('${esc(p.poId)}','')">clear</a>`:''}<span class="muted">until then it stays off the ask list</span></div>
     ${notes.length?`<div style="max-height:150px;overflow:auto;margin-bottom:6px">${notes.map((n,idx)=>noteRow(n,idx)).reverse().join('')}</div>`:''}
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
       <input id="pod-note-in" class="po-in" style="flex:1;min-width:170px" placeholder="what to do / what they said (e.g. 'call &amp; get revised PO')">
@@ -9697,6 +9724,11 @@ function posRender(){
   try{const _l=document.getElementById('pos-list');if(_l)_l.className=(_l.className||'').replace(/\bvt-compact\b/g,'').trim()+(POS_COMPACT?' vt-compact':'');}catch(e){}
   const el=document.getElementById('pos-list');if(!el)return;
   const tops=PODOCS.filter(p=>p&&!p.parentPoId&&!p.closed);
+  // [V1.1.8] Today · Ask dad · Follow-up calendar · Lead time & MOQ
+  if(POS_VIEW==='today'||POS_VIEW==='askdad'||POS_VIEW==='fucal'||POS_VIEW==='supterms'){document.getElementById('pos-count').textContent='';
+    try{el.innerHTML=POS_VIEW==='today'?posToday():POS_VIEW==='askdad'?posAskDad():POS_VIEW==='fucal'?posFuCal():posSupTerms();}
+    catch(e){console.warn(e);el.innerHTML=`<div class="card"><div class="empty">Could not draw this screen: ${esc(e.message||String(e))}</div></div>`;}
+    try{navBadgeDirty();}catch(e){}return;}
   // [VT-013/14] board & timeline ignore the Open/Received filter (they group by status themselves)
   if(POS_VIEW==='timeline'){document.getElementById('pos-count').textContent=tops.length?(posBoardDocs().length+' POs on timeline'):'';
     if(!PODOCS.length){el.innerHTML=posEmptyCard();return;}el.innerHTML=posTimeline();return;}
@@ -10122,7 +10154,7 @@ function acApply(){
     if(!allowed&&POS_VIEW===v){POS_VIEW='dash';}});
   try{if(typeof enableNav==='function')enableNav(VT_MODE==='ops'&&!REGISTER_LOADED?true:(VT_MODE==='ops'));}catch(e){}
   try{const G=NAV_G.find(x=>x.g===NAV_CUR.g),it=G&&G.items.find(i=>i.k===NAV_CUR.k);
-    if(NAV_CUR.g&&(!G||!navOK(G.need)||!it||!navOK(it.need)))navGo('pos','allpos');else navPaint();}catch(e){}
+    if(NAV_CUR.g&&(!G||!navOK(G.need)||!it||!navOK(it.need)))navGo('today','today');else navPaint();}catch(e){}
 }
 /* [v5.6] masked PIN entry — replaces prompt(), which showed the PIN in clear text */
 let PIN_RESOLVE=null;
@@ -10228,6 +10260,472 @@ function acOpenSettings(){mOpen('settings-modal');try{regStatusPaint();}catch(e)
 function acCloseSettings(){mClose('settings-modal');}
 function acGoUpload(){if(VT_MODE!=='mgmt'){alert('Management mode required.');return;}acCloseSettings();switchScreen('upload');}
 
+/* ===================== [V1.1.8 R49 phase 3 · R62–R66] TODAY · ASK DAD · FOLLOW-UP CALENDAR · LEAD TIME & MOQ =====================
+   Dad is the only contact with suppliers. In a short daily meeting the purchase team drives him supplier by supplier:
+   promised dates, shipping, transport / LR, pending items, and bills posted in the WhatsApp group.
+   No server change — everything is kept in the existing PO Meta sheet:
+     • "Snooze Until" column  = NEXT FOLLOW-UP date of a PO
+     • Notes JSON             = to-dos, dad's answers (kind:'call') and shipment bill flags (kind:'ship')
+     • rows named "~ST|<supplier>|n" = supplier-given lead time & MOQ per product (not POs — the dashboard skips them) */
+function t8(){return f11Ymd(new Date());}
+function d8add(ymd,n){const d=new Date((ymd||t8())+'T00:00:00');d.setDate(d.getDate()+(+n||0));return f11Ymd(d);}
+function d8diff(a,b){if(!a||!b)return null;const x=new Date(a+'T00:00:00'),y=new Date(b+'T00:00:00');if(isNaN(x)||isNaN(y))return null;return Math.round((y-x)/86400000);}
+function d8show(ymd){return ymd?posDispDate(ymd):'';}
+function nowStamp(){const d=new Date();return f11Ymd(d)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+function agoTxt(n){return n==null?'':(n<=0?'today':n===1?'yesterday':n+' days ago');}
+function fuTop(p){return p&&p.parentPoId?(podocFind(p.parentPoId)||p):p;}
+function fuNext(p){return dOnly(p&&p.snoozeUntil)||'';}
+function fuWaiting(p){const n=fuNext(p);return !!(n&&n>t8());}
+function fuCalls(p){return ((p&&p.notes)||[]).filter(n=>n&&n.kind==='call');}
+function fuLastCall(p){const c=fuCalls(p);return c.length?c[c.length-1]:null;}
+function fuTodos(p){return ((p&&p.notes)||[]).map((n,idx)=>({n,idx})).filter(x=>x.n&&!x.n.kind&&!x.n.done);}
+function fuNo(p){return p.realNo||p.poId;}
+function fuPoTxt(p){const n=String(fuNo(p));return /^PO/i.test(n)?n:'PO '+n;}
+const FU_OUT={promised:['📅','Promised date given'],shipping:['🚚','Shipping today'],noanswer:['📵','No answer — ask again tomorrow'],delayed:['⏳','Delayed']};
+function fuOutChip(c){if(!c)return '';const o=FU_OUT[c.outcome]||['📞',c.outcome||'answer'];
+  return `<span class="chip lite" style="font-size:.58rem" title="${esc(c.text||'')} — ${esc(c.by||'')}">${o[0]} ${esc(d8show(dOnly(c.at)))}: ${esc(o[1].replace(/ —.*$/,''))}${c.date?' → '+esc(d8show(c.date)):''}</span>`;}
+// ship dates of a PO (V1.1 shipments are shown on the PO as read-only lots)
+function poShipDates(p){const out=[];const us=poIsSplit(p)?poChildren(p):[p];us.forEach(u=>(u.lots||[]).forEach(L=>{const d=dOnly(L.date);if(d)out.push(d);}));return out;}
+function poPendingItems(p){const out=[];poUnitLines(p).forEach(u=>{const eff=Math.max(0,(+u.l.qty||0)-(+u.l.cancelledQty||0));const q=Math.max(0,eff-shipForLine(u.doc,u.di));
+  if(q>0)out.push({name:prodName(u.l.code,u.l.name),qty:q});});return out.sort((a,b)=>b.qty-a.qty);}
+function pendTxt(list,n){n=n||3;return list.slice(0,n).map(x=>x.name+' × '+NUM(x.qty)).join(', ')+(list.length>n?' +'+(list.length-n)+' more':'');}
+
+/* ---------- shipment follow-up flags (bill in the WhatsApp group, ask again date) — kept on the shipment's first PO ---------- */
+function shfHolder(sid){for(const po of v11ShipPos(sid)){const p=podocFind(po);if(p)return fuTop(p);}return null;}
+function shfGet(sid){const p=shfHolder(sid);if(!p)return {};return (p.notes||[]).find(n=>n&&n.kind==='ship'&&n.sid===sid)||{};}
+function shfText(r,s){const no=(s&&s.shipmentNo)||r.sid;
+  return no+': '+(r.bill==='group'?'bill is in the group':r.bill==='personal'?'bill is on dad\'s phone — to forward':'bill not seen yet')+(r.next?' · ask again '+r.next:'');}
+function shfSet(sid,patch){const p=shfHolder(sid);if(!p){toast('This shipment has no PO to keep the note on.');return;}
+  p.notes=p.notes||[];let r=p.notes.find(n=>n&&n.kind==='ship'&&n.sid===sid);
+  if(!r){r={kind:'ship',sid,done:true,due:''};p.notes.push(r);}
+  Object.assign(r,patch,{at:nowStamp(),by:vtBy()});r.text=shfText(r,v11ShipById(sid));
+  _podPersist(p);posRender();try{navBadgeDirty();}catch(e){}}
+function shfBill(sid,v){shfSet(sid,{bill:v});toast(v==='group'?'Marked: bill is in the group.':v==='personal'?'Marked: bill is on dad\'s phone — it stays on the list until forwarded.':'Bill flag cleared.');}
+function shfLater(sid,days){shfSet(sid,{next:d8add(t8(),days||1)});toast('Will ask again on '+d8show(d8add(t8(),days||1))+'.');}
+
+/* ---------- the ASK LIST — what to ask each supplier today ---------- */
+function askBuild(){
+  const T=t8();const bySup=new Map();
+  const S=name=>{let x=bySup.get(name);if(!x){x={sup:name,pos:[],ships:[],waiting:[],high:0,n:0,pend:0,openPos:0,transit:0,calls:0};bySup.set(name,x);}return x;};
+  (PODOCS||[]).filter(p=>p&&!p.parentPoId&&!p.closed).forEach(p=>{
+    const stage=posStage(p),bal=poPendingToShip(p);
+    if(stage==='done'&&bal<=0)return;                       // fully received → Today › close, not a supplier question
+    const sx=S(p.supplier||'—');sx.openPos++;sx.pend+=bal;
+    if(fuCalls(p).some(c=>dOnly(c.at)===T))sx.calls++;
+    const asks=[];const add=(sev,kind,text)=>asks.push({sev,kind,text});
+    const todos=fuTodos(p).filter(x=>x.n.due&&dOnly(x.n.due)<=T);
+    const addTodos=()=>todos.forEach(x=>add('med','todo','To-do: '+(x.n.text||'')+(dOnly(x.n.due)<T?' (due '+d8show(dOnly(x.n.due))+')':'')));
+    if(fuWaiting(p)){sx.waiting.push({p,next:fuNext(p)});addTodos();if(asks.length)sx.pos.push({p,asks,stage,bal});return;}
+    if(stage==='made')add('low','send','Not sent yet — post the PO in the group / send it to the supplier');
+    else if(bal>0){
+      const pr=dOnly(p.promised);
+      const part=(stage==='partshipped'||stage==='partial')?' for the balance':'';
+      if(!pr){const age=d8diff(dOnly(p.sentAt)||dOnly(p.createdAt),T);add('high','nopromise','Get the promised dispatch date'+part+(age!=null?' — sent '+agoTxt(age):''));}
+      else{const late=d8diff(pr,T);
+        if(late>0)add('high','late','Promised '+d8show(pr)+' — '+late+' day'+(late===1?'':'s')+' late. '+(part?'Balance shipped?':'Shipped?')+' New date?');
+        else if(late>=-2)add('med','soon','Promised '+(late===0?'today':late===-1?'tomorrow':d8show(pr))+' — confirm it ships; ask for the bill + LR in the group');}
+      const lc=fuLastCall(p);
+      if(lc&&lc.outcome==='shipping'){const said=dOnly(lc.at);if(said&&said<T&&!poShipDates(p).some(d=>d>=said))add('high','shipcheck','Supplier said "shipping '+d8show(said)+'" — did it ship? Get the bill + LR');}
+    }
+    addTodos();
+    const fd=fuNext(p);if(fd&&fd<=T&&!asks.length)add('med','fudue','Follow-up date '+d8show(fd)+' — ask for an update');
+    if(asks.length)sx.pos.push({p,asks,stage,bal});
+  });
+  (V11.shipments||[]).forEach(s=>{if(s.status==='Cancelled')return;
+    const st=v11ShipState(s),bs=v11BillState(s.shipmentId);if(st==='transit')S(s.supplier||'—').transit++;
+    if(st==='arrived'&&bs!=='none')return;
+    const f=shfGet(s.shipmentId),age=d8diff(dOnly(s.shipDate),T);const asks=[];const add=(sev,kind,text)=>asks.push({sev,kind,text});
+    if(bs==='none'){if(f.bill==='personal')add('high','billfwd','Bill is on dad\'s phone — forward it to the group');
+      else if(f.bill!=='group')add(age!=null&&age>=1?'high':'med','billgroup','Bill posted in the group?'+(age!=null?' (shipped '+agoTxt(age)+')':''));}
+    if(st==='transit'&&!(dOnly(f.next)&&dOnly(f.next)>T)){
+      if(!String(s.lr||'').trim()&&!String(s.transport||'').trim())add('med','lr','Get the LR no. / transport name');
+      const ex=dOnly(s.expected);
+      if(ex&&ex<T)add('high','shiplate','Expected '+d8show(ex)+' — not arrived. Ask transport / supplier');
+      else if(!ex&&age!=null&&age>=1)add('med','eta','When will it arrive? (no expected date)');}
+    if(asks.length)S(s.supplier||'—').ships.push({s,asks,st,bs,f,age});
+  });
+  const out=[...bySup.values()];
+  out.forEach(x=>{const all=x.pos.flatMap(r=>r.asks).concat(x.ships.flatMap(r=>r.asks));x.n=all.length;x.high=all.filter(a=>a.sev==='high').length;
+    x.pos.sort((a,b)=>String(a.p.createdAt||'').localeCompare(String(b.p.createdAt||'')));});
+  return out.sort((a,b)=>(b.high-a.high)||(b.n-a.n)||String(a.sup).localeCompare(String(b.sup)));
+}
+const ASK_ICON={nopromise:'📅',late:'⏰',soon:'🗓',shipcheck:'🚚',balance:'📦',todo:'📝',fudue:'📞',send:'✈',billgroup:'🧾',billfwd:'📱',lr:'🚛',shiplate:'⏰',eta:'🚛'};
+let ASK_UI={q:'',all:false,fold:new Set()};
+function askSetQ(v){ASK_UI.q=v;posRenderKeepFocus();}
+function askFold(el){const s=el.closest('[data-s]').dataset.s;ASK_UI.fold.has(s)?ASK_UI.fold.delete(s):ASK_UI.fold.add(s);posRender();}
+function askShipNo(s){return s.shipmentNo||s.shipmentId;}
+function askText(x){const T=t8();let t=`*${x.sup}* — to ask (${d8show(T)})\n`;
+  x.pos.forEach(r=>{const pi=poPendingItems(r.p);t+=`${fuPoTxt(r.p)}${r.bal>0?' ('+NUM(r.bal)+' pcs pending)':''}:\n`;
+    r.asks.forEach(a=>{t+=` • ${a.text}\n`;});if(r.bal>0&&pi.length)t+=` • Pending: ${pendTxt(pi,4)}\n`;});
+  x.ships.forEach(r=>{t+=`${askShipNo(r.s)} (shipped ${d8show(dOnly(r.s.shipDate))||'—'}):\n`;r.asks.forEach(a=>{t+=` • ${a.text}\n`;});});
+  return t;}
+function askCopy(txt){try{navigator.clipboard.writeText(txt);toast('Copied — paste it in WhatsApp.');}catch(e){window.prompt('Copy:',txt);}}
+function askCopySup(el){const s=el.closest('[data-s]').dataset.s;const x=askBuild().find(y=>y.sup===s);if(x)askCopy(askText(x));}
+function askCopyAll(){const L=askBuild().filter(x=>x.n);if(!L.length){toast('Nothing to ask today.');return;}askCopy(L.map(askText).join('\n'));}
+function askCopyAnswers(){const T=t8();const lines=[];
+  (PODOCS||[]).filter(p=>p&&!p.parentPoId).forEach(p=>fuCalls(p).filter(c=>dOnly(c.at)===T).forEach(c=>lines.push({sup:p.supplier||'—',t:`${fuPoTxt(p)}: ${c.text}${c.by?' ('+c.by+')':''}`})));
+  if(!lines.length){toast('No answers logged today yet.');return;}
+  lines.sort((a,b)=>a.sup.localeCompare(b.sup));let cur='',t=`Today's supplier answers (${d8show(T)})\n`;
+  lines.forEach(l=>{if(l.sup!==cur){t+=`\n*${l.sup}*\n`;cur=l.sup;}t+=` • ${l.t}\n`;});askCopy(t);}
+function askLogAll(el){const s=el.closest('[data-s]').dataset.s;const x=askBuild().find(y=>y.sup===s);if(!x)return;
+  const ids=x.pos.filter(r=>r.asks.some(a=>a.kind!=='send'&&a.kind!=='todo')).map(r=>r.p.poId);
+  if(!ids.length){toast('No PO of this supplier needs an answer right now.');return;}fuLogOpen(ids,'');}
+function posAskDad(){
+  if(!navOK('buyer'))return `<div class="card"><div class="empty">The ask list shows supplier names — Purchase team / Management only.</div></div>`;
+  const T=t8();const all=askBuild();const q=ASK_UI.q.trim().toLowerCase();
+  let list=all.filter(x=>ASK_UI.all?(x.openPos||x.ships.length):x.n);
+  if(q)list=list.filter(x=>(x.sup+' '+x.pos.map(r=>fuNo(r.p)).join(' ')+' '+x.ships.map(r=>askShipNo(r.s)).join(' ')).toLowerCase().indexOf(q)>=0);
+  const nAsk=all.reduce((a,x)=>a+x.n,0),nHigh=all.reduce((a,x)=>a+x.high,0),nSup=all.filter(x=>x.n).length,nCalls=all.reduce((a,x)=>a+x.calls,0);
+  const head=`<div class="card" style="margin-bottom:12px">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <b>Ask dad — supplier by supplier</b><span class="small muted">everything to ask each supplier today · log dad's answer in one click · open POs only</span>
+      <span style="flex:1"></span>
+      <button class="btn sm" onclick="askCopyAll()" title="copy the whole list — WhatsApp-ready">📋 Copy the list</button>
+      <button class="btn ghost sm" onclick="askCopyAnswers()" title="copy what was logged today — to post after the meeting">📋 Copy today's answers</button></div>
+    <div class="ovgrid" style="margin:10px 0 6px">
+      <div class="card ovc" style="cursor:default"><div class="ovn">${nSup}</div><div class="ovl">Suppliers to discuss</div></div>
+      <div class="card ovc" style="cursor:default;border-left:4px solid var(--non)"><div class="ovn" style="color:var(--non)">${nHigh}</div><div class="ovl">Urgent questions</div><div class="small muted">no date · late · bill · shipped?</div></div>
+      <div class="card ovc" style="cursor:default"><div class="ovn">${nAsk}</div><div class="ovl">All questions</div></div>
+      <div class="card ovc" style="cursor:default;border-left:4px solid var(--ok)"><div class="ovn" style="color:var(--ok)">${nCalls}</div><div class="ovl">Answers logged today</div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <input class="po-in" style="width:230px" placeholder="search supplier / PO / SH…" value="${esc(ASK_UI.q)}" oninput="askSetQ(this.value)">
+      <label class="small" style="display:flex;gap:4px;align-items:center"><input type="checkbox" ${ASK_UI.all?'checked':''} onchange="ASK_UI.all=this.checked;posRender()"> also show suppliers with nothing to ask today</label>
+      <span class="small muted">Tip: answer with <b>📞 Log answer</b> — it sets the next follow-up date, so the question comes back on the right day.</span></div></div>`;
+  if(!list.length)return head+`<div class="card"><div class="empty">${nSup?'No supplier matches the search.':'✅ Nothing to ask today. New questions appear here automatically (no promised date, late, bills, LR…).'}</div></div>`;
+  const askLi=a=>`<li style="margin:2px 0;${a.sev==='high'?'color:var(--non);font-weight:600':''}">${ASK_ICON[a.kind]||'•'} ${esc(a.text)}</li>`;
+  const poBlock=r=>{const p=r.p,id=esc(p.poId),pi=poPendingItems(p),lc=fuLastCall(p),nx=fuNext(p);
+    const onlySend=r.asks.every(a=>a.kind==='send'||a.kind==='todo');
+    return `<div style="border-top:1px dashed var(--line-2);padding:8px 0">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><a class="linky mono" style="font-weight:800" onclick="poDetailOpen('${id}')">${esc(fuNo(p))}</a>
+        <span class="chip ${PODOC_CHIP[poRollup(p)]||'lite'}" style="font-size:.58rem">${PODOC_LABEL[poRollup(p)]||r.stage}</span>
+        ${p.sentAt?`<span class="small muted">sent ${esc(d8show(dOnly(p.sentAt)))}</span>`:''}
+        ${dOnly(p.promised)?`<span class="chip lite" style="font-size:.58rem">🤝 promised ${esc(d8show(dOnly(p.promised)))}</span>`:''}
+        ${fuOutChip(lc)}<span style="flex:1"></span>
+        ${r.bal>0?`<span class="small"><b style="color:var(--gst)">${NUM(r.bal)}</b> pending</span>`:''}</div>
+      <ul style="margin:4px 0 4px 18px;padding:0">${r.asks.map(askLi).join('')}</ul>
+      ${r.bal>0&&pi.length?`<div class="small muted" style="margin:0 0 4px 18px">📦 ${esc(pendTxt(pi,4))}</div>`:''}
+      <div class="pos-card-a" style="flex-wrap:wrap;gap:5px">
+        ${r.stage==='made'?`<button class="btn sm" onclick="podocMarkSent('${id}');try{navBadgeDirty()}catch(e){}">✈ Mark sent</button>`:''}
+        ${onlySend&&r.stage==='made'?'':`<button class="btn sm" onclick="fuLogOpen(['${id}'],'promised')" title="supplier gave a dispatch date">📅 Promised date</button>
+        <button class="btn ghost sm" onclick="fuLogOpen(['${id}'],'shipping')">🚚 Shipping today</button>
+        <button class="btn ghost sm" onclick="fuLogOpen(['${id}'],'noanswer')">📵 No answer</button>
+        <button class="btn ghost sm" onclick="fuLogOpen(['${id}'],'delayed')">⏳ Delayed</button>`}
+        <button class="btn ghost sm" onclick="fuAddTodo('${id}')" title="add a to-do with a date">＋ To-do</button>
+        ${fuTodos(p).filter(x=>x.n.due&&dOnly(x.n.due)<=T).map(x=>`<button class="btn ghost sm" onclick="podNoteToggle('${id}',${x.idx})" title="${esc(x.n.text||'')}">✓ to-do done</button>`).join('')}
+        <label class="small muted" style="display:inline-flex;gap:4px;align-items:center">next follow-up <input type="date" class="po-in" style="width:132px" value="${esc(nx)}" onchange="fuSetNext('${id}',this.value)"></label></div></div>`;};
+  const shipBlock=r=>{const s=r.s,sid=esc(s.shipmentId),k=r.asks.map(a=>a.kind);
+    return `<div style="border-top:1px dashed var(--line-2);padding:8px 0">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><a class="linky mono" style="font-weight:800" onclick="v11ShipEdit('${sid}')">${esc(askShipNo(s))}</a>
+        <span class="chip" style="font-size:.58rem;background:${S11_STATE_CHIP[r.st][1]};color:#fff;border-color:transparent">${S11_STATE_CHIP[r.st][0]}</span>
+        <span class="small muted">shipped ${esc(d8show(dOnly(s.shipDate))||'—')}${s.lr?' · LR '+esc(s.lr):''}${s.transport?' · '+esc(s.transport):''} · ${esc(v11ShipPos(s.shipmentId).map(v11PoLabel).join(', '))}</span></div>
+      <ul style="margin:4px 0 4px 18px;padding:0">${r.asks.map(askLi).join('')}</ul>
+      <div class="pos-card-a" style="flex-wrap:wrap;gap:5px">
+        ${k.includes('billgroup')?`<button class="btn sm" onclick="shfBill('${sid}','group')">✓ Bill is in the group</button><button class="btn ghost sm" onclick="shfBill('${sid}','personal')">📱 On dad's phone</button>`:''}
+        ${k.includes('billfwd')?`<button class="btn sm" onclick="shfBill('${sid}','group')">✓ Forwarded to the group</button>`:''}
+        ${(k.includes('lr')||k.includes('eta')||k.includes('shiplate'))?`<button class="btn ghost sm" onclick="v11ShipEdit('${sid}')" title="enter LR, transport, expected date or mark arrived">✎ Enter LR / date / arrived</button><button class="btn ghost sm" onclick="shfLater('${sid}',1)">Ask tomorrow</button>`:''}</div></div>`;};
+  return head+list.map(x=>{const fold=ASK_UI.fold.has(x.sup);
+    const fake={supplier:x.sup};
+    return `<div class="card" data-s="${esc(x.sup)}" style="margin-bottom:10px;${x.high?'border-left:4px solid var(--non)':x.n?'border-left:4px solid var(--gst)':''}">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <a class="linky" style="font-weight:800;font-size:1rem" onclick="askFold(this)">${fold?'▸':'▾'} ${esc(x.sup)}</a>
+        ${x.high?`<span class="chip" style="background:var(--non);color:#fff;border-color:transparent;font-size:.6rem">${x.high} urgent</span>`:''}
+        <span class="small muted">${x.n} question${x.n===1?'':'s'} · ${x.openPos} open PO${x.openPos===1?'':'s'}${x.pend?' · '+NUM(x.pend)+' pcs pending':''}${x.transit?' · '+x.transit+' in transit':''}${x.calls?' · ✓ '+x.calls+' answered today':''}</span>
+        <span style="flex:1"></span>${supCallHtml(fake,true)}
+        ${x.pos.length>1?`<button class="btn ghost sm" onclick="askLogAll(this)" title="one answer for all this supplier's POs">📞 One answer for all POs</button>`:''}
+        <button class="btn ghost sm" onclick="askCopySup(this)" title="copy this supplier's questions for WhatsApp">📋 Copy</button></div>
+      ${fold?'':x.pos.map(poBlock).join('')+x.ships.map(shipBlock).join('')}
+      ${!fold&&x.waiting.length?`<div class="small muted" style="border-top:1px dashed var(--line-2);padding-top:6px">⏳ Waiting: ${x.waiting.map(w=>`<a class="linky mono" onclick="poDetailOpen('${esc(w.p.poId)}')">${esc(fuNo(w.p))}</a> (next follow-up ${esc(d8show(w.next))})`).join(' · ')}</div>`:''}
+    </div>`;}).join('');
+}
+
+/* ---------- log dad's answer (one PO, or all POs of a supplier) ---------- */
+let FULOG={ids:[],outcome:'',date:'',reason:'',next:''};
+function fuLogEnsure(){if(document.getElementById('fulog-modal'))return;
+  const d=document.createElement('div');d.className='modal-bg';d.id='fulog-modal';
+  d.innerHTML='<div class="modal" style="max-width:560px"><div id="fulog-body"></div></div>';document.body.appendChild(d);}
+function fuLogDefNext(o,date){const T=t8(),tm=d8add(T,1);
+  if(o==='promised'){if(!date)return tm;const n=d8add(date,-1);return n>T?n:tm;}
+  if(o==='delayed')return date?(d8add(date,-1)>T?d8add(date,-1):tm):d8add(T,3);
+  return tm;}
+function fuLogOpen(ids,outcome){ids=(ids||[]).map(id=>{const p=fuTop(podocFind(id));return p&&p.poId;}).filter(Boolean);if(!ids.length)return;
+  FULOG={ids:[...new Set(ids)],outcome:outcome||'',date:'',reason:'',next:''};
+  if(FULOG.ids.length===1){const p=podocFind(FULOG.ids[0]);if(outcome==='promised'||outcome==='delayed')FULOG.date='';}
+  FULOG.next=FULOG.outcome?fuLogDefNext(FULOG.outcome,''):'';
+  fuLogEnsure();fuLogPaint();mOpen('fulog-modal');}
+function fuLogRead(){const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
+  if(document.getElementById('fulog-date'))FULOG.date=dOnly(g('fulog-date'))||'';
+  if(document.getElementById('fulog-reason'))FULOG.reason=g('fulog-reason');
+  if(document.getElementById('fulog-next'))FULOG.next=dOnly(g('fulog-next'))||'';}
+function fuLogPick(o){fuLogRead();FULOG.outcome=o;FULOG.next=fuLogDefNext(o,FULOG.date);fuLogPaint();}
+function fuLogDate(v){fuLogRead();FULOG.date=dOnly(v)||'';FULOG.next=fuLogDefNext(FULOG.outcome,FULOG.date);fuLogPaint();}
+function fuLogNext(days){fuLogRead();FULOG.next=d8add(t8(),days);fuLogPaint();}
+function fuLogPaint(){const el=document.getElementById('fulog-body');if(!el)return;const o=FULOG.outcome;
+  const pos=FULOG.ids.map(id=>podocFind(id)).filter(Boolean);
+  const sup=pos.length?(VT_MODE==='ops'?'':(pos[0].supplier||'')):'';
+  const needDate=o==='promised'||o==='delayed';
+  el.innerHTML=`<h3 style="margin:0 0 4px">📞 Log dad's answer</h3>
+    <div class="small muted" style="margin-bottom:10px">${esc(sup)}${sup?' · ':''}${pos.map(p=>esc(fuNo(p))).join(', ')}</div>
+    <div class="lane-toggle wrap" style="margin-bottom:10px">${Object.entries(FU_OUT).map(([k,v])=>`<button class="${o===k?'active':''}" onclick="fuLogPick('${k}')">${v[0]} ${esc(v[1])}</button>`).join('')}</div>
+    ${!o?'<div class="small muted">Pick what the supplier said.</div>':`
+    ${needDate?`<div class="f" style="margin-bottom:8px"><label>${o==='promised'?'Promised dispatch date':'New date (if they gave one)'}</label><input type="date" id="fulog-date" class="po-in" value="${esc(FULOG.date)}" onchange="fuLogDate(this.value)"></div>`:''}
+    <div class="f" style="margin-bottom:8px"><label>${o==='delayed'?'Reason':'Note (optional)'}</label><input id="fulog-reason" class="po-in" style="width:100%" value="${esc(FULOG.reason)}" placeholder="${o==='delayed'?'e.g. stock not ready, waiting for colour X':'e.g. LR will come in the evening'}"></div>
+    <div class="f" style="margin-bottom:4px"><label>Next follow-up — the question comes back on this day</label>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="date" id="fulog-next" class="po-in" value="${esc(FULOG.next)}">
+      <button class="btn ghost sm" onclick="fuLogNext(1)">Tomorrow</button><button class="btn ghost sm" onclick="fuLogNext(3)">+3 days</button><button class="btn ghost sm" onclick="fuLogNext(7)">+7 days</button></div></div>`}
+    <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:14px">
+      <button class="btn ghost sm" onclick="mClose('fulog-modal')">Cancel</button>
+      <button class="btn sm" ${o?'':'disabled'} onclick="fuLogSave()">Save${FULOG.ids.length>1?' for '+FULOG.ids.length+' POs':''}</button></div>`;}
+function fuLogSave(){fuLogRead();const o=FULOG.outcome;if(!o)return;
+  if(o==='promised'&&!FULOG.date){alert('Enter the promised dispatch date.');return;}
+  if(o==='delayed'&&!String(FULOG.reason||'').trim()){alert('Enter the reason for the delay.');return;}
+  const date=FULOG.date,reason=String(FULOG.reason||'').trim(),next=FULOG.next||'';
+  FULOG.ids.forEach(id=>{const p=fuTop(podocFind(id));if(!p)return;
+    const text=FU_OUT[o][1]+(date?(o==='promised'?' · promised ':' · new date ')+date:'')+(reason?' · '+reason:'');
+    p.notes=p.notes||[];p.notes.push({kind:'call',outcome:o,date:date||'',text,at:nowStamp(),by:vtBy(),done:true,due:''});
+    if(date&&(o==='promised'||o==='delayed')){p.promised=date;if(poIsSplit(p))poChildren(p).forEach(c=>c.promised=date);}
+    p.snoozeUntil=next;
+    try{if(typeof liveAudit==='function')liveAudit('CALL_LOG','PO',fuNo(p),'answer','',text,next);}catch(e){}
+    _podPersist(p);});
+  mClose('fulog-modal');posRender();try{poDetailRefresh();navBadgeDirty();}catch(e){}
+  toast('Saved'+(next?' — next follow-up '+d8show(next):'')+'.');}
+function fuSetNext(poId,v){const p=fuTop(podocFind(poId));if(!p)return;p.snoozeUntil=dOnly(v)||'';_podPersist(p);posRender();try{poDetailRefresh();navBadgeDirty();}catch(e){}
+  toast(p.snoozeUntil?'Next follow-up '+d8show(p.snoozeUntil):'Follow-up date cleared — it is back on the ask list.');}
+function fuNextIn(poId,days){fuSetNext(poId,d8add(t8(),days));}
+
+/* ---------- TODAY — one list in workflow order ---------- */
+let TODAY_ALL=new Set();
+function todaySecs(){
+  const T=t8(),ops=v11IsOps(),buyer=navOK('buyer');const secs=[];
+  const sec=(k,icon,title,why,rows,go,goLbl)=>secs.push({k,icon,title,why,rows,go,goLbl});
+  const tops=(PODOCS||[]).filter(p=>p&&!p.parentPoId&&!p.closed);
+  const poLink=p=>`<a class="linky mono" style="font-weight:700" onclick="poDetailOpen('${esc(p.poId)}')">${esc(fuNo(p))}</a>`;
+  const shLink=s=>`<a class="linky mono" style="font-weight:700" onclick="v11ShipEdit('${esc(s.shipmentId)}')">${esc(s.shipmentNo||s.shipmentId)}</a>`;
+  const blLink=b=>`<a class="linky mono" style="font-weight:700" onclick="v11BillOpen('${esc(b.billId)}')">${esc(b.billNo||b.billId)}</a>`;
+  const sup=p=>`<span class="small muted">${supMask(p)}</span>`;
+  const sSup=s=>`<span class="small muted">${esc(v11SupLabel(s.supplier,v11ShipPos(s.shipmentId)))}</span>`;
+  const row=(ref,text,btn,cls)=>({ref,text,btn:btn||'',cls:cls||''});
+  const logBtn=(p,o,l)=>`<button class="btn sm" onclick="fuLogOpen(['${esc(p.poId)}'],'${o}')">${l}</button>`;
+  // 1 new requests
+  try{const pend=(typeof REQ!=='undefined'?REQ:[]).filter(r=>reqStatus(r)==='pending');
+    if(pend.length)sec('req','📥','New requests','request lines not yet in a cart or on a PO',[row('',`<b>${NUM(pend.length)}</b> request line${pend.length===1?'':'s'} waiting to be ordered`,`<button class="btn sm" onclick="navGo('pos','requests')">Open Requests</button>`)],'req');}catch(e){}
+  // 2 POs to send
+  sec('send','✈','POs to send','created, not yet sent / posted in the group',tops.filter(p=>posStage(p)==='made').map(p=>row(poLink(p),`${sup(p)} · ${poUnitLines(p).length} item(s) · created ${esc(d8show(dOnly(p.createdAt))||'—')}`,`<button class="btn sm" onclick="podocMarkSent('${esc(p.poId)}');try{navBadgeDirty()}catch(e){}">✈ Mark sent</button>`)),'apo:send','All POs › To send');
+  const open=tops.filter(p=>posStage(p)!=='made'&&poPendingToShip(p)>0);
+  // 3 sent, no promised date — get it today
+  sec('nopromise','📅','Sent — no promised date','get the dispatch date as soon as possible',open.filter(p=>!dOnly(p.promised)).sort((a,b)=>String(a.sentAt||a.createdAt||'').localeCompare(String(b.sentAt||b.createdAt||''))).map(p=>{
+    const age=d8diff(dOnly(p.sentAt)||dOnly(p.createdAt),T),w=fuWaiting(p);
+    return row(poLink(p),`${sup(p)} · sent ${esc(agoTxt(age))}${w?` · <span class="chip lite" style="font-size:.56rem">asked — next follow-up ${esc(d8show(fuNext(p)))}</span>`:''} ${fuOutChip(fuLastCall(p))}`,logBtn(p,'promised','📅 Log answer'),w?'':'hot');}),buyer?'ask':'apo:chase',buyer?'Ask dad':'All POs › To chase');
+  // 4 promised date passed
+  sec('late','⏰','Promised date passed','balance not shipped and the promised date has gone',open.filter(p=>dOnly(p.promised)&&dOnly(p.promised)<T).sort((a,b)=>String(a.promised).localeCompare(String(b.promised))).map(p=>{
+    const late=d8diff(dOnly(p.promised),T),w=fuWaiting(p);
+    return row(poLink(p),`${sup(p)} · promised ${esc(d8show(dOnly(p.promised)))} · <b style="color:var(--non)">${late} day${late===1?'':'s'} late</b>${w?` · <span class="chip lite" style="font-size:.56rem">next follow-up ${esc(d8show(fuNext(p)))}</span>`:''} ${fuOutChip(fuLastCall(p))}`,logBtn(p,'delayed','📞 Log answer'),w?'':'hot');}),buyer?'ask':'apo:chase',buyer?'Ask dad':'All POs › To chase');
+  // 5 follow-ups & to-dos due
+  const due=[];tops.forEach(p=>{const nx=fuNext(p);if(nx&&nx<=T&&posStage(p)!=='done')due.push(row(poLink(p),`${sup(p)} · follow-up date ${esc(d8show(nx))} ${fuOutChip(fuLastCall(p))}`,buyer?`<button class="btn ghost sm" onclick="fuLogOpen(['${esc(p.poId)}'],'')">📞 Log answer</button>`:''));
+    fuTodos(p).forEach(x=>{const d=dOnly(x.n.due);if(d&&d<=T)due.push(row(poLink(p),`${sup(p)} · 📝 ${esc(x.n.text||'')} <span class="small muted">(due ${esc(d8show(d))})</span>`,`<button class="btn ghost sm" onclick="podNoteToggle('${esc(p.poId)}',${x.idx});try{navBadgeDirty()}catch(e){}">✓ Done</button>`));});});
+  sec('fudue','📝','Follow-ups & to-dos due','the follow-up date has come, or a to-do is due',due,buyer?'ask':'',buyer?'Ask dad':'');
+  // shipments
+  const ships=(V11.shipments||[]).filter(s=>s.status!=='Cancelled');
+  sec('shiplate','🚚','Shipments overdue','in transit and past the expected date — ask transport',ships.filter(s=>qv11Ok('ships',s,'overdue')).map(s=>row(shLink(s),`${sSup(s)} · expected ${esc(d8show(dOnly(s.expected)))} · ${esc(d8diff(dOnly(s.expected),T))} day(s) late${s.lr?' · LR '+esc(s.lr):''}`,`<button class="btn ghost sm" onclick="v11ShipEdit('${esc(s.shipmentId)}')">Open</button>`,'hot')),'ships:overdue','Shipments › Overdue');
+  sec('arrnobill','📦','Arrived, not on a bill','goods are here — the bill is still to be entered',ships.filter(s=>qv11Ok('ships',s,'arrnobill')).map(s=>{const f=shfGet(s.shipmentId);
+    return row(shLink(s),`${sSup(s)} · arrived ${esc(d8show(dOnly(s.arrivedAt)))}${f.bill==='group'?' · <span class="chip lite" style="font-size:.56rem">bill is in the group</span>':f.bill==='personal'?' · <span class="chip warn" style="font-size:.56rem">bill on dad\'s phone</span>':''}`,`<button class="btn ghost sm" onclick="v11ShipEdit('${esc(s.shipmentId)}')">Open</button>`);}),'ships:arrnobill','Shipments › Arrived, not on a bill');
+  if(buyer){const bills=V11.bills||[];
+    const bsec=(k,icon,title,why)=>sec(k,icon,title,why,bills.filter(b=>qv11Ok('bills',b,k)).map(b=>row(blLink(b),`<span class="small muted">${esc(b.supplier||'')}</span> · ${esc(v11BillStage(b).label)}${b.supBillG||b.supBillN?' · supplier bill '+esc([b.supBillG,b.supBillN].filter(Boolean).join(' / ')):''}`,`<button class="btn ghost sm" onclick="v11BillOpen('${esc(b.billId)}')">${esc(v11BillNext(b).label)}</button>`)),'bills:'+k,'Bills');
+    bsec('readywait','🧾','Bill ready — goods not arrived','prepared before arrival; upload the MI once the goods are in');
+    bsec('readymi','⬇','Bill ready → upload MI','goods have arrived — download the MI file and upload it in Vasy');
+    bsec('mi','🔗','MI done → record the Vasy bill','MI number is in — create the bill in Vasy and record its number');
+    bsec('recheck','⚠','Recheck bill qty','a bill carries more than the shipment — check the quantities');}
+  // 12 fully received → close
+  sec('close','✓','Fully received → close the PO','everything received — close it so it moves to PO History',tops.filter(p=>posStage(p)==='done').map(p=>row(poLink(p),`${sup(p)} · ${poUnitLines(p).length} item(s)`,`<button class="btn sm" onclick="poClose('${esc(p.poId)}')">✓ Close</button>`)),'apo:close','All POs › Fully received');
+  return secs;
+}
+function todayGo(go){if(!go)return;const [a,b]=go.split(':');
+  if(a==='req')navGo('pos','requests');
+  else if(a==='ask')navGo('today','askdad');
+  else if(a==='apo'){navGo('pos','allpos');apoSetQV(b);}
+  else if(a==='ships'){navGo('ships');qv11Set('ships',b);}
+  else if(a==='bills'){navGo('bills');qv11Set('bills',b);}}
+function todayMore(k){TODAY_ALL.has(k)?TODAY_ALL.delete(k):TODAY_ALL.add(k);posRender();}
+function posToday(){const secs=todaySecs();const shown=secs.filter(s=>s.rows.length);
+  const hot=secs.filter(s=>['nopromise','late','fudue','shiplate'].includes(s.k)).reduce((a,s)=>a+s.rows.filter(r=>r.cls==='hot'||s.k==='fudue').length,0);
+  const tiles=`<div class="qv" style="margin:8px 0 0;flex-wrap:wrap">${secs.map(s=>`<button class="${s.rows.length?'':'zero'}" onclick="var e=document.getElementById('today-${s.k}');if(e&&e.scrollIntoView)e.scrollIntoView({behavior:'smooth',block:'start'})" ${s.rows.length?'':'disabled'}>${s.icon} ${esc(s.title)}<span class="n">${s.rows.length}</span></button>`).join('')}</div>`;
+  const head=`<div class="card" style="margin-bottom:12px"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <b>${esc(new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'}))}</b><span class="small muted">everything waiting, in workflow order · open POs only</span>
+    <span style="flex:1"></span>${hot?`<span class="chip" style="background:var(--non);color:#fff;border-color:transparent">${hot} to chase today</span>`:''}
+    ${navOK('buyer')?`<button class="btn sm" onclick="navGo('today','askdad')">📞 Ask dad — by supplier</button>`:''}</div>${tiles}</div>`;
+  if(!shown.length)return head+`<div class="card"><div class="empty">✅ Nothing waiting. ${PODOCS.length?'':'Sync the live sheet to load POs.'}</div></div>`;
+  return head+shown.map(s=>{const all=TODAY_ALL.has(s.k),N=8,rows=all?s.rows:s.rows.slice(0,N);
+    return `<div class="card" id="today-${s.k}" style="margin-bottom:10px;${s.rows.some(r=>r.cls==='hot')?'border-left:4px solid var(--non)':''}">
+      <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b>${s.icon} ${esc(s.title)}</b><span class="chip lite" style="font-size:.6rem">${s.rows.length}</span><span class="small muted">${esc(s.why)}</span>
+        <span style="flex:1"></span>${s.go&&s.goLbl?`<a class="linky small" onclick="todayGo('${s.go}')">${esc(s.goLbl)} →</a>`:''}</div>
+      <div style="margin-top:6px">${rows.map(r=>`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:5px 0;border-top:1px dashed var(--line-2)">${r.ref}<span class="small" style="flex:1;min-width:200px">${r.text}</span>${r.btn}</div>`).join('')}</div>
+      ${s.rows.length>N?`<div style="text-align:center;margin-top:4px"><a class="linky small" onclick="todayMore('${s.k}')">${all?'▲ show less':'▼ show all '+s.rows.length}</a></div>`:''}</div>`;}).join('');}
+
+/* ---------- bills: the next Vasy step ---------- */
+function v11BillNext(b){const g=v11BillStage(b).key;
+  if(g==='draft')return {key:g,label:'✎ Finish & mark ready'};
+  if(g==='ready')return {key:g,label:qv11Bill(b).arrived?'⬇ MI file → record MI':'⏳ Ready — wait for goods'};
+  if(g==='mi'||g==='partbilled')return {key:g,label:'🔗 Record Vasy bill'};
+  return {key:g,label:'Open'};}
+
+/* ---------- PO window: progress strip ---------- */
+function poStripHTML(p){const ids=new Set([p.poId,...(poIsSplit(p)?poChildren(p).map(c=>c.poId):[])]);
+  const sids=[...new Set((V11.allocs||[]).filter(a=>ids.has(a.poNumber)).map(a=>a.shipmentId))].map(v11ShipById).filter(s=>s&&s.status!=='Cancelled');
+  const sd=poShipDates(p).sort(),bal=poPendingToShip(p),pr=posDocProg(p);
+  const arr=sids.map(s=>dOnly(s.arrivedAt)).filter(Boolean).sort();
+  const billed=sids.filter(s=>v11BillState(s.shipmentId)==='full'&&v11ShipBills(s.shipmentId).every(b=>v11BillStage(b).key==='billed'));
+  const vas=sids.flatMap(s=>v11ShipBills(s.shipmentId)).map(b=>dOnly(b.vasyAt)).filter(Boolean).sort();
+  const st=[
+    ['PO made',dOnly(p.createdAt),'done'],
+    ['Sent',dOnly(p.sentAt),p.sentAt||posStage(p)!=='made'?'done':'todo'],
+    ['Promised',dOnly(p.promised),dOnly(p.promised)?'done':(posStage(p)==='made'?'todo':'warn')],
+    ['Shipped',sd[0]||'',sd.length?(bal>0?'part':'done'):'todo'],
+    ['Arrived',arr[arr.length-1]||'',pr.received>0?(pr.received>=pr.ordered&&bal<=0?'done':'part'):'todo'],
+    ['Billed in Vasy',vas[vas.length-1]||'',sids.length&&billed.length===sids.length&&bal<=0?'done':(billed.length?'part':'todo')],
+    ['Closed',dOnly(p.closedAt),p.closed?'done':'todo']];
+  const col={done:'var(--ok)',part:'#B8893A',warn:'var(--non)',todo:'var(--line-2)'};
+  return `<div style="display:flex;gap:4px;flex-wrap:wrap;margin:8px 0 2px" title="PO progress">${st.map(([l,d,s])=>`<span style="flex:1 1 90px;min-width:90px;border-top:4px solid ${col[s]};padding:3px 4px 0;font-size:.66rem">
+    <b style="color:${s==='todo'?'var(--ink-soft)':'var(--ink)'}">${s==='done'?'✓ ':s==='part'?'◐ ':s==='warn'?'! ':''}${l}</b><br><span class="muted">${d?esc(d8show(d)):(s==='warn'?'ask for it':'—')}</span></span>`).join('')}</div>`;}
+
+/* ---------- FOLLOW-UP CALENDAR (Track) ---------- */
+let FUCAL_DAYS=14;
+function posFuCal(){const T=t8();const ev=new Map();const put=(d,o)=>{const k=d<T?'past':d;if(!ev.has(k))ev.set(k,[]);ev.get(k).push(o);};
+  const end=d8add(T,FUCAL_DAYS-1);
+  (PODOCS||[]).filter(p=>p&&!p.parentPoId&&!p.closed).forEach(p=>{const stage=posStage(p),bal=poPendingToShip(p);
+    const link=`<a class="linky mono" style="font-weight:700" onclick="poDetailOpen('${esc(p.poId)}')">${esc(fuNo(p))}</a> <span class="small muted">${supMask(p)}</span>`;
+    const nx=fuNext(p);if(nx&&nx<=end&&stage!=='done')put(nx,{i:'📞',t:'Follow-up '+link,d:nx});
+    fuTodos(p).forEach(x=>{const d=dOnly(x.n.due);if(d&&d<=end)put(d,{i:'📝',t:link+' · '+esc(x.n.text||''),d});});
+    const pr=dOnly(p.promised);if(pr&&bal>0&&pr<=end)put(pr,{i:'🤝',t:'Promised dispatch '+link,d:pr});});
+  (V11.shipments||[]).forEach(s=>{if(s.status==='Cancelled'||s.arrivedAt)return;const ex=dOnly(s.expected);
+    const link=`<a class="linky mono" style="font-weight:700" onclick="v11ShipEdit('${esc(s.shipmentId)}')">${esc(s.shipmentNo||s.shipmentId)}</a> <span class="small muted">${esc(v11SupLabel(s.supplier,v11ShipPos(s.shipmentId)))}</span>`;
+    if(ex&&ex<=end)put(ex,{i:'🚚',t:'Expected to arrive '+link,d:ex});
+    const f=shfGet(s.shipmentId);if(dOnly(f.next)&&dOnly(f.next)<=end&&dOnly(f.next)>=T)put(dOnly(f.next),{i:'🚛',t:'Ask again about '+link,d:dOnly(f.next)});});
+  const days=['past'];for(let i=0;i<FUCAL_DAYS;i++)days.push(d8add(T,i));
+  const lbl=d=>d==='past'?'⚠ Earlier — overdue':(d===T?'Today':d===d8add(T,1)?'Tomorrow':new Date(d+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'}));
+  const body=days.map(d=>{const L=(ev.get(d)||[]).sort((a,b)=>String(a.d).localeCompare(String(b.d)));if(!L.length&&d==='past')return '';
+    return `<div style="display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--line-2)${d===T?';background:var(--tint-po,#FFF8E8)':''}">
+      <div style="width:120px;flex:0 0 120px;font-weight:700;${d==='past'?'color:var(--non)':''}">${esc(lbl(d))}</div>
+      <div style="flex:1">${L.length?L.map(x=>`<div class="small" style="padding:1px 0">${x.i} ${x.t}${d==='past'?` <span class="muted">(${esc(d8show(x.d))})</span>`:''}</div>`).join(''):'<span class="small muted">—</span>'}</div></div>`;}).join('');
+  return `<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><b>Follow-up calendar</b>
+    <span class="small muted">next follow-ups · to-dos · promised dispatch dates · shipments expected — open POs only</span><span style="flex:1"></span>
+    <span class="lane-toggle"><button class="${FUCAL_DAYS===7?'active':''}" onclick="FUCAL_DAYS=7;posRender()">7 days</button><button class="${FUCAL_DAYS===14?'active':''}" onclick="FUCAL_DAYS=14;posRender()">14 days</button><button class="${FUCAL_DAYS===30?'active':''}" onclick="FUCAL_DAYS=30;posRender()">30 days</button></span></div>${body}</div>`;}
+
+/* ---------- menu badges (counted at most every few seconds) ---------- */
+let NAV_BADGE={at:0,v:{}};
+function navBadgeDirty(){NAV_BADGE.at=0;try{navPaint();}catch(e){}}
+function navBadges(){if(Date.now()-NAV_BADGE.at<4000)return NAV_BADGE.v;const v={};
+  try{const secs=todaySecs();const n=k=>{const s=secs.find(x=>x.k===k);return s?s.rows.length:0;};
+    v.today=secs.filter(s=>s.k!=='req').reduce((a,s)=>a+s.rows.length,0);v.req=n('req')?(typeof REQ!=='undefined'?REQ.filter(r=>reqStatus(r)==='pending').length:0):0;
+    v.ships=n('shiplate');v.bills=n('readymi');
+    v.askdad=navOK('buyer')?askBuild().filter(x=>x.n).length:0;}catch(e){}
+  NAV_BADGE={at:Date.now(),v};return v;}
+
+/* ===================== [V1.1.8 R66] SUPPLIER LEAD TIME & MOQ (per product × supplier) =====================
+   Real lead time comes from the POs (sent → shipped, sent → arrived). The supplier-given lead time and MOQ are typed here.
+   Saved to PO Meta rows "~ST|<supplier>|n" (no server change), shared by every PC; the inventory dashboard will use it later. */
+let ST=new Map(), ST_CH=new Map();
+let ST_UI={sup:'',q:'',blank:false,sort:'name',n:150};
+const ST_PFX='~ST|';
+function stCanEdit(){return typeof VT_MODE!=='undefined'&&(VT_MODE==='followup'||VT_MODE==='mgmt');}
+function stRows(m){return [...m.entries()].filter(([c,v])=>v&&((v.lt!==''&&v.lt!=null)||(v.moq!==''&&v.moq!=null))).map(([c,v])=>[c,v.lt??'',v.moq??'',v.at||'',v.by||'']);}
+function stSaveLocal(){try{localStorage.setItem('vt_st',JSON.stringify({d:[...ST.entries()].map(([s,m])=>[s,stRows(m)]),ch:[...ST_CH.entries()],at:Date.now()}));}catch(e){}}
+(function(){try{const o=JSON.parse(localStorage.getItem('vt_st')||'null');if(o&&Array.isArray(o.d)){
+  ST=new Map(o.d.map(([s,rows])=>[s,new Map(rows.map(r=>[r[0],{lt:r[1],moq:r[2],at:r[3],by:r[4]}]))]));ST_CH=new Map(o.ch||[]);}}catch(e){}})();
+function stFromMeta(poMeta){if(!Array.isArray(poMeta))return;const got=new Map();
+  poMeta.forEach(m=>{const k=String(m.poNumber||'');if(k.indexOf(ST_PFX)!==0)return;
+    const rest=k.slice(ST_PFX.length),ix=rest.lastIndexOf('|');const sup=ix>=0?rest.slice(0,ix):rest;const n=ix>=0?(+rest.slice(ix+1)||1):1;
+    ST_CH.set(sup,Math.max(ST_CH.get(sup)||0,n));let mp=got.get(sup);if(!mp){mp=new Map();got.set(sup,mp);}
+    (Array.isArray(m.notes)?m.notes:[]).forEach(r=>{if(Array.isArray(r)&&r[0]!=null&&r[0]!=='')mp.set(String(r[0]),{lt:r[1]??'',moq:r[2]??'',at:r[3]||'',by:r[4]||''});});});
+  // this PC's edits that have not reached the sheet yet win
+  (typeof VT_OUTBOX!=='undefined'?VT_OUTBOX:[]).filter(o=>o.kind==='st').forEach(o=>{if(ST.has(o.ref))got.set(o.ref,ST.get(o.ref));});
+  ST=got;stSaveLocal();}
+async function stPush(sup){const rows=stRows(ST.get(sup)||new Map());const chunks=[];let cur=[],len=2;
+  rows.forEach(r=>{const s=JSON.stringify(r).length+1;if(cur.length&&len+s>40000){chunks.push(cur);cur=[];len=2;}cur.push(r);len+=s;});
+  if(cur.length||!chunks.length)chunks.push(cur);
+  const prev=ST_CH.get(sup)||0;
+  for(let i=0;i<Math.max(chunks.length,prev);i++){const r=await vtApiPost({api:'meta',poNumber:ST_PFX+sup+'|'+(i+1),supplier:sup,notes:chunks[i]||[],by:vtBy()});
+    if(!r||r.ok===false)return {ok:false};}
+  ST_CH.set(sup,chunks.length);stSaveLocal();return {ok:true};}
+function stGet(sup,c){const m=ST.get(sup);return (m&&m.get(c))||{lt:'',moq:''};}
+function stSetEl(el,field){if(!stCanEdit()){toast('Purchase team / Management only.');return;}
+  const sup=el.dataset.s,c=el.dataset.c;let v=String(el.value==null?'':el.value).trim();
+  if(v!==''){v=+v;if(!isFinite(v)||v<0){toast('Enter a number (0 or more).');el.value=stGet(sup,c)[field];return;}v=Math.round(v*100)/100;}
+  let m=ST.get(sup);if(!m){m=new Map();ST.set(sup,m);}
+  const r=Object.assign({lt:'',moq:''},m.get(c)||{});r[field]=v;r.at=t8();r.by=vtBy();m.set(c,r);
+  stSaveLocal();outboxAdd('st',sup);clearTimeout(stSetEl._t);stSetEl._t=setTimeout(()=>{try{outboxFlush();}catch(e){}},1500);
+  const u=el.closest('tr')&&el.closest('tr').querySelector('.st-upd');if(u)u.textContent=r.at+' · '+r.by;
+  if(!liveConnected())toast('Saved on this PC — it reaches the sheet when the live sheet is connected.');}
+function stFillBlank(){if(!stCanEdit())return;const sup=ST_UI.sup;if(!sup){toast('Pick one supplier first.');return;}
+  const d=stGet(sup,'*').lt;if(d===''||d==null){toast('Enter the supplier\'s usual lead time first.');return;}
+  const rows=stBuild().filter(x=>x.sup===sup&&(stGet(sup,x.canon).lt===''||stGet(sup,x.canon).lt==null));
+  if(!rows.length){toast('No blank rows for this supplier.');return;}
+  if(!confirm('Put '+d+' days on '+rows.length+' product(s) of '+sup+' that have no lead time yet?'))return;
+  let m=ST.get(sup);if(!m){m=new Map();ST.set(sup,m);}
+  rows.forEach(x=>{const r=Object.assign({lt:'',moq:''},m.get(x.canon)||{});r.lt=d;r.at=t8();r.by=vtBy();m.set(x.canon,r);});
+  stSaveLocal();outboxAdd('st',sup);try{outboxFlush();}catch(e){}posRender();toast(rows.length+' product(s) filled.');}
+function stBuild(){const pairs=new Map();
+  const get=(sup,c,name)=>{const k=sup+'|'+c;let x=pairs.get(k);if(!x){x={sup,canon:c,name:name||'',qtys:[],disp:[],arr:[],nPo:0,last:''};pairs.set(k,x);}else if(!x.name&&name)x.name=name;return x;};
+  (PODOCS||[]).forEach(p=>{if(!p||p.parentPoId)return;const sup=p.supplier||'';if(!sup)return;try{lotMigrate(p);}catch(e){}
+    const pod=dOnly(p.sentAt)||dOnly(p.createdAt);
+    poUnitLines(p).forEach(u=>{const c=v11Canon(u.l.code);if(!c||/^NEW:/i.test(c))return;const x=get(sup,c,prodName(u.l.code,u.l.name));
+      const q=+u.l.qty||0;if(q>0)x.qtys.push(q);x.nPo++;const d=dOnly(p.createdAt);if(d&&d>x.last)x.last=d;});
+    (poIsSplit(p)?poChildren(p):[p]).forEach(u=>(u.lots||[]).forEach(L=>{const sd=dOnly(L.date),rd=dOnly(L.receivedAt);
+      (L.lines||[]).forEach(li=>{const c=v11Canon(li.code);if(!c||!(+li.qty>0)||/^NEW:/i.test(c))return;const x=get(sup,c,prodName(li.code,li.name));
+        if(pod&&sd){const d=d8diff(pod,sd);if(d!=null&&d>=0)x.disp.push(d);}
+        if(pod&&rd){const d=d8diff(pod,rd);if(d!=null&&d>=0)x.arr.push(d);}});}));});
+  ST.forEach((m,sup)=>m.forEach((v,c)=>{if(c!=='*')get(sup,c,prodName(c,''));}));
+  return [...pairs.values()];}
+function stMode(a){if(!a.length)return null;const f=new Map();a.forEach(q=>f.set(q,(f.get(q)||0)+1));let m=a[0],n=0;f.forEach((c,q)=>{if(c>n||(c===n&&q<m)){n=c;m=q;}});return m;}
+function stSet(k,v){ST_UI[k]=v;if(k!=='n')ST_UI.n=150;posRender();}
+function stSetQ(v){ST_UI.q=v;ST_UI.n=150;posRenderKeepFocus();}
+function stFiltered(){const q=ST_UI.q.trim().toLowerCase();
+  let rows=stBuild().filter(x=>(!ST_UI.sup||x.sup===ST_UI.sup)&&(!q||(x.name+' '+x.canon+' '+x.sup).toLowerCase().indexOf(q)>=0));
+  if(ST_UI.blank)rows=rows.filter(x=>{const g=stGet(x.sup,x.canon);return (g.lt===''||g.lt==null)||(g.moq===''||g.moq==null);});
+  const by={name:(a,b)=>String(a.sup).localeCompare(String(b.sup))||String(a.name).localeCompare(String(b.name)),
+    most:(a,b)=>(b.nPo-a.nPo)||String(a.name).localeCompare(String(b.name)),last:(a,b)=>String(b.last).localeCompare(String(a.last))};
+  return rows.sort(by[ST_UI.sort]||by.name);}
+function stExport(){const rows=stFiltered();if(!rows.length){toast('Nothing to export.');return;}
+  const med=a=>a.length?_med(a):'';
+  const aoa=[['Supplier','Product code','Product','POs','Usual order qty (most common)','Smallest order qty','Real sent→shipped days (median)','Real sent→arrived days (median)','Shipments counted','Supplier lead time (days)','Supplier MOQ','Supplier usual lead time (all products)','Updated','By']];
+  rows.forEach(x=>{const g=stGet(x.sup,x.canon);aoa.push([x.sup,x.canon,x.name,x.nPo,stMode(x.qtys)??'',x.qtys.length?Math.min(...x.qtys):'',med(x.disp),med(x.arr),x.arr.length||x.disp.length,g.lt,g.moq,stGet(x.sup,'*').lt,g.at||'',g.by||'']);});
+  dlXLSX([{name:'Lead time & MOQ',aoa}],'VT_lead_time_MOQ_'+t8()+'.xlsx');}
+function posSupTerms(){
+  if(!navOK('buyer'))return `<div class="card"><div class="empty">Lead time &amp; MOQ shows supplier names — Purchase team / Management only.</div></div>`;
+  const all=stBuild();const sups=[...new Set(all.map(x=>x.sup))].sort((a,b)=>a.localeCompare(b));
+  if(ST_UI.sup&&!sups.includes(ST_UI.sup))ST_UI.sup='';
+  const rows=stFiltered();const shown=rows.slice(0,ST_UI.n);const ed=stCanEdit();
+  const filled=all.filter(x=>{const g=stGet(x.sup,x.canon);return g.lt!==''&&g.lt!=null;}).length;
+  const med=a=>a.length?_med(a):null;
+  const dflt=ST_UI.sup?stGet(ST_UI.sup,'*'):null;
+  const supOpts=`<option value="">All suppliers (${sups.length})</option>`+sups.map(s=>`<option value="${esc(s)}"${s===ST_UI.sup?' selected':''}>${esc(s)}</option>`).join('');
+  const head=`<div class="card" style="margin-bottom:12px">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><b>Lead time &amp; MOQ — product × supplier</b>
+      <span class="small muted">real lead time from our POs · type what the supplier says · saved to the live sheet for every PC</span><span style="flex:1"></span>
+      <button class="btn ghost sm" onclick="stExport()">⬇ Excel</button></div>
+    <div class="ovgrid" style="margin:10px 0 6px">
+      <div class="card ovc" style="cursor:default"><div class="ovn">${NUM(all.length)}</div><div class="ovl">Product × supplier pairs</div><div class="small muted">from every PO so far</div></div>
+      <div class="card ovc" style="cursor:default;border-left:4px solid var(--ok)"><div class="ovn" style="color:var(--ok)">${NUM(filled)}</div><div class="ovl">Supplier lead time filled</div></div>
+      <div class="card ovc" style="cursor:default;border-left:4px solid var(--gst)"><div class="ovn" style="color:var(--gst)">${NUM(all.length-filled)}</div><div class="ovl">Still blank</div></div></div>
+    <div class="filters" style="align-items:flex-end;margin:0">
+      <div class="f"><label>Supplier</label><select class="po-in" style="width:auto;max-width:280px" onchange="stSet('sup',this.value)">${supOpts}</select></div>
+      <div class="f"><label>Search</label><input class="po-in" style="width:220px" placeholder="product / code" value="${esc(ST_UI.q)}" oninput="stSetQ(this.value)"></div>
+      <div class="f"><label>Sort</label><select class="po-in" style="width:auto" onchange="stSet('sort',this.value)">${[['name','Supplier, then product'],['most','Most ordered first'],['last','Last ordered first']].map(([k,l])=>`<option value="${k}"${ST_UI.sort===k?' selected':''}>${l}</option>`).join('')}</select></div>
+      <label class="small" style="display:flex;gap:4px;align-items:center;align-self:center;margin-top:14px"><input type="checkbox" ${ST_UI.blank?'checked':''} onchange="stSet('blank',this.checked)"> only rows still to fill</label>
+      ${ST_UI.sup?`<div class="f"><label>${esc(ST_UI.sup)} — usual lead time (all products)</label><span style="display:flex;gap:6px;align-items:center"><input class="po-in" type="number" min="0" style="width:80px" data-s="${esc(ST_UI.sup)}" data-c="*" value="${esc(dflt.lt)}" ${ed?'':'disabled'} onchange="stSetEl(this,'lt');posRender()"> days
+        ${ed?`<button class="btn ghost sm" onclick="stFillBlank()" title="copy it to every product of this supplier that has no lead time yet">fill blank rows</button>`:''}</span></div>`:''}
+    </div>
+    <div class="small muted" style="margin-top:6px">Real lead time = days from the PO being <b>sent</b> (or created) to the goods being <b>shipped</b> / <b>arriving</b>, middle value of all shipments. Usual qty = the quantity we order most often.${ed?'':' · <b>View only in this mode.</b>'}</div></div>`;
+  if(!rows.length)return head+`<div class="card"><div class="empty">${all.length?'No rows match.':'No POs loaded yet — sync the live sheet.'}</div></div>`;
+  const tb=shown.map(x=>{const g=stGet(x.sup,x.canon),md=med(x.disp),ma=med(x.arr);const dis=ed?'':'disabled';
+    return `<tr><td class="small">${ST_UI.sup?'':`<span class="muted">${esc(x.sup)}</span><br>`}${esc(x.name||x.canon)}<div class="mono small muted">${esc(x.canon)}</div></td>
+      <td class="r num">${x.nPo||'·'}</td><td class="r num">${stMode(x.qtys)!=null?NUM(stMode(x.qtys)):'·'}${x.qtys.length>1?`<div class="small muted">min ${NUM(Math.min(...x.qtys))}</div>`:''}</td>
+      <td class="r num">${md!=null?md+' d':'·'}</td><td class="r num">${ma!=null?`<b>${ma} d</b>`:'·'}${x.arr.length?`<div class="small muted">${x.arr.length} shipment${x.arr.length===1?'':'s'}${x.arr.length>1?' · '+Math.min(...x.arr)+'–'+Math.max(...x.arr)+' d':''}</div>`:''}</td>
+      <td class="r"><input class="po-in" type="number" min="0" style="width:72px;text-align:right" placeholder="${dflt&&dflt.lt!==''&&dflt.lt!=null?esc(dflt.lt):'days'}" data-s="${esc(x.sup)}" data-c="${esc(x.canon)}" value="${esc(g.lt)}" ${dis} onchange="stSetEl(this,'lt')"></td>
+      <td class="r"><input class="po-in" type="number" min="0" style="width:80px;text-align:right" placeholder="qty" data-s="${esc(x.sup)}" data-c="${esc(x.canon)}" value="${esc(g.moq)}" ${dis} onchange="stSetEl(this,'moq')"></td>
+      <td class="small muted st-upd">${g.at?esc(g.at)+' · '+esc(g.by||''):''}</td></tr>`;}).join('');
+  return head+`<div class="card" style="overflow:auto"><table><thead><tr><th>Product</th><th class="r">POs</th><th class="r">Usual qty</th><th class="r" title="PO sent → shipped (middle value)">Real: to ship</th><th class="r" title="PO sent → arrived (middle value)">Real: to arrive</th>
+    <th class="r" style="background:var(--tint-po)">Supplier lead time (days)</th><th class="r" style="background:var(--tint-po)">Supplier MOQ</th><th>Updated</th></tr></thead><tbody>${tb}</tbody></table>
+    ${rows.length>shown.length?`<div style="text-align:center;padding:10px"><button class="btn ghost sm" onclick="stSet('n',${ST_UI.n+300})">▼ Show more · ${rows.length-shown.length} hidden</button></div>`:''}</div>`;}
+
 /* ===================== [V1.1.7 R49 phase 1] WORKFLOW MENU =====================
    POs (Requests · New PO · All POs) → Shipments → Bills → Track → Analyse.
    The old screens and views are reused; this layer only decides where they live. */
@@ -10239,29 +10737,31 @@ function navOK(need){const m=navWho();
   if(need==='intel')return typeof acIntelOn==='function'&&acIntelOn();
   return true;}
 const NAV_G=[
+  {g:'today',label:'🏠 Today',items:[{k:'today',label:'Today',s:'pos',v:'today'},{k:'askdad',label:'📞 Ask dad · by supplier',s:'pos',v:'askdad',need:'buyer'},{k:'fucal',label:'Follow-up calendar',s:'pos',v:'fucal'}]},   // [V1.1.8]
   {g:'pos',label:'📋 POs',items:[{k:'requests',label:'Requests',s:'requests'},{k:'newpo',label:'＋ New PO',s:'po'},{k:'allpos',label:'All POs',s:'pos',v:'allpos'}]},
   {g:'ships',label:'🚚 Shipments',items:[{k:'ships',label:'Shipments',s:'ships',sv:'ships'}]},
   {g:'bills',label:'🧾 Bills',need:'buyer',items:[{k:'bills',label:'Bills',s:'ships',sv:'bills'}]},
   {g:'track',label:'🔎 Track',items:[{k:'dash',label:'Overview',s:'pos',v:'dash'},{k:'brief',label:'Daily brief',s:'pos',v:'brief',need:'mgmt'},{k:'kanban',label:'Board',s:'pos',v:'kanban'},
-    {k:'timeline',label:'Follow-up',s:'pos',v:'timeline'},{k:'product',label:'By product',s:'pos',v:'product'},{k:'goods',label:'Goods check',s:'pos',v:'goods'}]},
+    {k:'product',label:'By product',s:'pos',v:'product'},{k:'goods',label:'Goods check',s:'pos',v:'goods'}]},
   {g:'analyse',label:'📊 Analyse',need:'buyer',items:[{k:'fund',label:'Fund planning',s:'pos',v:'fund',need:'buyer'},{k:'history',label:'PO History (closed)',s:'pos',v:'history',need:'buyer'},
     {k:'analytics',label:'PO analytics',s:'pos',v:'analytics',need:'mgmt'},{k:'dashboard',label:'Register · Dashboard',s:'dashboard',need:'intel'},
-    {k:'search',label:'Register · Search',s:'search',need:'intel'},{k:'fulldata',label:'Register · Full data',s:'fulldata',need:'intel'},{k:'levels',label:'Register · MOQ / Levels',s:'levels',need:'intel'}]}];
+    {k:'search',label:'Register · Search',s:'search',need:'intel'},{k:'fulldata',label:'Register · Full data',s:'fulldata',need:'intel'},{k:'supterms',label:'Lead time & MOQ',s:'pos',v:'supterms',need:'buyer'}]}];   // [V1.1.8 R66] MOQ/EOQ Levels removed from the menu
 let NAV_CUR={g:'',k:''}, NAV_BUSY=false;
 function navItem(g,k){const G=NAV_G.find(x=>x.g===g);return G&&G.items.find(i=>i.k===k);}
 function navTitle(){const G=NAV_G.find(x=>x.g===NAV_CUR.g),it=navItem(NAV_CUR.g,NAV_CUR.k);if(!G||!it)return;
   const h=document.querySelector('#scr-pos h2.sect');if(h&&it.s==='pos'){
-    const sub={allpos:'open POs — send, chase, ship, close · closed POs are in Analyse › PO History',fund:'value of open POs — finance & purchase planning',history:'closed POs',analytics:'purchase analytics',goods:'what is still coming — no supplier, no rate'}[it.v]||'open POs only';
-    h.innerHTML=(G.g==='pos'?'':G.label.replace(/^\S+\s/,'')+' · ')+it.label+` <span class="sub">${sub}</span>`;}
+    const sub={today:'everything waiting, in workflow order',askdad:'for the daily meeting — what to ask each supplier today',fucal:'next follow-ups, to-dos, promised dates and arrivals, day by day',supterms:'lead time and MOQ for each product × supplier',allpos:'open POs — send, chase, ship, close · closed POs are in Analyse › PO History',fund:'value of open POs — finance & purchase planning',history:'closed POs',analytics:'purchase analytics',goods:'what is still coming — no supplier, no rate'}[it.v]||'open POs only';
+    h.innerHTML=((G.g==='pos'||G.g==='today')?'':G.label.replace(/^\S+\s/,'')+' · ')+it.label+` <span class="sub">${sub}</span>`;}
   const hs=document.querySelector('#scr-ships h2.sect');if(hs&&it.s==='ships')hs.innerHTML=it.sv==='bills'
     ?'Bills <span class="sub">prepare before or after the goods arrive · Vasy MI and bill numbers · locked once a Vasy number is recorded</span>'
     :'Shipments <span class="sub">one shipment can carry several POs · numbered by the server · In Transit until marked arrived</span>';}
 function navPaint(){const ng=document.getElementById('navgroups'),sn=document.getElementById('subnav');if(!ng||!sn)return;
   const vis=NAV_G.filter(G=>navOK(G.need)&&G.items.some(i=>navOK(i.need)));
-  ng.innerHTML=vis.map(G=>`<button class="ng${G.g===NAV_CUR.g?' active':''}" onclick="navGo('${G.g}')">${G.label}</button>`).join('');
+  const B=navBadges(),nb=n=>n?`<span class="nb">${n}</span>`:'';const gB={today:B.today,pos:B.req,ships:B.ships,bills:B.bills},iB={requests:B.req,askdad:B.askdad};   // [V1.1.8]
+  ng.innerHTML=vis.map(G=>`<button class="ng${G.g===NAV_CUR.g?' active':''}" onclick="navGo('${G.g}')">${G.label}${nb(gB[G.g])}</button>`).join('');
   const G=vis.find(x=>x.g===NAV_CUR.g);const items=G?G.items.filter(i=>navOK(i.need)):[];
   sn.style.display=items.length>1?'flex':'none';
-  sn.innerHTML=items.map(i=>`<button class="${i.k===NAV_CUR.k?'active':''}" onclick="navGo('${G.g}','${i.k}')">${i.label}</button>`).join('');}
+  sn.innerHTML=items.map(i=>`<button class="${i.k===NAV_CUR.k?'active':''}" onclick="navGo('${G.g}','${i.k}')">${i.label}${nb(iB[i.k])}</button>`).join('');}
 function navGo(g,k){const G=NAV_G.find(x=>x.g===g);if(!G)return;
   const items=G.items.filter(i=>navOK(i.need));if(!items.length)return;
   const it=(k&&items.find(i=>i.k===k))||items.find(i=>i.k===(NAV_LAST[g]||''))||items[0];
@@ -10331,7 +10831,7 @@ function enterOps(){
   document.getElementById('pill-range').innerHTML='<b>Operations / Purchase team</b> · no register loaded';
   outboxLoad();const hadSession=loadSession();reqLoadState();
   poRender();posRender();
-  switchScreen('requests');
+  try{navGo('today','today');}catch(e){switchScreen('requests');}   // [V1.1.8] land on Today
   const rb=document.getElementById('req-body');if(rb)rb.style.display='block';
   if(liveConnected()){liveRenderConn();liveSync();}
   toast('Operations mode — connect your live sheet to load products & requests. Upload the register any time for full intelligence.');

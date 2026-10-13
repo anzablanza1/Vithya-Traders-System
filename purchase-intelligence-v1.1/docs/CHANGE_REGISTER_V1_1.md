@@ -338,3 +338,39 @@ No production change is complete until this log is updated.
 - LIVE checks: <<LIVE_CHECKS_117>>
 
 **Result** — <<RESULT_117>>
+
+---
+
+### <<LIVE_DATE_118>> — V1.1.8 (dashboard file only) — R49 phase 3 · R60 · R62–R67
+
+**Requirement** — restructure phase 3 with the owner's follow-up model: dad is the only contact with suppliers; the purchase team drives him in a short daily meeting, supplier by supplier (promised dates, shipping, transport / LR, pending items, bills posted in the WhatsApp group or sent to his phone). "Sent but no promised date" is chased at once. Simpler All POs / Fund planning panel. MOQ / EOQ Levels replaced by a lead time & MOQ entry module, with no Apps Script change.
+
+**Files changed** — `frontend/VT_Purchase_Intelligence_V1_1.html` (chip "V1.1.8 · Vaigai"):
+- Menu: new first group **🏠 Today** (Today · 📞 Ask dad · by supplier [Purchase team / Management] · Follow-up calendar); the dashboard opens on Today; badges on Today, POs (new requests), Shipments (overdue), Bills (ready → MI), Ask dad (suppliers to discuss). Track loses the old Follow-up list; Analyse: "Register · MOQ / Levels" → "Lead time & MOQ".
+- Today (`todaySecs`, `posToday`): sections in workflow order with one action button each and a link to the matching quick view.
+- Ask dad (`askBuild`, `posAskDad`): per supplier — PO questions (no promised date from day one, promised date passed / due in 2 days, "said shipping" but nothing shipped, to-dos due, follow-up date reached, PO not sent) and shipment questions (bill posted in the group? → on dad's phone → forwarded; LR / transport; overdue; no expected date). Copy per supplier / whole list / today's answers for WhatsApp.
+- Dad's answer (`fuLogOpen`, `fuLogSave`): Promised date given (date) · Shipping today · No answer → tomorrow · Delayed (reason, optional new date); sets the promised date and the **next follow-up** (default: day before the promised date, tomorrow, or +3). One answer can be logged for all POs of a supplier. Snooze is now "next follow-up" (same PO Meta column); `posSnoozed` uses the local date.
+- PO window: progress strip (PO made · Sent · Promised · Shipped · Arrived · Billed in Vasy · Closed); notes show the answer log; next follow-up date with Tomorrow / +3 / +7 replaces 💤 3d / 7d.
+- All POs: 📞 on each open row; row shows dad's last answer and the next follow-up; "To chase" = no promised date (immediately) or promised / expected date passed, unless a later follow-up date is set.
+- Filter panel (`fundSortPick`, `FUND_SORTS`, `fundClearAll`, `FUND_UI`): supplier · PO stage · has · one Sort list · clear; "More filters" and "Columns & sharing" fold away.
+- Bills list: next Vasy step button (`v11BillNext`).
+- Follow-up calendar (`posFuCal`): overdue + next 7 / 14 / 30 days of follow-ups, to-dos, promised dispatch dates, expected arrivals.
+- Lead time & MOQ (`stBuild`, `posSupTerms`, `stSetEl`, `stPush`, `stFromMeta`): every product × supplier from the POs with real sent→shipped and sent→arrived days (middle value, count, range), usual and smallest order qty; editable supplier lead time and MOQ, a supplier-wide usual lead time with "fill blank rows"; Excel export. Purchase team / Management only.
+
+**Data / Sheet / API changes** — no server change (server stays 2.7, deployment version 7). New uses of the existing PO Meta sheet:
+- Notes JSON may now hold `{kind:'call', outcome, date, text, at, by, done:true}` (dad's answers) and `{kind:'ship', sid, bill:'group'|'personal', next, …}` (shipment flags, kept on the shipment's first PO).
+- "Snooze Until" column = next follow-up date.
+- Rows whose PO Number starts with `~ST|` (`~ST|<supplier>|1`, `|2` … ≤ 40,000 characters each) hold the lead time & MOQ list `[code, lead days, MOQ, date, by]`. They are not POs; the dashboard skips them; the server's PO delete never matches them. Do not delete these rows by hand. Writes go through the outbox (kind `st`) so they reach the sheet even after a failed connection.
+
+**Backward-compatibility impact** — an older dashboard file ignores the new note kinds (they are marked done) and the `~ST|` rows (no matching PO). Old snooze dates simply become follow-up dates.
+
+**Deployment** — <<NEW_VERSION_118>> (dashboard file only — no Apps Script deployment).
+
+**Tests performed** — `tests/dashboard/t40.js` (ask list, Today sections, answer log incl. "one answer for all", bill-in-group flags, WhatsApp text, calendar, PO strip, bills next step, filter panel, lead time & MOQ save / reload / 2,500-row chunking, Operations hides the ask list and supplier names); all earlier dashboard tests t28–t39; button audit 2,219 buttons incl. the new screens and the answer window — 0 problems.
+- LIVE checks: <<LIVE_CHECKS_118>>
+
+**Result** — <<RESULT_118>>
+
+**Known issues** — the ask list cannot know whether a bill really reached the WhatsApp group; the team marks it (✓ in the group / 📱 on dad's phone). Real lead time counts only shipments recorded in this system (older lots without a ship date use the PO date). Two people editing the same supplier's lead times at the same moment: the last save wins for that supplier.
+
+**V2 learning** — follow-up actions (who asked, what was promised, next date) are first-class records, not free-text notes; supplier terms (lead time, MOQ, pack) belong in the supplier-product master the inventory planner reads.

@@ -59,3 +59,13 @@ A Line ID · B Bill ID · C Shipment ID · D Canonical Code · E Item Code · F 
 - **Lots** column U "Converted To" — the V1.1 shipment ID (`CONV-<lotId>`) after `v11LotConvertApply`. Every lot reader skips these rows; clearing U restores the lot.
 - Converted lots → Shipments `CONV-<lotId>` (number `SH-<lot date>-NN`), allocations PO (or EXCESS for lines not on the PO), Returned kept; bills `CONVB-<lotId>` only for lots with billing data (supplier bill nos, split, charges, MI-ready / uploaded / Vasy bill). Uploaded lots get MI "V1" and Vasy "V1:<bill or uploaded date>" (locked).
 - Report tabs (rewritten each run): "V1.1 Product Sync Report", "V1.1 Conversion Report", "V1.1 Speed Check".
+
+## V1.1.8 additions — PO Meta used for follow-up and supplier terms (no new sheet, no server change)
+
+| PO Meta part | Meaning from V1.1.8 |
+|---|---|
+| Snooze Until (col F) | **Next follow-up date** of the PO. Until that day the PO stays off the "Ask dad" list. |
+| Notes JSON (col G), plain items `{text, due, done, at, by}` | To-dos (unchanged). |
+| Notes JSON, `{kind:'call', outcome, date, text, at, by, done:true}` | Dad's answer: `promised` (date = promised dispatch), `shipping`, `noanswer`, `delayed` (reason in text, optional new date). |
+| Notes JSON, `{kind:'ship', sid, bill, next, text, at, by, done:true}` | Shipment flag, kept on the shipment's first PO: `bill` = `group` (bill is in the WhatsApp group) or `personal` (on dad's phone, to forward); `next` = ask again on. |
+| Rows with PO Number `~ST|<supplier>|1`, `|2` … | **Lead time & MOQ** for that supplier: Notes JSON = `[[code, lead days, MOQ, date, by], …]`; code `*` = the supplier's usual lead time for all products. Each row ≤ 40,000 characters. Not POs — never delete by hand. |

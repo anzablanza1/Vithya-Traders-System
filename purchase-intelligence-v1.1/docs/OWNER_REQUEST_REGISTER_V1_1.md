@@ -5,7 +5,7 @@ Numbers are never reused. New items are added at the bottom.
 
 Status: ✅ LIVE · 🧪 Built, in TEST (next release) · 📝 Planned · ⏳ Owner action / decision · 🧊 Deferred
 
-Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5, live Oct 2026 · **V1.1.2** = server 2.6 + ProductsApi + ShipmentTools, live Oct 2026 · **V1.1.3** = server 2.7 · **V1.1.4** = dashboard file only — all live Oct 2026 (staff deployment version 6) · **V1.1.5** + **V1.1.6** = staff deployment version 7 (13 Oct 2026) · **V1.1.7** = restructure phase 1 (in test)
+Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5, live Oct 2026 · **V1.1.2** = server 2.6 + ProductsApi + ShipmentTools, live Oct 2026 · **V1.1.3** = server 2.7 · **V1.1.4** = dashboard file only — all live Oct 2026 (staff deployment version 6) · **V1.1.5** + **V1.1.6** = staff deployment version 7 (13 Oct 2026) · **V1.1.7** = restructure phase 1 · **V1.1.8** = phase 3 (both in test, dashboard file only)
 
 | No. | Area | What was raised | Type | Status | Notes |
 |---|---|---|---|---|---|
@@ -68,5 +68,11 @@ Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5
 | R57 | Workflow | Closed POs must not appear in workflow / tracking screens — they are history; open POs are time-sensitive | Decision | 🧪 V1.1.7 | Closed POs only in Analyse › PO History and in search (marked closed) |
 | R58 | Bills | Bills are prepared before OR after the goods arrive — both normal | Decision | 🧪 V1.1.7 | Bill quick views "Ready — goods not arrived" / "Ready → upload MI"; shipments quick view "Billed, not arrived" |
 | R59 | Modes | Supplier contact details visible only in Management; Purchase team vs Management difference stays as it is | Decision | ✅ kept | Already Management-only in code (`supCallHtml`) — unchanged |
-| R60 | Follow-up | Redesign tasks, snooze and follow-up per the workflow | Change | 📝 Phase 3 | Folded into the Today screen design |
+| R60 | Follow-up | Redesign tasks, snooze and follow-up per the workflow | Change | 🧪 V1.1.8 | Snooze → next follow-up date; dad's answer log (4 outcomes); to-dos; Ask dad · by supplier (R63) |
 | R61 | Restructure phase 1 | Workflow menu, All POs, Bills tab, quick views, Track / Analyse, Operations / Purchase team names | Change | 🧪 V1.1.7 | Dashboard file only |
+| R62 | Today | One "Today" screen in workflow order: new requests · POs to send · sent with no promised date · promised date passed · follow-ups & to-dos due · shipments overdue · arrived not on a bill · bill ready (goods not arrived / → MI) · MI done → Vasy bill · recheck qty · fully received → close. Menu badges | Change | 🧪 V1.1.8 | Landing screen. Overview + Daily brief stay under Track for now |
+| R63 | Follow-up | Dad is the only contact with suppliers; the team drives him in a short daily meeting. "By supplier" list of what to ask each supplier today (promised date, shipped?, LR / transport, pending items, bill in the WhatsApp group, bill on dad's phone → forward) | Change | 🧪 V1.1.8 | Today › 📞 Ask dad · by supplier; copy for WhatsApp; one answer for all POs of a supplier; "Copy today's answers" |
+| R64 | Follow-up | "Sent but no promised date" must be chased at once, not after 3 days | Change | 🧪 V1.1.8 | On the ask list from the day the PO is sent; Daily brief marks it urgent from day one; All POs "To chase" uses the promised date |
+| R65 | All POs / Fund planning | Sort and filter panel has too many options — structure and order it | Change | 🧪 V1.1.8 | Main row: supplier · PO stage · has · one Sort list · clear. "More filters" (category, product, matching lines, custom 3-level order) and "Columns & sharing" fold away |
+| R66 | Analyse | Remove the MOQ / EOQ Levels module (inventory analysis will own it). Add a module to enter supplier-given lead time and MOQ per product × supplier, next to the real lead time from our POs. No Apps Script change | Change | 🧪 V1.1.8 | Analyse › Lead time & MOQ. Saved in PO Meta rows "~ST\|supplier\|n". Levels removed from the menu (old code dormant) |
+| R67 | Restructure phase 3 extras | PO window progress strip; bills "next Vasy step" button; follow-up calendar | Change | 🧪 V1.1.8 | Dashboard file only |
