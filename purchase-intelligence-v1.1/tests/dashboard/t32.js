@@ -9,6 +9,6 @@ const w=dom.window;setTimeout(async()=>{const ev=c=>w.eval(c);
    console.log(label.padEnd(34),'→ server calls:',ev('__p.join(",")')||'(none)','| alerts:',JSON.stringify(w.__a||[]));};
  await run('Delete PO-2 (no shipments)',`podocDelete('PO-2')`);
  await run('Delete PO-1 (on shipment)',`podocDelete('PO-1')`);
- await run('Delete shipment S1 (no bill)',`v11ShipEdit('S1');v11ShipDelete()`);
+ await run('Delete shipment S1 (no bill)',`v11ShipEditForm('S1');v11ShipDelete()`);
  await run('Delete bill B1 (has lines)',`v11BillOpen('B1');v11BillDelete()`);
  console.log('errors',errs.slice(0,3));process.exit(0);},1500);

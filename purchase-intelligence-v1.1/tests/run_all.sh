@@ -21,6 +21,7 @@ echo "== Server: self-tests (shipments 42, bills 54)";            (cd "$WORK/ser
 echo "== Server: product sync (Supabase + master fallback)";      (cd "$WORK/server" && node hprod.js 2>&1 | sed -n '1p;6,14p')
 echo "== Server: product with no MRP anywhere";                   (cd "$WORK/server" && node hprod_nomrp.js 2>&1 | grep -E "NO MRP")
 echo "== Server: lot conversion / correct product / undo";        (cd "$WORK/server" && node hconv5.js 2>&1 | grep -E "DRY RUN|APPLIED|IDENTICAL|NOT undone|recode:|tracking")
+echo "== Server: Operations PIN, edit history, what-changed notes (2.8)"; (cd "$WORK/server" && node hhist.js 2>&1 | tail -13)
 cd "$WORK/dashboard"; [ -d node_modules/jsdom ] || npm i -s jsdom@24 >/dev/null 2>&1
-for t in t28 t29 t30 t31 t32 t33 t34 t35 t36 t37 t38 t39 t40 t41; do echo "== Dashboard: $t"; timeout 120 node $t.js 2>&1 | tail -4; done
+for t in t28 t29 t30 t31 t32 t33 t34 t35 t36 t37 t38 t39 t40 t41 t42; do echo "== Dashboard: $t"; timeout 120 node $t.js 2>&1 | tail -4; done
 echo "== Dashboard: press every button";                          timeout 900 node audit2.js | grep -E "TOTAL|✗"

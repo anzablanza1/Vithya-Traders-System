@@ -69,3 +69,10 @@ A Line ID · B Bill ID · C Shipment ID · D Canonical Code · E Item Code · F 
 | Notes JSON, `{kind:'call', outcome, date, text, at, by, done:true}` | Dad's answer: `promised` (date = promised dispatch), `shipping`, `noanswer`, `delayed` (reason in text, optional new date). |
 | Notes JSON, `{kind:'ship', sid, bill, next, text, at, by, done:true}` | Shipment flag, kept on the shipment's first PO: `bill` = `group` (bill is in the WhatsApp group) or `personal` (on dad's phone, to forward); `next` = ask again on. |
 | Rows with PO Number `~ST|<supplier>|1`, `|2` … | **Lead time & MOQ** for that supplier: Notes JSON = `[[code, lead days, MOQ, date, by], …]`; code `*` = the supplier's usual lead time for all products. Each row ≤ 40,000 characters. Not POs — never delete by hand. |
+
+## V1.1.9 / server 2.8 additions
+
+- Script Property **`VT_PIN_OPS`** — hash of the Operations PIN (set from the dashboard in Management mode; `security` GET returns it as `opsHash`).
+- Route **`history`** `{entity:'Shipment'|'Bill'|'PO', id}` → `{ok, id, history:[{at, user, action, field, oldV, newV, note}]}` from the **Audit Log**, newest first (max 200).
+- **Audit Log** note on `SHIPMENT_UPSERT` / `BILL_UPSERT` edits: `"<n> allocation(s) · changed: LR "" → "LR77"; 111 on PO-A qty 10 → 12; added …; removed … · reason: …"`. Old = `updated` on edits, blank on create.
+- Browser storage (per PC): `vt_ops_ok` (this PC unlocked Operations), `vt_ask_disc` (suppliers discussed today).

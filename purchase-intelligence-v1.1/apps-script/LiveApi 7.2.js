@@ -176,6 +176,7 @@ function handleApi_(api, params, body){
     if (api === 'writeSheet') return json_(apiWriteSheet_(body));
     if (api === 'lotDelete') return json_(apiLotDelete_(body));
     if (api === 'audit') return json_(apiAudit_(body));
+    if (api === 'history') return json_(apiHistory_(body || params));          // [2.8 R72] edit history of one shipment / bill / PO
     if (api === 'archive') return json_(apiArchive_());
     if (api === 'shipment') return json_((typeof apiShipment_==='function')?v11Wrap_(apiShipment_(body)):{ok:false,error:'ShipmentApi.gs not installed'});             // [V1.1-01]
     if (api === 'shipmentArrive') return json_((typeof apiShipmentArrive_==='function')?v11Wrap_(apiShipmentArrive_(body)):{ok:false,error:'ShipmentApi.gs not installed'}); // [2.1]
@@ -400,20 +401,21 @@ function apiMeta_(body){
 /* ===================== [v3] SECURITY — sheet-shared PIN hashes (Script Properties) ===================== */
 function getSecurity_(){
   var p = PropertiesService.getScriptProperties();
-  return { salt: p.getProperty('VT_PIN_SALT')||'', followHash: p.getProperty('VT_PIN_FOLLOW')||'', mgmtHash: p.getProperty('VT_PIN_MGMT')||'' };
+  return { salt: p.getProperty('VT_PIN_SALT')||'', followHash: p.getProperty('VT_PIN_FOLLOW')||'', mgmtHash: p.getProperty('VT_PIN_MGMT')||'',
+    opsHash: p.getProperty('VT_PIN_OPS')||'' };   // [2.8 R56] Operations PIN
 }
 // security: GET returns hashes; POST sets a tier hash (authorised by current mgmt hash, or bootstrap when none set)
 function apiSecurity_(body, params){
   var cur = getSecurity_();
   var isGet = !(body && body.set);
-  if (isGet) return { ok:true, salt:cur.salt, followHash:cur.followHash, mgmtHash:cur.mgmtHash };
+  if (isGet) return { ok:true, salt:cur.salt, followHash:cur.followHash, mgmtHash:cur.mgmtHash, opsHash:cur.opsHash };
   var tier = String(body.set||''), hash = String(body.hash||''), auth = String(body.authHash||''), salt = String(body.salt||'');
-  if (tier !== 'followup' && tier !== 'mgmt') return { ok:false, error:'bad tier' };
+  if (tier !== 'followup' && tier !== 'mgmt' && tier !== 'ops') return { ok:false, error:'bad tier' };   // [2.8] + Operations
   // authorise: if a mgmt hash already exists, the caller must supply it; otherwise this is first-time bootstrap
   if (cur.mgmtHash && auth !== cur.mgmtHash) return { ok:false, error:'auth failed' };
   var p = PropertiesService.getScriptProperties();
   if (salt) p.setProperty('VT_PIN_SALT', salt);
-  p.setProperty(tier==='mgmt' ? 'VT_PIN_MGMT' : 'VT_PIN_FOLLOW', hash);
+  p.setProperty(tier==='mgmt' ? 'VT_PIN_MGMT' : (tier==='ops' ? 'VT_PIN_OPS' : 'VT_PIN_FOLLOW'), hash);
   return { ok:true, saved:tier };
 }
 
@@ -551,6 +553,27 @@ function apiLotDelete_(body){
   } finally { lock.releaseLock(); }
 }
 /* ===================== [v4] AUDIT — append-only ===================== */
+/* [2.8 R72] history: every Audit Log row for one record (shipment / bill / PO), newest first */
+function apiHistory_(q){
+  var id = String((q && q.id) || '').trim(), ent = String((q && q.entity) || '').trim();
+  if (!id) return { ok:false, error:'no id' };
+  var s = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(AUDIT_TAB);
+  if (!s || s.getLastRow() < 2) return { ok:true, id:id, history:[] };
+  var n = s.getLastRow() - 1, hits = [];
+  var tf = null; try { tf = s.getRange(2, 5, n, 1).createTextFinder(id).matchEntireCell(true); } catch (e) { tf = null; }
+  if (tf) { tf.findAll().forEach(function (r) { hits.push(r.getRow()); }); }
+  else { var ids = s.getRange(2, 5, n, 1).getValues(); for (var i = 0; i < ids.length; i++) if (String(ids[i][0]) === id) hits.push(i + 2); }
+  if (!hits.length) return { ok:true, id:id, history:[] };
+  hits.sort(function (a, b) { return a - b; }); hits = hits.slice(-200);
+  var first = hits[0], block = s.getRange(first, 1, hits[hits.length - 1] - first + 1, AUDIT_HEADERS.length).getValues();
+  var out = [], tz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone() || 'Asia/Kolkata';
+  hits.forEach(function (r) { var v = block[r - first];
+    if (ent && String(v[3]) !== ent) return;
+    out.push({ at: (v[0] instanceof Date) ? Utilities.formatDate(v[0], tz, 'yyyy-MM-dd HH:mm') : String(v[0] || ''),
+      user: String(v[1] || ''), action: String(v[2] || ''), field: String(v[5] || ''), oldV: String(v[6] || ''), newV: String(v[7] || ''), note: String(v[8] || '') }); });
+  out.reverse();
+  return { ok:true, id:id, history:out };
+}
 function audit_(user,action,entity,id,field,oldV,newV,note){
   try{var s=auditSheet_();s.getRange(s.getLastRow()+1,1,1,AUDIT_HEADERS.length)
     .setValues([[new Date(),String(user||''),String(action||''),String(entity||''),String(id||''),String(field||''),String(oldV||''),String(newV||''),String(note||'')]]);}catch(e){}

@@ -5,7 +5,7 @@ Numbers are never reused. New items are added at the bottom.
 
 Status: ✅ LIVE · 🧪 Built, in TEST (next release) · 📝 Planned · ⏳ Owner action / decision · 🧊 Deferred
 
-Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5, live Oct 2026 · **V1.1.2** = server 2.6 + ProductsApi + ShipmentTools, live Oct 2026 · **V1.1.3** = server 2.7 · **V1.1.4** = dashboard file only — all live Oct 2026 (staff deployment version 6) · **V1.1.5** + **V1.1.6** = staff deployment version 7 (13 Oct 2026) · **V1.1.7** = restructure phase 1 · **V1.1.8 / 8b** = phase 3 (both in test, dashboard file only)
+Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5, live Oct 2026 · **V1.1.2** = server 2.6 + ProductsApi + ShipmentTools, live Oct 2026 · **V1.1.3** = server 2.7 · **V1.1.4** = dashboard file only — all live Oct 2026 (staff deployment version 6) · **V1.1.5** + **V1.1.6** = staff deployment version 7 (13 Oct 2026) · **V1.1.7** = restructure phase 1 · **V1.1.8 / 8b** = phase 3 · **V1.1.9 + server 2.8** = phases 2 + 4 (all in test)
 
 | No. | Area | What was raised | Type | Status | Notes |
 |---|---|---|---|---|---|
@@ -79,4 +79,24 @@ Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5
 | R68 | Ask by supplier | Rename "Ask dad · by supplier" → "Ask by supplier" (no "dad" on screen). Expand all / collapse all; tick POs and shipments (or a whole supplier) and act on all ticked at once | Change | 🧪 V1.1.8b | Bottom bar: POs → promised / shipping / no answer / delayed / next follow-up; shipments → bill in group / on personal phone / ask tomorrow; copy ticked |
 | R69 | Layout | The Detailed / Condensed switch at the top looked irrelevant and duplicated module switches — one place only | Change | 🧪 V1.1.8b | Kept ONE global switch at the top; it now drives every screen (tables, PO cards, Today, Ask by supplier). Module "Density" switch removed; PO builder "Condensed" renamed "Summary" (it is a read-only summary, not spacing) |
 | R70 | Overviews | Overview for Shipments and Bills like the PO overview | Change | 🧪 V1.1.8b | POs › Overview (moved from Track), Shipments › Overview, Bills › Overview; tiles open the matching list |
-| R71 | Review | Re-analyse everything and suggest more ideas | Proposal | ⏳ Owner to pick | `DASHBOARD_STRUCTURE_PROPOSAL.md` §7, ideas I1–I21 |
+| R71 | Review | Re-analyse everything and suggest more ideas | Proposal | ✅ owner picked the ★ ones | `DASHBOARD_STRUCTURE_PROPOSAL.md` §7 — I1 I2 I3 I5 I6 I7 I8 I10 I13 I14 I16 I19 built as R78–R89 |
+| R72 | Shipments / Bills | Every edit audited — who, when and what changed | Change | 🧪 V1.1.9 · server 2.8 | Audit Log note lists changed fields and lines (old → new) + optional reason; new route `history`; 🕘 History in both windows |
+| R73 | Shipments | Shipment opens as a view (product + qty, expand for the PO split, search); "✎ Edit shipment" opens today's form; product search inside the form too | Change | 🧪 V1.1.9 | Shipments list ✎ and Ask-by-supplier "Enter LR / date" go straight to the form |
+| R74 | Bills | Bill opens read-only; "✎ Edit bill" to change; product search | Change | 🧪 V1.1.9 | Vasy steps (download, MI, Vasy bill no.) still work from the view |
+| R75 | Shipments / Bills | "What changed / why" box when editing — kept in the history | Change | 🧪 V1.1.9 · server 2.8 | optional |
+| R76 | Overviews | Clicking an overview tile shows that list; click a line to open it (like the PO overview) | Change | 🧪 V1.1.9 | Shipments and Bills overviews; "open the full list with this filter" link; supplier table numbers clickable |
+| R77 | Board | Excess chip and date ran outside the cards | Bug / redesign | 🧪 V1.1.9 | New card layout that never exceeds its column; one card per shipment (not per PO it touches) |
+| R90 | Dates | Some dates showed as "Tue Oct 13 2026 00:00:00 GMT+0530…" | Bug | 🧪 V1.1.9 | `posDispDate` now reads any date format → "13 Oct" |
+| R56 | Modes (phase 2) | View only (no PIN, nothing can be changed) and an Operations PIN | Change | 🧪 V1.1.9 · server 2.8 | Operations PIN asked once per PC; Operations cannot delete; View only opens on Goods check; Script Property `VT_PIN_OPS` |
+| R78 | Ask by supplier | ✓ Discussed per supplier + progress (I1) | Change | 🧪 V1.1.9 | this PC, resets daily; discussed suppliers fold to the bottom |
+| R79 | Ask by supplier | Promise score per supplier (I2) | Change | 🧪 V1.1.9 | kept / broken / avg days late / no-answer in 30 days, from the answer log |
+| R80 | Ask by supplier | Escalate flag (I3) | Change | 🧪 V1.1.9 | 2+ broken promises in 60 days, or no answer 3 call-days running |
+| R81 | New PO | Lead time & MOQ used (I5) | Change | 🧪 V1.1.9 | arrival estimate per supplier group; "below MOQ → round up"; PO expected date = today + lead time |
+| R82 | Requests | Already on order / on the way / last PO (I6) | Change | 🧪 V1.1.9 | supplier and rate hidden in Operations |
+| R83 | New PO | Duplicate-order warning (I7) | Change | 🧪 V1.1.9 | on the line and a confirm on ✓ Create PO |
+| R84 | All POs | Bulk mark sent / close (I8) | Change | 🧪 V1.1.9 | tick POs → bar on top |
+| R85 | Shipments | Expected date filled from the supplier's real transit days (I10) | Change | 🧪 V1.1.9 | new shipments only; editable |
+| R86 | Today | "Since yesterday" strip (I13) | Change | 🧪 V1.1.9 | |
+| R87 | All | Browser tab shows the Today count (I14) | Change | 🧪 V1.1.9 | |
+| R88 | Track | Fix list (I16) | Change | 🧪 V1.1.9 | no expected date, no LR, off-PO, no supplier bill no., MRP 0, no supplier, temporary codes, no rate |
+| R89 | Menu | Search box (I19) | Change | 🧪 V1.1.9 | POs (incl. closed), shipments, LR, bills, products; "/" to jump there; Enter opens |

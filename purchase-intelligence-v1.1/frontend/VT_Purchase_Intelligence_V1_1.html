@@ -494,6 +494,20 @@ html[data-theme="dark"] .kcol{background:#1b1a14}
 .kcount{margin-left:auto;background:var(--surface,#fff);border:1px solid var(--line-2);border-radius:99px;padding:0 8px;font-size:.72rem}
 .kcol-b{display:flex;flex-direction:column;gap:8px;max-height:62vh;overflow:auto}
 .pos-card{background:var(--surface,#fff);border:1px solid var(--line-2);border-radius:10px;padding:9px 10px}
+/* [V1.1.9 R77] board cards — never wider than their column */
+.kcol{min-width:0}.kcol-b{overflow-x:hidden}
+.kb-card{background:var(--surface,#fff);border:1px solid var(--line-2);border-radius:10px;padding:8px 10px;min-width:0;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+html[data-theme="dark"] .kb-card{background:#222019}
+.kb-card.over{border-left:3px solid var(--non)}.kb-card.ship{border-left:3px solid #2563eb}.kb-card.ship.over{border-left-color:var(--non)}
+.kb-top{display:flex;align-items:baseline;gap:6px;min-width:0}
+.kb-no{font-weight:800;font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1 1 auto}
+.kb-date{font-size:.62rem;color:var(--grey);white-space:nowrap;flex:0 0 auto}
+.kb-chips{display:flex;flex-wrap:wrap;gap:4px;margin:5px 0 4px}.kb-chips .chip{font-size:.56rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kb-sup{font-size:.66rem;color:var(--grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:2px 0 4px}
+.kb-items{font-size:.68rem;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin:2px 0;word-break:break-word}
+.kb-qty{font-size:.68rem;margin:4px 0}
+.kb-act{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}.kb-act .btn{padding:2px 8px;font-size:.66rem}
+html[data-density="condensed"] .kb-card{padding:5px 8px}html[data-density="condensed"] .kb-act{display:none}html[data-density="condensed"] .kb-card:hover .kb-act{display:flex}
 html[data-theme="dark"] .pos-card{background:#222019}
 .pos-card.over{border-color:var(--non)}
 .pos-card-h{display:flex;align-items:center;gap:6px}
@@ -557,6 +571,8 @@ html[data-theme="dark"]{--fn-pending:#C97F6C;--fn-created:#7194CC;--fn-sent:#5F7
 .fnleg i{width:11px;height:11px;border-radius:3px;display:inline-block}
 .mode-chip{font-size:.62rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:99px;border:1px solid var(--line-2);background:var(--card,#fff);white-space:nowrap}
 .mode-chip.ops{color:var(--grey)}
+.mode-chip.view{color:#2563eb;border-color:#2563eb}
+.vt-lk{opacity:.35!important;filter:grayscale(1);cursor:not-allowed!important}body.vt-view .ask-bar{display:none!important}
 .mode-chip.followup{color:#9A6212;border-color:#9A6212;background:#f6ecd8}
 .mode-chip.mgmt{color:var(--red);border-color:var(--red);background:var(--red-soft,#fbeae8)}
 html[data-theme="dark"] .mode-chip.followup{background:#332b17}
@@ -578,9 +594,16 @@ nav#mainnav{align-items:center}
 .qv{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}.qv button{font-size:.7rem;padding:4px 10px;border-radius:14px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);cursor:pointer}
 .qv button.on{background:#0F766E;border-color:#0F766E;color:#fff}.qv button .n{opacity:.75;margin-left:4px}
 .qv button[disabled]{opacity:.45;cursor:default}
+.sv-tbl td{padding:5px 8px;vertical-align:top}.sv-tbl tr[data-t]:hover{background:var(--tint-search)}.b11-need-t{color:var(--non);font-weight:700}
+html[data-density="condensed"] .sv-tbl td{padding:2px 6px}
 .ask-blk{border-top:1px dashed var(--line-2);padding:8px 0}.ask-act{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-left:22px}
 html[data-density="condensed"] .ask-act .btn{padding:2px 7px;font-size:.66rem}.td-row{padding:5px 0}
 .ask-bar{position:sticky;bottom:0;z-index:30;background:var(--surface,#fff);border:1px solid var(--line-2);border-radius:10px;box-shadow:0 -4px 16px rgba(0,0,0,.14);padding:8px 10px;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.vtq{position:relative;display:inline-block;margin-right:8px;vertical-align:middle}.vtq input{width:170px;transition:width .15s;border:1px solid var(--line-2);border-radius:16px;padding:4px 12px;font-size:.74rem;background:var(--surface,#fff);color:var(--ink)}
+.vtq input:focus{width:250px}
+.vtq-r{position:fixed;width:380px;max-height:60vh;overflow:auto;background:var(--surface,#fff);border:1px solid var(--line-2);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:400;text-align:left}
+.vtq-o{padding:7px 10px;border-bottom:1px dashed var(--line-2);font-size:.76rem;cursor:pointer}.vtq-o:hover,.vtq-o.on{background:var(--tint-search)}
+.ask-card.ask-disc{opacity:.75}
 .ask-bar-g{display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap;padding-right:10px;border-right:1px solid var(--line-2)}
 html[data-density="condensed"] .vt-c-hide{display:none!important}
 html[data-density="condensed"] .ask-blk{padding:3px 0}html[data-density="condensed"] .ask-blk ul{margin-top:1px!important;margin-bottom:1px!important}
@@ -664,8 +687,8 @@ html[data-theme="dark"] .live-conn{background:#23201c}
     <button data-s="ships" disabled title="V1.1 — shipments that can carry several POs">Shipments <span id="ships-badge" class="po-badge" style="display:none;background:#0F766E">0</span></button>
     </span>
 
-    <span class="nav-right"><span id="mode-chip" class="mode-chip ops" title="Your current access level">Operations</span>
-    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.8b · Vaigai</span></span>
+    <span class="nav-right"><span class="vtq"><input id="vt-q" placeholder="🔍 PO · SH · BL · LR · product  ( / )" autocomplete="off" oninput="vtQRun(this.value)" onfocus="vtQRun(this.value)" onkeydown="vtQKey(event)" onblur="setTimeout(()=>{const b=document.getElementById('vt-qr');if(b)b.style.display='none';},200)"><div id="vt-qr" class="vtq-r" style="display:none"></div></span><span id="mode-chip" class="mode-chip ops" title="Your current access level">Operations</span>
+    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.9 · Vaigai</span></span>
   </nav>
   <nav id="subnav" style="display:none"></nav>
 </header>
@@ -992,10 +1015,14 @@ html[data-theme="dark"] .live-conn{background:#23201c}
       <h3 style="margin:0">Settings &amp; access</h3><span style="flex:1"></span>
       <span class="muted small">Current: <span id="mode-chip2" class="mode-chip ops">Operations</span></span>
     </div>
-    <div class="foot-note" style="margin:0 0 12px">Tiers — <b>Operations</b> (open) ▸ <b>Purchase team</b> (PIN) ▸ <b>Management</b> (PIN). Higher unlocks more; lock back any time.</div>
+    <div class="foot-note" style="margin:0 0 12px">Modes — <b>View only</b> (no PIN) ▸ <b>Operations</b> (PIN, asked once per PC) ▸ <b>Purchase team</b> (PIN) ▸ <b>Management</b> (PIN). Higher unlocks more; lock back any time.</div>
+    <div class="set-row"><div class="lbl"><b>View only</b><div class="small muted">Display only — nothing can be changed. No supplier names or rates. For a screen anyone can look at.</div></div>
+      <button class="btn ghost sm" onclick="acEnterView()">👁 Switch to View only</button></div>
+    <div class="set-row"><div class="lbl"><b>Operations</b><div class="small muted">Enter shipments and record status. No supplier names or rates, no bills, no deleting. The PIN is asked once on each PC.</div></div>
+      <button class="btn ghost sm" onclick="acEnterOps()">Enter Operations</button></div>
 
     <div class="set-row"><div class="lbl"><b>Purchase team mode</b> <span class="small muted">(was Follow-up)</span><div class="small muted">Data entry + follow-up, suppliers and rates, bills, Fund planning. No supplier phone / WhatsApp.</div></div>
-      <button class="btn ghost sm" onclick="acEnter('followup')">Enter Follow-up</button></div>
+      <button class="btn ghost sm" onclick="acEnter('followup')">Enter Purchase team</button></div>
     <div class="set-row"><div class="lbl"><b>Management mode</b><div class="small muted">Everything — register intelligence, supplier contacts, cost &amp; margin.</div></div>
       <button class="btn red sm" onclick="acEnter('mgmt')">Enter Management</button></div>
 
@@ -1007,8 +1034,9 @@ html[data-theme="dark"] .live-conn{background:#23201c}
         <div class="small" id="set-reg-status" style="margin-top:6px"></div></div>
       <div class="set-row"><div class="lbl"><b>Your name</b><div class="small muted">Stamped on every entry &amp; the audit log so everyone knows who did what. Saved on this device.</div></div>
         <input class="po-in" id="set-username" placeholder="e.g. Anu" style="width:150px" onchange="vtSetUser(this.value)"></div>
-      <div class="set-row"><div class="lbl"><b>Access PINs</b><div class="small muted">Both PINs are <b>global</b> — set once and every device that syncs picks them up. Changing one asks for the current PIN first. If it is forgotten, the sheet owner can reset it with the Apps Script token.</div></div>
-        <button class="btn ghost sm" onclick="acChangePinUI('followup')">Change Follow-up PIN</button>
+      <div class="set-row"><div class="lbl"><b>Access PINs</b><div class="small muted">All PINs are <b>global</b> — set once and every device that syncs picks them up. Changing one asks for the current PIN first. If it is forgotten, the sheet owner can reset it with the Apps Script token.</div></div>
+        <button class="btn ghost sm" onclick="acChangePinUI('ops')">Set / change Operations PIN</button>
+        <button class="btn ghost sm" onclick="acChangePinUI('followup')">Change Purchase team PIN</button>
         <button class="btn ghost sm" onclick="acChangePinUI('mgmt')">Change Management PIN</button>
         <button class="btn ghost sm" style="border-color:var(--non);color:var(--non)" onclick="acOwnerReset('mgmt')" title="forgot the PIN? reset with the Apps Script token">Owner reset…</button></div>
     </div>
@@ -2946,6 +2974,7 @@ let VT_OUTBOX=[];
 function outboxLoad(){try{VT_OUTBOX=JSON.parse(localStorage.getItem('vt_outbox')||'[]');}catch(e){VT_OUTBOX=[];}}
 function outboxSave(){try{localStorage.setItem('vt_outbox',JSON.stringify(VT_OUTBOX.slice(-200)));}catch(e){}}
 function outboxAdd(kind,ref){
+  if(VT_VIEW)return;   // [V1.1.9] View only queues nothing
   // collapse duplicates: one pending write per kind+ref
   VT_OUTBOX=VT_OUTBOX.filter(o=>!(o.kind===kind&&o.ref===ref));
   VT_OUTBOX.push({kind,ref,at:Date.now(),tries:0});outboxSave();
@@ -3007,6 +3036,8 @@ async function vtApiGet(api,extra){
 }
 // POST writeback — text/plain body avoids a CORS preflight Apps Script can't answer
 async function vtApiPost(body){
+  // [V1.1.9 R56] View only: only reads reach the server
+  if(VT_VIEW&&!(body&&(VT_READ_API.has(body.api)||(body.api==='security'&&!body.set)))){vtViewMsg();return {ok:false,error:'View only — nothing was saved.'};}
   const res=await fetch(liveBaseUrl(),{method:'POST',redirect:'follow',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify(Object.assign({token:VT_LIVE.token},body))});
@@ -3496,6 +3527,7 @@ function reqRender(){
         <div class="small muted">${best?'cheapest: '+esc(best.party)+' @ '+INR2(best.v):''} · MOQ ${it.moqSugg} · EOQ ${it.eoq}</div>`;
      }else if(r.inMaster){intel=`<span class="chip lite">in master @ ${INR2(r.master.price)}</span><div class="small muted">${esc(r.master.cat||'')} · not yet purchased</div>`;}
      else intel=`<span class="chip warn">🆕 New — not in master</span>`;
+     intel+=reqExtraHTML(r);   // [V1.1.9 I6] already on order / on the way / last PO
      const addBtns=it?
        `${it.hasG?`<button class="btn sm" style="background:var(--gst);border-color:var(--gst)" onclick="reqAdd('${esc(lk)}','g')">+G</button> `:''}${it.hasN?`<button class="btn red sm" onclick="reqAdd('${esc(lk)}','n')">+N</button>`:''}${(!it.hasG&&!it.hasN)?`<button class="btn sm" onclick="reqAdd('${esc(lk)}','g')">+ PO</button>`:''}`
        :`<button class="btn sm" style="background:var(--gst);border-color:var(--gst)" onclick="reqAddNew('${esc(lk)}','g')">+G</button> <button class="btn red sm" onclick="reqAddNew('${esc(lk)}','n')">+N</button>`;
@@ -4269,6 +4301,7 @@ function poRender(){
     html+=`<div class="po-group"><div class="po-group-h"><h4>${esc(g.sup)}</h4>
      <span class="chip ${g.lane==='g'?'gst':'non'}">${g.lane==='g'?'GST':'NON-GST'}</span>
      <span class="small muted">${g.rows.length} items · <b class="num" id="po-tot-${norm(g.key)}">${INR(tot)}</b></span>
+     ${g.sup?poGroupLeadHTML(g.sup,g.rows):''}
      <span style="flex:1"></span>
      <button class="btn ghost sm" title="select all lines in this group" onclick="poSelGroup('${esc(g.sup)}','${g.lane}')">☑ Select</button>
      <button class="btn red sm" onclick="poCreateRecord('${esc(g.sup)}','${g.lane}')">✓ Create PO</button>
@@ -4284,7 +4317,7 @@ function poRender(){
         const _reallyNew=!_inMaster&&!l.fromMaster;
         html+=`<tr>${selCell}<td><div style="font-weight:600;font-size:.84rem">${esc(laneNameStr((_inMaster&&_inMaster.name)||l.newName||l.code,l.lane))} ${_reallyNew?'<span class="chip warn">🆕 NEW</span>':'<span class="chip lite" title="in the product master, no purchase history yet">master</span>'}</div><div class="small muted">${_reallyNew?'not in the product master or purchase history':'no purchase history yet — rate not auto-filled'}</div></td>
          <td><span class="lane-pick"><button class="g ${l.lane==='g'?'active':''}" onclick="poSetLaneNew(${l.id},'g')">GST</button><button class="n ${l.lane==='n'?'active':''}" onclick="poSetLaneNew(${l.id},'n')">NON</button></span><div class="mono small" style="margin-top:3px">${esc(laneCodeStr(l.code,l.lane))}</div></td>
-         <td>${poSupCell(l)}</td>
+         <td>${poSupCell(l)}${poHints(l)}</td>
          <td class="r"><input class="po-in" type="number" min="0" value="${l.qty}" oninput="poUpd(${l.id},'qty',this.value)"></td>
          <td class="r"><input class="po-in" type="number" step="0.01" min="0" value="${l.price}" placeholder="enter" oninput="poUpd(${l.id},'price',this.value)"></td>
          <td class="r"><input class="po-in" type="number" step="0.01" min="0" value="${l.mrp}" oninput="poUpd(${l.id},'mrp',this.value)"></td>
@@ -4305,7 +4338,7 @@ function poRender(){
       html+=`<tr>${selCell}<td><div style="font-weight:600;font-size:.84rem">${esc(laneNameStr(it.disp,l.lane))}</div><div class="small muted">${esc(it.cat)} · ${uomSelect('po-u-'+l.id,unitOf(l),`poSetUom('${l.id}',this.value)`,72)}</div></td>
        <td><span class="lane-pick"><button class="g ${l.lane==='g'?'active':''}" onclick="poSetLane(${l.id},'g')">GST</button><button class="n ${l.lane==='n'?'active':''}" onclick="poSetLane(${l.id},'n')">NON</button></span>
         <div class="mono small" style="margin-top:3px">${esc(laneCodeStr(l.code,l.lane))}</div></td>
-       <td>${poSupCell(l)}${nudge}${lastBuy}</td>
+       <td>${poSupCell(l)}${nudge}${lastBuy}${poHints(l)}</td>
        <td class="r"><input class="po-in" type="number" min="0" value="${l.qty}" oninput="poUpd(${l.id},'qty',this.value)">${(it.eoq&&Math.abs(l.qty-it.eoq)>0.5)?`<div class="small muted" style="margin-top:2px;cursor:pointer" title="Set to suggested EOQ" onclick="poUpd(${l.id},'qty',${it.eoq});poRender()">EOQ ${it.eoq} ▸</div>`:''}</td>
        <td class="r"><input class="po-in" type="number" step="0.01" min="0" value="${l.price}" oninput="poUpd(${l.id},'price',this.value)"></td>
        <td class="r"><input class="po-in" type="number" step="0.01" min="0" value="${l.mrp}" oninput="poUpd(${l.id},'mrp',this.value)"></td>
@@ -4478,8 +4511,11 @@ function poCreateRecord(sup,lane){
   if(!rows.length){toast('No lines for this group.');return;}
   if(!sup){toast('Choose a supplier first.');return;}
   if(rows.some(l=>!(+l.qty>0))){toast('Every line needs a quantity.');return;}
+  const _dup=poDupList(rows);   // [V1.1.9 I7] already on order?
+  if(_dup.length&&!confirm('These products are already on order:\n\n'+_dup.join('\n')+'\n\nCreate this PO anyway?'))return;
+  const _lead=poGroupLead(sup,rows);   // [V1.1.9 I5] expected = today + lead time
   const poId=nextVTPO();
-  const doc={poId,realNo:'',supplier:sup,lane,createdAt:new Date().toISOString().slice(0,10),sentAt:'',expected:'',
+  const doc={poId,realNo:'',supplier:sup,lane,createdAt:new Date().toISOString().slice(0,10),sentAt:'',expected:_lead?d8add(t8(),Math.round(_lead.d)):'',
     status:'made',parentPoId:'',splitInto:[],lines:rows.map(poLineSnap),note:''};
   PODOCS.unshift(doc);
   const ids=new Set(rows.map(l=>l.id));PO=PO.filter(l=>!ids.has(l.id));
@@ -4877,7 +4913,7 @@ function v11ShipsRender(){
         <td class="nowrap">${st==='cancelled'?'':(s.arrivedAt
           ?`<button class="btn ghost sm" title="undo arrival" onclick="v11ShipArrive('${sid}',false)">↩ arrival</button>`
           :`<button class="btn sm" style="background:var(--ok);border-color:var(--ok)" onclick="v11ShipArrive('${sid}',true)">📦 arrived</button>`)}
-          <button class="btn ghost sm" onclick="v11ShipEdit('${sid}')">✎</button>
+          <button class="btn ghost sm" title="edit this shipment" onclick="v11ShipEditForm('${sid}')">✎</button>
           ${v11IsOps()||st==='cancelled'?'':`${bs!=='full'?`<button class="btn ghost sm" title="create a bill from this shipment" onclick="v11BillNew('${sid}')">🧾</button>`:''}
           <button class="btn ghost sm" title="Material Inward — download + record the Vasy MI number" onclick="v11MiOpen('${sid}')">⬇ MI</button>`}</td></tr>`;}).join('')}</tbody></table></div>`;
 }
@@ -4927,7 +4963,7 @@ function v11ShipNew(){
   S11={sid:'',shipmentNo:'',supplier:'',shipDate:new Date().toISOString().slice(0,10),expected:'',transport:'',lr:'',note:'',status:'In Transit',rows:[]};
   v11ShipModal();
 }
-function v11ShipEdit(sid){
+function v11ShipEditForm(sid){   // [V1.1.9 R73] the editor — opened from the view with ✎ Edit shipment
   const s=v11ShipById(sid);if(!s){toast('Shipment not found — sync first.');return;}
   V11_PIDX=null;
   const byC=new Map();
@@ -4957,10 +4993,11 @@ function v11RowChip(r){const z=v11RowCalc(r);
   if(z.offpo>0)return `<span class="chip" style="font-size:.6rem;background:var(--non);color:#fff;border-color:transparent">off-PO ${NUM(z.offpo)} — not on any open PO</span>`;
   return `<span class="chip ok" style="font-size:.6rem">✓ ${on}</span>`;}
 function v11ShipModal(){
-  const S=S11;const sups=v11SupplierOptions(S.supplier);
+  const S=S11;v11AutoExpected(S);   // [V1.1.9 I10]
+  const sups=v11SupplierOptions(S.supplier);
   const supSel=`<select class="po-in" id="s11-sup" onchange="v11SetSupplier(this.value)" ${S.rows.length&&S.sid?'disabled title="supplier cannot change on a saved shipment"':''}>
     <option value="">— choose —</option>${sups.map(([n,pos])=>`<option value="${esc(n)}"${n===S.supplier?' selected':''}>${esc(v11SupLabel(n,pos))}</option>`).join('')}</select>`;
-  const title=S.sid?`Shipment <span class="mono">${esc(S.shipmentNo)}</span> <span class="chip" style="font-size:.6rem;background:${S11_STATE_CHIP[v11ShipState(S)][1]};color:#fff;border-color:transparent">${S11_STATE_CHIP[v11ShipState(S)][0]}</span>`:'New shipment';
+  const title=S.sid?`Shipment <span class="mono">${esc(S.shipmentNo)}</span> <span class="chip" style="font-size:.6rem;background:${S11_STATE_CHIP[v11ShipState(S)][1]};color:#fff;border-color:transparent">${S11_STATE_CHIP[v11ShipState(S)][0]}</span> <span class="chip warn" style="font-size:.58rem">✎ editing</span>`:'New shipment';
   document.getElementById('s11-title').innerHTML=title;
   // pending products of this supplier (quick add)
   const rows=S.rows.map((r,ri)=>{const k=r.k;const z=v11RowCalc(r);
@@ -4968,7 +5005,7 @@ function v11ShipModal(){
         <td class="r small num">${NUM(x.eff)}</td><td class="r small num">${NUM(x.pending)}</td>
         <td class="r"><input class="po-in" type="number" min="0" style="width:80px" data-po="${esc(x.poId)}" value="${+r.alloc[x.poId]||0}" oninput="v11AllocSet('${k}','${esc(x.poId)}',this.value)"></td></tr>`).join('');
     const tail=v11RowChip(r);
-    return `<div class="card s11-row ${v11RowState(r)}" style="padding:9px 11px;margin:8px 0" id="s11-row-${k}">
+    return `<div class="card s11-row ${v11RowState(r)}" style="padding:9px 11px;margin:8px 0" id="s11-row-${k}" data-t="${esc((prodName(r.code,r.name)+' '+r.canon).toLowerCase())}">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <span class="s11-sn" title="line ${ri+1} of ${S.rows.length}">${ri+1}</span><b class="small">${esc(prodName(r.code,r.name))}</b><span class="mono small muted">${esc(r.canon)}</span>
         <span style="flex:1"></span>${uomSelect('s11-u-'+k,r.uom||unitOf(r.canon),`v11UomSet('${k}',this.value)`,78)}<label class="small"><b>Qty shipped</b> (as on the bill)</label>
@@ -4983,7 +5020,7 @@ function v11ShipModal(){
     <div class="s11-sec"><div class="filters" style="align-items:flex-end;margin-bottom:6px">
       <div class="f"><label>Supplier *</label>${supSel}</div>
       <div class="f"><label>Ship date</label><input class="po-in" type="date" id="s11-date" value="${esc(S.shipDate)}"></div>
-      <div class="f"><label>Expected delivery</label><input class="po-in" type="date" id="s11-exp" value="${esc(S.expected)}"></div>
+      <div class="f"><label>Expected delivery</label><input class="po-in" type="date" id="s11-exp" value="${esc(S.expected)}" onchange="S11._expTouched=true;S11._autoExp=null">${S._autoExp?`<div class="small muted" style="max-width:170px">filled from the usual ${S._autoExp.d} d (${esc(S._autoExp.src)}) — change if needed</div>`:''}</div>
       <div class="f"><label>Transport <span class="muted">(optional)</span></label><input class="po-in" id="s11-tr" value="${esc(S.transport)}" style="width:150px"></div>
       <div class="f"><label>LR no. <span class="muted">(optional)</span></label><input class="po-in" id="s11-lr" value="${esc(S.lr)}" style="width:120px"></div>
     </div>
@@ -4996,15 +5033,19 @@ function v11ShipModal(){
       <div class="f"><label>&nbsp;</label><button class="btn ghost sm" title="add every pending product of this supplier" onclick="v11AddAllPending()">＋ all pending</button></div>
       <div class="f" style="min-width:280px;flex:1"><label class="small muted">…or <b>any product</b> — other suppliers' POs, or Off-PO</label>${v11PickHTML('s11any','type product name…')}</div></div>${v11PoPickHTML()}</div>`
       :'<div class="small muted" style="margin:8px 0">Choose the supplier first.</div>'}
+    ${S.rows.length?`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px"><input class="po-in" id="s11-find" style="width:260px" placeholder="🔍 find a product on this shipment…" value="${esc(S._find||'')}" oninput="v11ShipFind(this.value)"><span class="small muted" id="s11-find-n"></span><span style="flex:1"></span><span class="small"><b>${S.rows.length}</b> product(s) · <b>${NUM(S.rows.reduce((a,r)=>a+(+r.qty||0),0))}</b> qty</span></div>`:''}
     <div id="s11-rows">${rows||(S.supplier?'<div class="small muted" style="margin:8px 0">No products yet.</div>':'')}</div>
+    ${S.sid?`<div class="f" style="margin-top:8px"><label class="small muted">What changed / why <span class="muted">(optional — kept in the edit history)</span></label><input class="po-in" id="s11-why" style="width:100%" value="${esc(S._why||'')}" oninput="S11._why=this.value" placeholder="e.g. bill showed 12, not 10"></div>`:''}
     ${lock?`<div class="small" style="margin-top:6px;color:#B8893A">This shipment is on bill ${v11ShipBills(S.sid).map(b=>esc(b.billNo)).join(', ')} — billed products cannot be removed here, and it cannot be cancelled or deleted until it is unassigned from the bill.</div>`:''}
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center">
       <button class="btn" id="s11-save" onclick="v11ShipSave()">${S.sid?'Save changes':'Save shipment'}</button>
+      ${S.sid?`<button class="btn ghost" onclick="v11ShipEdit('${esc(S.sid)}')" title="discard changes and go back to the view">↩ Back to view</button>`:''}
       <button class="btn ghost" onclick="mClose('ship11-modal')">Close</button>
       <span style="flex:1"></span>
       ${S.sid&&S.status!=='Cancelled'?`<button class="btn ghost sm" onclick="v11ShipCancel()">✖ cancel shipment</button>`:''}
       ${S.sid?`<button class="btn ghost sm" style="border-color:var(--non);color:var(--non)" onclick="v11ShipDelete()">🗑 delete</button>`:''}
     </div>`;
+  if(S._find)v11ShipFind(S._find);
   v11Front('ship11-modal');
 }
 function v11Capture(){const S=S11;if(!S)return;const g=id=>{const e=document.getElementById(id);return e?e.value:undefined;};
@@ -5143,7 +5184,7 @@ async function v11ShipSave(statusOverride){
   const sid=S.sid||('S'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
   const btn=document.getElementById('s11-save');S11_BUSY=true;if(btn){btn.disabled=true;btn.textContent='Saving…';}
   const r=await v11Post({api:'shipment',shipment:{shipmentId:sid,supplier:S.supplier,shipDate:S.shipDate,transport:S.transport,lr:S.lr,
-    expected:S.expected,status:statusOverride||(S.status==='Cancelled'?'In Transit':S.status),note:S.note,allocations:b.out}},'Shipment');
+    expected:S.expected,status:statusOverride||(S.status==='Cancelled'?'In Transit':S.status),note:S.note,allocations:b.out},editNote:S._why||''},'Shipment');
   S11_BUSY=false;if(btn){btn.disabled=false;btn.textContent=S.sid?'Save changes':'Save shipment';}
   if(!r)return;
   if((r.warnings||[]).length)alert('Saved as '+r.shipmentNo+' — please note:\n\n'+r.warnings.join('\n'));
@@ -5264,7 +5305,7 @@ function v11BillOpen(id){
   B11=Object.assign({},b,{charges:ch,lines:v11BillLinesOf(id).map(l=>({k:'b'+(B11_LN++),shipmentId:l.shipmentId,canon:l.canon,code:l.code||l.canon,name:l.name,poRef:l.poRef,
     qtyG:l.qtyG,rateG:l.rateG,qtyN:l.qtyN,rateN:l.rateN,tax:(l.tax==null?18:l.tax),upName:!!l.upName,
     mrpG:(l.mrpG!=null?l.mrpG:''),spG:(l.spG!=null?l.spG:''),mrpN:(l.mrpN!=null?l.mrpN:''),spN:(l.spN!=null?l.spN:'')}))});
-  if(!B11.locked)B11.lines.forEach(v11FillMS);
+  B11._view=true;   // [V1.1.9 R74] read-only until ✎ Edit bill (saved values shown as saved)
   v11BillModal();
 }
 function v11BillAddShip(sid,silent){
@@ -5299,10 +5340,10 @@ function v11BillTotalsHTML(){const t=v11BillTotals(B11);
 
 /* ---------- bill modal ---------- */
 function v11BillModal(){
-  const B=B11;const dis=B.locked?' disabled':'';
+  const B=B11;const view=!!(B._view||B.locked);const dis=view?' disabled':'';
   const _g=B.billId?v11BillStage(v11BillById(B.billId)):{label:'new',col:'#6B6359'},c=[_g.label,_g.col];
   document.getElementById('b11-title').innerHTML=(B.billId?`Bill <span class="mono">${esc(B.billNo)}</span>`:'New bill')+
-    ` <span class="chip" style="font-size:.6rem;background:${c[1]};color:#fff;border-color:transparent">${c[0]}</span>${B.locked?' <span class="chip warn" style="font-size:.6rem">🔒 locked — clear the Vasy / MI numbers to edit</span>':''}`;
+    ` <span class="chip" style="font-size:.6rem;background:${c[1]};color:#fff;border-color:transparent">${c[0]}</span>${B.locked?' <span class="chip warn" style="font-size:.6rem">🔒 locked — clear the Vasy / MI numbers to edit</span>':(B.billId?(view?' <span class="chip lite" style="font-size:.58rem">👁 view</span>':' <span class="chip warn" style="font-size:.58rem">✎ editing</span>'):'')}`;
   // shipments of this supplier with something unbilled
   const shipOpts=(V11.shipments||[]).filter(s=>s.status!=='Cancelled'&&(!B.supplier||s.supplier===B.supplier))
     .filter(s=>[...new Set(v11ShipAllocs(s.shipmentId).map(a=>a.canon))].some(cn=>v11Unbilled(s.shipmentId,cn,B.billId)>0))
@@ -5315,25 +5356,25 @@ function v11BillModal(){
     const billedOther=shipQ-v11Unbilled(l.shipmentId,l.canon,B.billId);
     const mine=B.lines.filter(x=>x.shipmentId===l.shipmentId&&x.canon===l.canon).reduce((a,x)=>a+(+x.qtyG||0)+(+x.qtyN||0),0);
     const flag=Math.abs(billedOther+mine-shipQ)>0.0005?`<span class="chip" style="font-size:.52rem;background:var(--non);color:#fff;border-color:transparent" title="all bills: ${NUM(billedOther+mine)} · shipment: ${NUM(shipQ)}">recheck</span>`:'';
-    const shSel=`<select class="po-in" style="max-width:230px;font-size:.7rem"${dis} onchange="v11BillLineShip('${k}',this.value)">${v11ShipsCarrying(l.canon).map(s=>`<option value="${esc(s.shipmentId)}"${s.shipmentId===l.shipmentId?' selected':''}>${esc(v11ShipLabel(s.shipmentId))}</option>`).join('')}</select>`;
-    const inp=(f,w,step)=>`<input class="po-in${/^(mrp|sp)[GN]$/.test(f)&&!(+l[f]>0)?' b11-need':''}" id="b11-${f}-${k}" type="number" min="0" step="${step||'any'}" style="width:${w}px" value="${l[f]===''||l[f]==null?'':l[f]}"${dis} oninput="v11BillSet('${k}','${f}',this.value)"${(f==='qtyG'||f==='qtyN')?` onchange="v11BillQtyDone('${k}')"`:''}>`;
-    return `<tr><td class="r small muted">${ix+1}</td>
+    const shSel=view?`<span class="small mono">${esc(v11ShipLabel(l.shipmentId))}</span>`:`<select class="po-in" style="max-width:230px;font-size:.7rem"${dis} onchange="v11BillLineShip('${k}',this.value)">${v11ShipsCarrying(l.canon).map(s=>`<option value="${esc(s.shipmentId)}"${s.shipmentId===l.shipmentId?' selected':''}>${esc(v11ShipLabel(s.shipmentId))}</option>`).join('')}</select>`;
+    const inp=(f,w,step)=>view?`<span class="num${/^(mrp|sp)[GN]$/.test(f)&&!(+l[f]>0)?' b11-need-t':''}">${l[f]===''||l[f]==null?'·':esc(String(l[f]))}</span>`:`<input class="po-in${/^(mrp|sp)[GN]$/.test(f)&&!(+l[f]>0)?' b11-need':''}" id="b11-${f}-${k}" type="number" min="0" step="${step||'any'}" style="width:${w}px" value="${l[f]===''||l[f]==null?'':l[f]}"${dis} oninput="v11BillSet('${k}','${f}',this.value)"${(f==='qtyG'||f==='qtyN')?` onchange="v11BillQtyDone('${k}')"`:''}>`;
+    return `<tr data-t="${esc((prodName(l.code,l.name)+' '+l.canon).toLowerCase())}"><td class="r small muted">${ix+1}</td>
       <td class="small" style="min-width:150px">${esc(prodName(l.code,l.name))}<div class="mono small muted">${esc(l.canon)} ${flag}</div></td>
       <td>${shSel}<div class="small muted">shipped ${NUM(shipQ)}${billedOther>0?' · on other bills '+NUM(billedOther):''}</div></td>
       <td class="sp-w">${inp('qtyG',62)}</td><td class="sp-w">${inp('rateG',72,'0.001')}</td>
       <td class="sp-n">${inp('qtyN',62)}</td><td class="sp-n">${inp('rateN',72,'0.001')}</td>
       <td class="r num" id="b11-tq-${k}" title="w + wo"><b>${NUM((+l.qtyG||0)+(+l.qtyN||0))}</b></td>
       <td>${inp('tax',48,'0.5')}</td>
-      <td class="c"><input type="checkbox" title="upload the w side under the Non-GST (/) item code"${l.upName?' checked':''}${dis} onchange="v11BillSet('${k}','upName',this.checked)"></td>
+      <td class="c">${view?(l.upName?'✓':''):`<input type="checkbox" title="upload the w side under the Non-GST (/) item code"${l.upName?' checked':''}${dis} onchange="v11BillSet('${k}','upName',this.checked)">`}</td>
       <td class="small">${+l.qtyG>0?`<div>w ${inp('mrpG',62,'0.01')}</div>`:''}${+l.qtyN>0?`<div>wo ${inp('mrpN',62,'0.01')}</div>`:''}</td>
       <td class="small">${+l.qtyG>0?`<div>w ${inp('spG',62,'0.01')}</div>`:''}${+l.qtyN>0?`<div>wo ${inp('spN',62,'0.01')}</div>`:''}</td>
-      <td>${B.locked?'':`<button class="btn ghost sm" title="remove this line" onclick="v11BillLineDrop('${k}')">✕</button>`}</td></tr>`;}).join('');
-  const charges=(B.charges||[]).map((ch,ci)=>`<div style="display:flex;gap:6px;align-items:center;margin:3px 0">
+      <td>${view?'':`<button class="btn ghost sm" title="remove this line" onclick="v11BillLineDrop('${k}')">✕</button>`}</td></tr>`;}).join('');
+  const charges=(B.charges||[]).map((ch,ci)=>view?`<div class="small" style="margin:2px 0">${esc(ch.name||'charge')} · <b>${INR2(+ch.amount||0)}</b> · on ${ch.lane==='n'?'wo':'w'} bill${ch.lane!=='n'?' · GST '+(ch.gst==null?18:ch.gst)+'%':''}</div>`:`<div style="display:flex;gap:6px;align-items:center;margin:3px 0">
       <input class="po-in" style="width:190px" list="b11-chg-list" placeholder="pick or type…" value="${esc(ch.name||'')}"${dis} oninput="v11ChargeSet(${ci},'name',this.value)">
       <input class="po-in" type="number" step="0.01" style="width:90px" placeholder="amount" value="${ch.amount==null?'':ch.amount}"${dis} oninput="v11ChargeSet(${ci},'amount',this.value)">
       <select class="po-in"${dis} onchange="v11ChargeSet(${ci},'lane',this.value)"><option value="g"${ch.lane!=='n'?' selected':''}>on w bill</option><option value="n"${ch.lane==='n'?' selected':''}>on wo bill</option></select>
       ${ch.lane!=='n'?`<label class="small">GST %</label><input class="po-in" type="number" step="0.5" style="width:56px" value="${ch.gst==null?18:ch.gst}"${dis} oninput="v11ChargeSet(${ci},'gst',this.value)">`:''}
-      ${B.locked?'':`<button class="btn ghost sm" onclick="v11ChargeDrop(${ci})">✕</button>`}</div>`).join('');
+      ${view?'':`<button class="btn ghost sm" onclick="v11ChargeDrop(${ci})">✕</button>`}</div>`).join('');
   const st=B.billId?v11BillStagesHTML():'';
   document.getElementById('b11-body').innerHTML=`
     <div class="filters" style="align-items:flex-end;margin-bottom:6px">
@@ -5343,7 +5384,7 @@ function v11BillModal(){
       <div class="f"><label>Supplier bill no. — w (GST)</label><input class="po-in" style="width:140px" value="${esc(B.supBillG||'')}"${dis} oninput="B11.supBillG=this.value"></div>
       <div class="f"><label>Supplier bill no. — wo (Non-GST)</label><input class="po-in" style="width:140px" value="${esc(B.supBillN||'')}"${dis} oninput="B11.supBillN=this.value"></div>
     </div>
-    ${B.locked||!B.supplier?'':`<div class="filters" style="align-items:flex-end;margin:4px 0">
+    ${view||!B.supplier?'':`<div class="filters" style="align-items:flex-end;margin:4px 0">
       <div class="f"><label class="small muted">Assign a shipment (adds its unbilled products)</label><select class="po-in" id="b11-addship" style="min-width:300px"><option value="">— shipment —</option>${shipOpts.map(s=>`<option value="${esc(s.shipmentId)}">${esc(v11ShipLabel(s.shipmentId))}</option>`).join('')}</select></div>
       <div class="f"><label>&nbsp;</label><button class="btn ghost sm" onclick="v11BillAddShipUI()">＋ assign</button></div>
       <div class="f"><label class="small muted">…or add one product (then pick its shipment on the line)</label><input class="po-in" list="b11-pl" id="b11-addprod" placeholder="type name or code…" style="min-width:260px">
@@ -5351,25 +5392,31 @@ function v11BillModal(){
       <div class="f"><label>&nbsp;</label><button class="btn ghost sm" onclick="v11BillAddProdUI()">＋ add</button></div></div>`}
     ${(()=>{const n=B.lines.filter(l=>(+l.qtyG>0&&(!(+l.mrpG>0)||!(+l.spG>0)))||(+l.qtyN>0&&(!(+l.mrpN>0)||!(+l.spN>0)))).length;
       return n?`<div class="small" style="color:var(--danger,#D93025);margin:4px 0">⚠ ${n} line(s) have no MRP / selling price (red boxes). Vasy has none for these products yet — type it here, and set it in Vasy too.</div>`:'';})()}
-    <div style="overflow:auto"><table class="sp-tbl"><thead><tr><th>#</th><th>Product</th><th>Shipment (POs)</th>
+    ${B.lines.length?`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><input class="po-in" style="width:260px" placeholder="🔍 find a product on this bill…" value="${esc(B._find||'')}" oninput="v11BillFind(this.value)"><span class="small muted" id="b11-find-n"></span><span style="flex:1"></span><span class="small"><b>${B.lines.length}</b> line(s)</span></div>`:''}
+    <div style="overflow:auto;max-height:52vh"><table class="sp-tbl"><thead><tr><th>#</th><th>Product</th><th>Shipment (POs)</th>
       <th class="sp-w" style="background:var(--gst);color:#fff">w qty</th><th class="sp-w" style="background:var(--gst);color:#fff">w rate ₹ ${GT(0)}</th>
       <th class="sp-n" style="background:var(--non);color:#fff">wo qty</th><th class="sp-n" style="background:var(--non);color:#fff">wo rate ₹ <span class="gtag ex" title="Non-GST bill — no tax">no GST</span></th><th class="r" title="w qty + wo qty">Total qty</th>
       <th>GST%</th><th title="upload the w side under the / code">/ name</th><th title="filled from the last purchase / Vasy / master / PO — change if needed">MRP ${GT(1)}</th><th title="filled from the last purchase / Vasy / master / PO — incl GST, goes into the file as typed">Selling ${GT(1)}</th><th></th></tr></thead>
       <tbody>${rows||'<tr><td colspan="13" class="small muted" style="padding:10px">No lines yet — assign a shipment.</td></tr>'}</tbody></table></div>
-    ${assigned.length?`<div class="small" style="margin:6px 0"><b>Shipments on this bill:</b> ${assigned.map(sid=>`<span class="chip lite" style="font-size:.62rem">${esc(v11ShipLabel(sid))}${B.billId&&!B.locked?` · <a class="linky" title="unassign this shipment from the bill (the shipment is NOT deleted)" onclick="v11BillUnassign('${esc(sid)}')">unassign</a>`:''}</span>`).join(' ')}</div>`:''}
+    ${assigned.length?`<div class="small" style="margin:6px 0"><b>Shipments on this bill:</b> ${assigned.map(sid=>`<span class="chip lite" style="font-size:.62rem">${esc(v11ShipLabel(sid))}${B.billId&&!view?` · <a class="linky" title="unassign this shipment from the bill (the shipment is NOT deleted)" onclick="v11BillUnassign('${esc(sid)}')">unassign</a>`:''}</span>`).join(' ')}</div>`:''}
     <datalist id="b11-chg-list">${['Freight','Transport / Lorry hire','Packing & Forwarding','Loading / Unloading','Hamali','Courier','Insurance','Handling charges','Door delivery','Cartage','Octroi / Entry tax','Other'].map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist>
     <div class="card" style="padding:9px 11px;margin-top:10px"><b class="small">Additional charges</b> <span class="small muted">— saved here, but NOT in the upload file: enter them manually in Vasy.</span>
-      ${charges}${B.locked?'':`<div style="margin-top:4px"><button class="btn ghost sm" onclick="v11ChargeAdd()">＋ charge</button></div>`}
+      ${charges||(view?'<div class="small muted">none</div>':'')}${view?'':`<div style="margin-top:4px"><button class="btn ghost sm" onclick="v11ChargeAdd()">＋ charge</button></div>`}
       <div style="display:flex;gap:10px;margin-top:8px;align-items:center;flex-wrap:wrap"><b class="small">Round-off</b>
         <label class="small">w</label><input class="po-in" type="number" step="0.01" style="width:80px" value="${B.roundG||0}"${dis} oninput="B11.roundG=+this.value||0;v11BillTot()">
         <label class="small">wo</label><input class="po-in" type="number" step="0.01" style="width:80px" value="${B.roundN||0}"${dis} oninput="B11.roundN=+this.value||0;v11BillTot()"></div></div>
     <div class="f" style="margin-top:8px"><label class="small muted">Note</label><input class="po-in" style="width:100%" value="${esc(B.note||'')}"${dis} oninput="B11.note=this.value"></div>
     <div id="b11-tot" style="margin-top:10px">${v11BillTotalsHTML()}</div>
+    ${!view&&B.billId?`<div class="f" style="margin-top:8px"><label class="small muted">What changed / why <span class="muted">(optional — kept in the edit history)</span></label><input class="po-in" id="b11-why" style="width:100%" value="${esc(B._why||'')}" oninput="B11._why=this.value" placeholder="e.g. rate corrected as per the supplier's bill"></div>`:''}
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center">
-      ${B.locked?'':`<button class="btn" id="b11-save" onclick="v11BillSave()">${B.billId?'Save bill':'Save bill (draft)'}</button>`}
+      ${view?(B.locked?'':`<button class="btn" onclick="v11BillEdit()">✎ Edit bill</button>`):`<button class="btn" id="b11-save" onclick="v11BillSave()">${B.billId?'Save bill':'Save bill (draft)'}</button>`}
+      ${!view&&B.billId?`<button class="btn ghost" onclick="v11BillOpen('${esc(B.billId)}')" title="discard changes and go back to the view">↩ Back to view</button>`:''}
+      ${B.billId?`<button class="btn ghost sm" onclick="v11BillHist()">🕘 History</button>`:''}
       <button class="btn ghost" onclick="mClose('bill11-modal')">Close</button><span style="flex:1"></span>
-      ${B.billId&&!B.locked?`<button class="btn ghost sm" style="border-color:var(--non);color:var(--non)" onclick="v11BillDelete()">🗑 delete bill</button>`:''}</div>
-    ${st}`;
+      ${B.billId&&!view?`<button class="btn ghost sm" style="border-color:var(--non);color:var(--non)" onclick="v11BillDelete()">🗑 delete bill</button>`:''}</div>
+    ${B.billId?`<div class="small muted" style="margin-top:6px">Created ${esc(vtTs(B.createdAt))} · last saved ${esc(vtTs(B.updatedAt))}${B.by?' by '+esc(B.by):''}</div>`:''}
+    ${st}${histHTML(B._hist)}`;
+  if(B._find)v11BillFind(B._find);
   v11Front('bill11-modal');
 }
 function v11BillTot(){const el=document.getElementById('b11-tot');if(el)el.innerHTML=v11BillTotalsHTML();}
@@ -5417,7 +5464,7 @@ async function v11BillSave(){
   if(dd.length){alert('The same product is on the bill twice from the same shipment:\n\n'+dd.join('\n')+'\n\nMerge them into one line.');return;}
   const id=B.billId||('B'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
   const btn=document.getElementById('b11-save');B11_BUSY=true;if(btn){btn.disabled=true;btn.textContent='Saving…';}
-  const r=await v11Post({api:'bill',bill:{billId:id,supplier:B.supplier,billDate:B.billDate,supBillG:B.supBillG,supBillN:B.supBillN,roundG:B.roundG,roundN:B.roundN,
+  const r=await v11Post({api:'bill',editNote:B._why||'',bill:{billId:id,supplier:B.supplier,billDate:B.billDate,supBillG:B.supBillG,supBillN:B.supBillN,roundG:B.roundG,roundN:B.roundN,
     charges:B.charges,totals:v11BillTotals(B),note:B.note,lines:B.lines.map(l=>({shipmentId:l.shipmentId,code:l.canon,name:prodName(l.code,l.name),poRef:l.poRef,
       qtyG:+l.qtyG||0,rateG:+l.rateG||0,qtyN:+l.qtyN||0,rateN:+l.rateN||0,tax:+l.tax||0,upName:!!l.upName,
       mrpG:l.mrpG,spG:l.spG,mrpN:l.mrpN,spN:l.spN}))}},'Bill');
@@ -6734,7 +6781,7 @@ function posBrandOptions(){const s=new Set();PODOCS.filter(p=>!p.parentPoId).for
 function posControlsRender(){
   const el=document.getElementById('pos-controls');if(!el)return;const v=POS_VIEW;let h='';
   // [v7.4] value modules (fund/analytics/history) carry their own filters — hide the shared scope/status/search
-  const ownFilters=(v==='fund'||v==='allpos'||v==='analytics'||v==='history'||v==='goods'||v==='today'||v==='askdad'||v==='fucal'||v==='supterms'||v==='shipov'||v==='billov');
+  const ownFilters=(v==='fund'||v==='allpos'||v==='analytics'||v==='history'||v==='goods'||v==='today'||v==='askdad'||v==='fucal'||v==='supterms'||v==='shipov'||v==='billov'||v==='fixlist');
   document.querySelectorAll('.pos-filterset').forEach(x=>{x.style.display=ownFilters?'none':'';});
   if(ownFilters){el.innerHTML='';return;}
   if(v==='po'||v==='product'||v==='timeline'||v==='kanban'){
@@ -7092,7 +7139,7 @@ function posStage(p){
 }
 function posExpKey(p){return (p.expected||'').trim()||(p.sentAt||'').trim()||'';}
 function posOverdue(p){const e=(p.expected||'').trim();if(!e)return false;return e<new Date().toISOString().slice(0,10)&&posStage(p)!=='done';}
-function posDispDate(s){if(!s)return '';const d=new Date(s+'T00:00:00');if(isNaN(d))return esc(s);return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});}
+function posDispDate(s){if(!s)return '';const d=vtParseDate(s);if(!d)return esc(String(s).slice(0,10));return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});}   // [V1.1.9] dates sent as full text now show as 13 Oct
 function posPbar(pr){return `<div class="pbar" title="${pr.received} of ${pr.ordered} received"><i style="width:${pr.pct}%"></i></div>`;}
 function posCardActions(p,stage){
   let b='';
@@ -8128,12 +8175,12 @@ function posFund(){
         </div></details>
       <span style="flex:1"></span>
       <span class="small muted" style="align-self:center">${rows.length} PO(s)${FUND_SEL.size?' · '+FUND_SEL.size+' selected':''}</span>
-      <button class="btn ghost sm" onclick="fundSelAll(${JSON.stringify(rows.map(r=>r.poId)).replace(/"/g,'&quot;')})" title="select for export">☑ Select all</button>
+      <button class="btn ghost sm" onclick="fundSelAll(${JSON.stringify(rows.map(r=>r.poId)).replace(/"/g,'&quot;')})" title="tick all shown — to send, close or export them together">☑ Tick all</button>
       ${FUND_SEL.size?`<button class="btn ghost sm" onclick="fundSelClear()">Clear selection (${FUND_SEL.size})</button>`:''}
       <button class="btn ghost sm" onclick="fundExpandAll(true)" title="expand all">▾</button><button class="btn ghost sm" onclick="fundExpandAll(false)" title="collapse all">▸</button>
     </div>
   </div>`;
-  return controls+`<div id="fund-body">`+fundBodyHTML()+`</div>`;
+  return (APO?apoBulkBar():'')+controls+`<div id="fund-body">`+fundBodyHTML()+`</div>`;
 }
 // [V1.1.7] All POs row extras: dates, overdue, open to-do, shipments, and the next action
 function apoRowInfo(r){const p=r.p;const bits=[];
@@ -8552,33 +8599,51 @@ function posBillView(){
     <div class="f"><label>&nbsp;</label><button class="btn ghost sm" onclick="billExpandAll(false)">▸ Collapse all</button></div></div>`;
   return {html:bar+unb+(cards||'<div class="card"><div class="empty">No billed lots yet. Bills entered on lots (📦 Ship / receive lot) appear here, grouped — including one bill spanning several POs.</div></div>'),count:gArr.length,unbilled:unbilled.length};
 }
+/* [V1.1.9 R77] Board — cards that fit their column: number + date on one line (number shortens with … when narrow),
+   chips on their own wrapping line, one card per SHIPMENT (not one per PO the shipment touches). */
+function kbPoCard(p){const stage=posStage(p),pr=posDocProg(p),over=posOverdue(p),id=esc(p.poId);
+  const lane=poIsSplit(p)?`<span class="chip gst">w</span><span class="chip non">wo</span>`:`<span class="chip ${p.lane==='g'?'gst':'non'}">${p.lane==='g'?'GST':'NON'}</span>`;
+  const pr8=dOnly(p.promised),sent=dOnly(p.sentAt),lc=fuLastCall(p);
+  const when=sent?'sent '+d8show(sent):'made '+(d8show(dOnly(p.createdAt))||'—');
+  return `<div class="kb-card${over?' over':''}">
+    <div class="kb-top"><a class="kb-no mono linky" title="${esc(fuNo(p))}" onclick="poDetailOpen('${id}')">${esc(fuNo(p))}</a><span class="kb-date">${esc(when)}</span></div>
+    <div class="kb-chips">${lane}${poSplitBadge(p)}${pr8?`<span class="chip ${pr8<t8()&&stage!=='done'?'warn':'lite'}">🤝 ${esc(d8show(pr8))}</span>`:(stage!=='made'?'<span class="chip warn">no promised date</span>':'')}${over?'<span class="chip" style="background:var(--non);color:#fff;border-color:transparent">overdue</span>':''}${fuWaiting(p)?`<span class="chip lite">📞 ${esc(d8show(fuNext(p)))}</span>`:''}</div>
+    <div class="kb-sup" title="${supMask(p)}">${supMask(p)} · ${NUM(pr.ordered)} ordered · ${poUnitLines(p).length} item(s)</div>
+    ${posPbar(pr)}
+    <div class="kb-qty">${posProgText(pr)}</div>
+    <div class="kb-act">${posCardActions(p,stage)}${stage!=='made'&&stage!=='done'&&!VT_VIEW?`<button class="btn ghost sm" title="log the supplier's answer" onclick="fuLogOpen(['${id}'],'')">📞</button>`:''}</div></div>`;}
+function kbShipCard(s){const sid=esc(s.shipmentId),st=v11ShipState(s),bc=v11ShipBillChip(s.shipmentId);
+  const al=v11ShipAllocs(s.shipmentId),q=al.reduce((a,x)=>a+(+x.qty||0),0),ex=al.filter(a=>a.type==='EXCESS').reduce((a,x)=>a+(+x.qty||0),0);
+  const seen=new Map();al.forEach(a=>{const o=seen.get(a.canon)||{c:a.canon,n:a.name||prodName(a.canon,''),q:0};o.q+=(+a.qty||0);seen.set(a.canon,o);});const prods=[...seen.values()];
+  const e=dOnly(s.expected),late=!s.arrivedAt&&e&&e<t8()?d8diff(e,t8()):0;
+  return `<div class="kb-card ship${late?' over':''}">
+    <div class="kb-top"><a class="kb-no mono linky" title="${esc(s.shipmentNo)}" onclick="v11ShipEdit('${sid}')">${esc(s.shipmentNo||s.shipmentId)}</a><span class="kb-date">${esc(s.arrivedAt?'arrived '+d8show(dOnly(s.arrivedAt)):'shipped '+(d8show(dOnly(s.shipDate))||'—'))}</span></div>
+    <div class="kb-chips"><span class="chip" style="background:${S11_STATE_CHIP[st][1]};color:#fff;border-color:transparent">${S11_STATE_CHIP[st][0]}</span>
+      ${!s.arrivedAt?(e?`<span class="chip ${late?'':'lite'}" style="${late?'background:var(--non);color:#fff;border-color:transparent':''}">${late?'⚠ '+late+' d late':'due '+esc(d8show(e))}</span>`:'<span class="chip warn">no expected date</span>'):''}
+      ${ex>0?`<span class="chip" style="background:var(--fn-excess);color:#fff;border-color:transparent">excess ${NUM(ex)}</span>`:''}
+      ${navOK('buyer')?`<span class="chip" style="background:${bc[1]};color:#fff;border-color:transparent">${esc(bc[0])}</span>`:''}</div>
+    <div class="kb-items" title="${esc(prods.map(x=>x.n+' × '+NUM(x.q)).join('\n'))}">${prods.slice(0,2).map(x=>`${esc(x.n)} <b>${NUM(x.q)}</b>`).join(' · ')}${prods.length>2?` <span class="muted">+${prods.length-2} more</span>`:''}</div>
+    <div class="kb-sup"><b>${NUM(q)}</b> nos${s.lr?' · LR '+esc(s.lr):''} · ${esc(v11SupLabel(s.supplier,v11ShipPos(s.shipmentId)))}</div>
+    <div class="kb-act">${!s.arrivedAt&&!VT_VIEW?`<button class="btn sm" style="background:var(--ok);border-color:var(--ok)" onclick="v11ShipArrive('${sid}',true)">📦 Arrived</button>`:''}<button class="btn ghost sm" onclick="v11ShipEdit('${sid}')">Open</button></div></div>`;}
 function posKanban(){
-  const docs=posBoardDocs();
-  // [v4-C] Created/Sent = PO cards (the balance you chase). Shipped/Received = LOT cards (real events).
+  const docs=posBoardDocs();const ids=new Set();docs.forEach(p=>{ids.add(p.poId);(poIsSplit(p)?poChildren(p):[]).forEach(c=>ids.add(c.poId));});
   const created=posSortList(docs.filter(p=>posStage(p)==='made'));
   const sentBal=posSortList(docs.filter(p=>posStage(p)!=='made'&&poPendingToShip(p)>0));
-  const lots=[];docs.forEach(p=>{lotMigrate(p);const units=poIsSplit(p)?poChildren(p):[p];units.forEach(u=>(u.lots||[]).forEach(L=>lots.push({p:u,L})));});
-  const inTransit=lots.filter(x=>!x.L.receivedAt).sort((a,b)=>{
-    if(POS_SORT_PO==='act'||POS_SORT_PO==='new')return String(dOnly(b.L.date)||'').localeCompare(String(dOnly(a.L.date)||''));
-    const ae=dOnly(a.L.expected)||'', be=dOnly(b.L.expected)||'';
-    if(ae&&be&&ae!==be)return ae.localeCompare(be);               // soonest promised first
-    if(ae&&!be)return -1; if(!ae&&be)return 1;
-    return String(dOnly(a.L.date)||'').localeCompare(String(dOnly(b.L.date)||''));
-  });
-  // [v6.0] normalise the date before comparing — mixed formats were sorting as raw text
-  const arrived=lots.filter(x=>!!x.L.receivedAt).sort((a,b)=>{
-    const ad=dOnly(a.L.receivedAt)||'', bd=dOnly(b.L.receivedAt)||'';
-    if(ad!==bd)return bd.localeCompare(ad);                       // newest received first
-    return String(dOnly(b.L.date)||'').localeCompare(String(dOnly(a.L.date)||''));
-  });
+  const ships=(V11.shipments||[]).filter(s=>s.status!=='Cancelled'&&v11ShipPos(s.shipmentId).some(po=>ids.has(po)));
+  const oldLots=[];docs.forEach(p=>{lotMigrate(p);(poIsSplit(p)?poChildren(p):[p]).forEach(u=>(u.lots||[]).forEach(L=>{if(!v11Lot(L))oldLots.push({p:u,L});}));});
+  const byExp=(a,b)=>String(dOnly(a.expected)||'9999').localeCompare(String(dOnly(b.expected)||'9999'))||String(dOnly(a.shipDate)).localeCompare(String(dOnly(b.shipDate)));
+  const transit=ships.filter(s=>!s.arrivedAt).sort(byExp).map(kbShipCard).concat(oldLots.filter(x=>!x.L.receivedAt).map(x=>lotCard(x.p,x.L)));
+  const arrivedS=ships.filter(s=>s.arrivedAt).sort((a,b)=>String(dOnly(b.arrivedAt)).localeCompare(String(dOnly(a.arrivedAt))));
+  const arrived=arrivedS.map(s=>({d:dOnly(s.arrivedAt),h:()=>kbShipCard(s)})).concat(oldLots.filter(x=>x.L.receivedAt).map(x=>({d:dOnly(x.L.receivedAt),h:()=>lotCard(x.p,x.L)})))
+    .sort((a,b)=>String(b.d).localeCompare(String(a.d)));
   const col=(label,color,html,count)=>`<div class="kcol"><div class="kcol-h" style="border-color:${color}"><span style="color:${color}">${label}</span><span class="kcount">${count}</span></div><div class="kcol-b">${html||'<div class="small muted" style="padding:10px;text-align:center">—</div>'}</div></div>`;
   return posStatusStrip(docs)+`<div class="kboard">`+
-    col('Created','var(--ink-soft)',created.map(p=>posCard(p)).join(''),created.length)+
-    col('Sent — balance with supplier','var(--gst)',sentBal.map(p=>posCard(p,{balance:true})).join(''),sentBal.length)+
-    col('Shipped — lots on the way','#B8893A',inTransit.map(x=>lotCard(x.p,x.L)).join(''),inTransit.length)+
-    col('Received — newest first','var(--ok)',arrived.slice(0,POS_RECV_N).map(x=>lotCard(x.p,x.L)).join('')+(arrived.length>POS_RECV_N?`<div style="text-align:center;padding:8px"><button class="btn ghost sm" onclick="posMoreRecv()">▼ ${arrived.length-POS_RECV_N} more</button></div>`:''),arrived.length)+
-  `</div>`;
-}
+    col('Created','var(--ink-soft)',created.map(kbPoCard).join(''),created.length)+
+    col('Sent — balance with supplier','var(--gst)',sentBal.map(kbPoCard).join(''),sentBal.length)+
+    col('Shipments on the way','#2563eb',transit.join(''),transit.length)+
+    col('Arrived — newest first','var(--ok)',arrived.slice(0,POS_RECV_N).map(x=>x.h()).join('')+(arrived.length>POS_RECV_N?`<div style="text-align:center;padding:8px"><button class="btn ghost sm" onclick="posMoreRecv()">▼ ${arrived.length-POS_RECV_N} more</button></div>`:''),arrived.length)+
+  `</div>`;}
+
 // [v5.5] a PO line's best-known unit price: the line, then the register, then the master
 // [v6.9] best-known actual cost for a PO line, in priority order:
 //   1) the rate entered on a lot (split-bill / upload-ready rate) for this line
@@ -9734,8 +9799,8 @@ function posRender(){
   const el=document.getElementById('pos-list');if(!el)return;
   const tops=PODOCS.filter(p=>p&&!p.parentPoId&&!p.closed);
   // [V1.1.8] Today · Ask dad · Follow-up calendar · Lead time & MOQ
-  if(POS_VIEW==='today'||POS_VIEW==='askdad'||POS_VIEW==='fucal'||POS_VIEW==='supterms'||POS_VIEW==='shipov'||POS_VIEW==='billov'){document.getElementById('pos-count').textContent='';
-    try{el.innerHTML=POS_VIEW==='today'?posToday():POS_VIEW==='askdad'?posAskDad():POS_VIEW==='fucal'?posFuCal():POS_VIEW==='shipov'?posShipOverview():POS_VIEW==='billov'?posBillOverview():posSupTerms();
+  if(POS_VIEW==='today'||POS_VIEW==='askdad'||POS_VIEW==='fucal'||POS_VIEW==='supterms'||POS_VIEW==='shipov'||POS_VIEW==='billov'||POS_VIEW==='fixlist'){document.getElementById('pos-count').textContent='';
+    try{el.innerHTML=POS_VIEW==='today'?posToday():POS_VIEW==='askdad'?posAskDad():POS_VIEW==='fucal'?posFuCal():POS_VIEW==='shipov'?posShipOverview():POS_VIEW==='billov'?posBillOverview():POS_VIEW==='fixlist'?posFixList():posSupTerms();
       if(POS_VIEW==='askdad'){askBarPaint();askHeadPaint();}}
     catch(e){console.warn(e);el.innerHTML=`<div class="card"><div class="empty">Could not draw this screen: ${esc(e.message||String(e))}</div></div>`;}
     try{navBadgeDirty();}catch(e){}return;}
@@ -10116,6 +10181,7 @@ function applyDashRange(){
 
 /* ================= NAV / INIT ================= */
 /* ================= [P1-ACCESS] tiered access: PO Tracking < Follow-up < Management ================= */
+var VT_VIEW=false;                          // [V1.1.9 R56] View only = Operations visibility + nothing can be changed
 let VT_MODE='ops';                          // 'ops' | 'followup' | 'mgmt'
 const AC_PIN_KEY='vt_pins_v1', AC_SALT='vt!follow#2026';
 const AC_GATED=['dashboard','search','fulldata','levels'];   // need register + management
@@ -10132,9 +10198,10 @@ function acSavePin(t,p){                                                  // sav
   const h=acHash(p);VT_SEC[t+'Hash']=h;acSaveSec();
   const o=acPins();o[t]=h;try{localStorage.setItem(AC_PIN_KEY,JSON.stringify(o));}catch(e){}
   if(typeof liveConnected==='function'&&liveConnected()){try{vtApiPost({api:'security',set:t,hash:h,salt:VT_SEC.salt,authHash:VT_SEC.mgmtHash||'',by:vtBy()});}catch(e){}}
+  if(t==='ops')acOpsRemember(true);   // the PC that sets the Operations PIN stays unlocked
 }
 function acCheck(t,p){const sh=acSecHash(t);return sh?(sh===acHash(p)):(acPins()[t]===acHash(p));}
-function acApplySecurity(sec){if(!sec)return;if(sec.salt)VT_SEC.salt=sec.salt;if(sec.followHash)VT_SEC.followHash=sec.followHash;if(sec.mgmtHash)VT_SEC.mgmtHash=sec.mgmtHash;acSaveSec();}
+function acApplySecurity(sec){if(!sec)return;if(sec.salt)VT_SEC.salt=sec.salt;if(sec.followHash)VT_SEC.followHash=sec.followHash;if(sec.mgmtHash)VT_SEC.mgmtHash=sec.mgmtHash;if(sec.opsHash)VT_SEC.opsHash=sec.opsHash;acSaveSec();}
 function acIntelOn(){return VT_MODE==='mgmt'&&REGISTER_LOADED;}
 function regStatusPaint(){
   const el=document.getElementById('set-reg-status');if(!el)return;
@@ -10150,8 +10217,9 @@ function acApply(){
     const ops=(s==='requests'||s==='po'||s==='pos'||s==='ships');
     b.disabled=ops?false:!intel;
     b.style.display=(!ops&&!intel)?'none':'';});
-  const lbl={ops:'Operations',followup:'Purchase team',mgmt:'Management'}[VT_MODE];
-  ['mode-chip','mode-chip2'].forEach(id=>{const c=document.getElementById(id);if(c){c.textContent=lbl;c.className='mode-chip '+VT_MODE;}});
+  const lbl=VT_VIEW?'View only':{ops:'Operations',followup:'Purchase team',mgmt:'Management'}[VT_MODE];
+  ['mode-chip','mode-chip2'].forEach(id=>{const c=document.getElementById(id);if(c){c.textContent=lbl;c.className='mode-chip '+(VT_VIEW?'view':VT_MODE);}});
+  try{document.body.classList.toggle('vt-view',!!VT_VIEW);vtLockScan(document.body);}catch(e){}
   const m=document.getElementById('set-mgmt-only');if(m)m.style.display=(VT_MODE==='mgmt')?'block':'none';
   const lk=document.getElementById('set-lock');if(lk)lk.style.display=(VT_MODE==='ops')?'none':'inline-flex';
   // [v7.0] view-tab gating: PO History → follow-up + management; Analytics & Fund → management only
@@ -10182,6 +10250,7 @@ function askPin(title,sub){
 function pinOK(){const v=(document.getElementById('pin-input')||{}).value||'';mClose('pin-modal');const r=PIN_RESOLVE;PIN_RESOLVE=null;if(r)r(String(v).trim());}
 function pinCancel(){mClose('pin-modal');const r=PIN_RESOLVE;PIN_RESOLVE=null;if(r)r(null);}
 async function acEnter(tier){
+  if(tier==='ops')return acEnterOps();
   if(tier!=='followup'&&tier!=='mgmt')return;
   if(!acPinSet(tier)){
     const np=await askPin('Set the '+tier.toUpperCase()+' PIN','No PIN exists yet. It will apply on every device that syncs.');
@@ -10195,13 +10264,14 @@ async function acEnter(tier){
     if(p===null)return;
     if(!acCheck(tier,p)){alert('Wrong PIN.');return;}
   }
-  VT_MODE=tier;acApply();
+  VT_MODE=tier;VT_VIEW=false;acApply();
   if(tier==='mgmt')setTimeout(()=>{try{acRestoreAfterUnlock();}catch(e){}},60);
   if(tier==='mgmt')toast('Management mode unlocked. Upload the purchase register in Settings to load the intelligence layer.');
   else toast('Purchase team mode unlocked.');
 }
 function acLock(){
-  VT_MODE='ops';REGISTER_LOADED=false;RAW=[];ITEMS=new Map();SUPS=new Map();CATS=new Map();DEPTS=new Set();POS_SHOW_COST=false;
+  if(acSecHash('ops')&&!acOpsRemembered()){acEnterView();return;}   // [V1.1.9] this PC never unlocked Operations → View only
+  VT_MODE='ops';VT_VIEW=false;REGISTER_LOADED=false;RAW=[];ITEMS=new Map();SUPS=new Map();CATS=new Map();DEPTS=new Set();POS_SHOW_COST=false;
   acApply();acCloseSettings();
   const pr=document.getElementById('pill-range');if(pr)pr.innerHTML='<b>Operations / Purchase team</b> · no register loaded';
   switchScreen('pos');poRender();posRender();
@@ -10228,7 +10298,8 @@ async function acRestoreAfterUnlock(){
 }
 // [v5.5] change a PIN — must know the current one first. Both tiers are sheet-shared (global).
 async function acChangePinUI(tier){
-  const label=tier==='mgmt'?'MANAGEMENT':'FOLLOW-UP';
+  const label=tier==='mgmt'?'MANAGEMENT':tier==='ops'?'OPERATIONS':'PURCHASE TEAM';
+  if(tier==='ops'&&VT_MODE!=='mgmt'){alert('Enter Management mode to set or change the Operations PIN.');return;}
   if(acPinSet(tier)){
     const cur=await askPin('Current '+label+' PIN','Confirm the PIN you are replacing.');
     if(cur===null)return;
@@ -10245,7 +10316,7 @@ async function acChangePinUI(tier){
 }
 // owner override: the person who holds the sheet can always reset, using the Apps Script token
 async function acOwnerReset(tier){
-  const label=tier==='mgmt'?'MANAGEMENT':'FOLLOW-UP';
+  const label=tier==='mgmt'?'MANAGEMENT':tier==='ops'?'OPERATIONS':'PURCHASE TEAM';
   const t=await askPin('Owner override','Enter the Apps Script SECRET TOKEN to reset the '+label+' PIN.');
   if(t===null||!t)return;
   if(!liveConnected()){alert('Connect the live sheet first — the override checks the token against the script.');return;}
@@ -10269,6 +10340,291 @@ function acSearchTogglePaint(){const w=document.getElementById('set-search-toggl
 function acOpenSettings(){mOpen('settings-modal');try{regStatusPaint();}catch(e){}const u=document.getElementById('set-username');if(u)u.value=vtUser();acSearchTogglePaint();acApply();}
 function acCloseSettings(){mClose('settings-modal');}
 function acGoUpload(){if(VT_MODE!=='mgmt'){alert('Management mode required.');return;}acCloseSettings();switchScreen('upload');}
+
+/* ===================== [V1.1.9 R49 phase 2 · R56] VIEW ONLY + OPERATIONS PIN =====================
+   View only  = display, nothing can be changed, no supplier / rates (no PIN).
+   Operations = data entry and status, no supplier / rates — PIN once per PC (remembered until "View only" / PIN change).
+   Purchase team / Management = PIN each time, as before.  Every change is also blocked at the one place that talks to the
+   server (vtApiPost) and the outbox, so nothing can slip through in View only. */
+const VT_OPS_OK='vt_ops_ok';
+const VT_READ_API=new Set(['data','requests','v11data','history','ping','register','suppliers']);
+// functions that change data — locked in View only
+const VT_WRITE_RE=/\b(poAdd|poUpd|poAddQty|poAddFree|poDel|poClear|poCreateRecord|poMsAdd|poMsSetQty|poMsQty|poSwapLane|poSetLane|poSetLaneNew|poBulkUom|poSupPick|poSupAddNew|poReassignSupplier|poClearSupplier|poApprove|poBillGen|podocMarkSent|podocDelete|podocCancel|podocSetReal|podocSetExpected|podocMICheck|poClose|poReopen|poReceiveUnit|poCancelOpen|poEditOpen|poEditSave|poEditDrop|poEditCode|poEditAddRow|poMoveOpen|moveGo|poFixOpen|poFixApply|poSnooze|podNoteToggle|podNoteEdit|podNoteDel|podAddNote|podSetPromised|podSetReal|podLineNote|podLineExp|podBulk|podBulkNote|podBulkExp|podShipSelected|podSetUom|fuLogOpen|fuLogSave|fuSetNext|fuNextIn|fuAddTodo|shfBill|shfLater|askBulkLog|askBulkShip|askBulkNext|askLogAll|stSetEl|stFillBlank|miOpen|miSave|miConfirm|markLotReceived|markLotUploaded|lotDelete|lotAddExtra|lotDropExtra|lotSetExpected|splitOpen|splitSave|splitSaveOnly|splitDeleteLot|recvOpen|recvConfirm|erecvOpen|erecvConfirm|shipOpen|v11ShipNew|v11ShipNewFromPo|v11ShipSave|v11ShipArrive|v11ShipCancel|v11ShipDelete|v11ShipEditForm|v11BillNew|v11BillSave|v11BillEdit|v11BillDelete|v11BillUnassign|v11StageSet|v11MiOpen|reqBulkStatus|reqAdd|reqAddNew|reqBulkAddPO|fundPushSheet|analyticsPushSheet|fundRateEdit|lvUse|lvSetSupLT|apoBulkSent|apoBulkClose|acResetLocal)\s*\(/;
+// Operations may enter and record, but never delete
+const VT_OPS_NO_RE=/\b(podocDelete|v11ShipDelete|v11BillDelete|lotDelete|splitDeleteLot)\s*\(/;
+function acOpsRemembered(){try{const h=localStorage.getItem(VT_OPS_OK)||'';return !!h&&h===acSecHash('ops');}catch(e){return false;}}
+function acOpsRemember(on){try{if(on)localStorage.setItem(VT_OPS_OK,acSecHash('ops')||'open');else localStorage.removeItem(VT_OPS_OK);}catch(e){}}
+function vtViewMsg(){toast('View only — nothing can be changed here. Unlock Operations in ⚙ Settings to enter data.');}
+function vtBlocked(code){if(!code)return '';if(VT_VIEW&&VT_WRITE_RE.test(code))return 'view';
+  if(!VT_VIEW&&VT_MODE==='ops'&&VT_OPS_NO_RE.test(code))return 'ops';return '';}
+function vtLockScan(root){if(!root||!root.querySelectorAll)return;
+  const els=[root,...root.querySelectorAll('[onclick],[onchange],[oninput]')];
+  els.forEach(el=>{if(!el.getAttribute)return;const code=(el.getAttribute('onclick')||'')+' '+(el.getAttribute('onchange')||'')+' '+(el.getAttribute('oninput')||'');
+    const b=vtBlocked(code);
+    if(b){el.classList.add('vt-lk');if(/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName))el.disabled=true;el.title=b==='view'?'View only':'Purchase team / Management only';}
+    else if(el.classList&&el.classList.contains('vt-lk')){el.classList.remove('vt-lk');if(/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName))el.disabled=false;}});}
+// catch clicks / edits before the inline handler runs
+['click','change','input'].forEach(ev=>document.addEventListener(ev,e=>{
+  const el=e.target&&e.target.closest?e.target.closest('[onclick],[onchange],[oninput]'):null;if(!el)return;
+  const code=ev==='click'?(el.getAttribute('onclick')||''):((el.getAttribute('onchange')||'')+' '+(el.getAttribute('oninput')||''));
+  const b=vtBlocked(code);if(!b)return;
+  e.stopPropagation();e.preventDefault();
+  if(b==='view')vtViewMsg();else toast('Operations cannot delete — Purchase team / Management only.');},true));
+try{new MutationObserver(ms=>{if(!VT_VIEW&&VT_MODE!=='ops')return;ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1)vtLockScan(n);}));})
+  .observe(document.body,{childList:true,subtree:true});}catch(e){}
+async function acEnterOps(){
+  if(acSecHash('ops')&&!acOpsRemembered()){
+    const p=await askPin('OPERATIONS PIN','Asked once on this PC. Entry is hidden.');
+    if(p===null)return;
+    if(!acCheck('ops',p)){alert('Wrong PIN.');return;}}
+  VT_MODE='ops';VT_VIEW=false;acOpsRemember(true);
+  REGISTER_LOADED=false;POS_SHOW_COST=false;
+  acApply();acCloseSettings();navGo('today','today');
+  toast('Operations — enter data and record status. Supplier names and rates stay hidden.');}
+function acEnterView(){
+  VT_MODE='ops';VT_VIEW=true;acOpsRemember(false);
+  REGISTER_LOADED=false;POS_SHOW_COST=false;try{RAW=[];ITEMS=new Map();}catch(e){}
+  acApply();acCloseSettings();navGo('track','goods');
+  toast('View only — display mode. Nothing can be changed.');}
+function acBootView(){VT_VIEW=!!(acSecHash('ops')&&!acOpsRemembered());}
+
+/* ===================== [V1.1.9 R73–R75] SHIPMENT + BILL WINDOWS OPEN AS A VIEW =====================
+   Shipment: product + qty first, search, expand a product for its PO split. "✎ Edit shipment" opens the form.
+   Bill: read-only until "✎ Edit bill". Both: 🕘 history of every save (who, when, what changed) from the server's Audit Log. */
+function vtTs(v){if(!v)return '';const d=new Date(v);if(isNaN(d))return String(v).slice(0,16);
+  return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+const HIST_LBL={SHIPMENT_UPSERT:'saved',SHIPMENT_ARRIVED:'marked arrived',SHIPMENT_ARRIVAL_REVERSED:'arrival undone',SHIPMENT_DELETE:'deleted',
+  BILL_UPSERT:'saved',BILL_STAGE:'Vasy step',BILL_UNASSIGN:'shipment unassigned',BILL_DELETE:'deleted',SHIPMENT_RECODE:'product corrected'};
+async function vtHistory(entity,id){if(!liveConnected())return {ok:false,error:'Connect the live sheet to see the history.'};
+  try{const r=await vtApiPost({api:'history',entity,id});
+    if(r&&r.ok===false&&/unknown api/.test(r.error||''))return {ok:false,error:'The edit history needs the Apps Script update (server 2.8).'};return r;}
+  catch(e){return {ok:false,error:'Could not load the history ('+e.message+').'};}}
+function histHTML(h){if(h==null)return '';if(h==='loading')return '<div class="small muted" style="margin-top:8px">Loading the history…</div>';
+  if(h.ok===false)return `<div class="small" style="color:var(--non);margin-top:8px">${esc(h.error||'Could not load the history.')}</div>`;
+  const L=h.history||[];if(!L.length)return '<div class="small muted" style="margin-top:8px">No history recorded yet (saves before server 2.8 have no change details).</div>';
+  return `<div class="card" style="padding:8px 10px;margin-top:10px"><b class="small">🕘 History — newest first</b>${L.map(x=>{
+    const what=x.action==='SHIPMENT_UPSERT'||x.action==='BILL_UPSERT'?(x.oldV==='updated'?'edited':'created'):(HIST_LBL[x.action]||x.action.toLowerCase().replace(/_/g,' '));
+    const extra=x.action==='BILL_STAGE'?(x.field+' '+(x.newV?'= '+x.newV:'cleared')):'';
+    return `<div class="small" style="padding:4px 0;border-top:1px dashed var(--line-2)"><b>${esc(x.at)}</b> · ${esc(x.user||'')} · <b>${esc(what)}</b>${extra?' · '+esc(extra):''}
+      ${x.note?`<div class="muted" style="margin-top:1px">${esc(x.note)}</div>`:''}</div>`;}).join('')}</div>`;}
+
+/* ---------- shipment view ---------- */
+let S11V={sid:'',q:'',open:new Set(),hist:null};
+function v11ShipEdit(sid){const s=v11ShipById(sid);if(!s){toast('Shipment not found — sync first.');return;}
+  if(S11V.sid!==sid)S11V={sid,q:'',open:new Set(),hist:null};S11=null;v11ShipViewPaint();v11Front('ship11-modal');}
+function v11ShipViewRows(sid){const m=new Map();
+  v11ShipAllocs(sid).forEach(a=>{let r=m.get(a.canon);if(!r){r={canon:a.canon,code:a.code||a.canon,name:a.name||'',uom:a.uom||'',qty:0,ret:0,parts:[]};m.set(a.canon,r);}
+    r.qty+=+a.qty||0;r.ret+=+a.ret||0;r.parts.push(a);if(!r.uom&&a.uom)r.uom=a.uom;});
+  return [...m.values()];}
+function v11SvPart(a){const q=NUM(+a.qty||0);return a.type==='PO'?`${esc(v11PoLabel(a.poNumber))} <b>${q}</b>`:a.type==='EXCESS'?`<span style="color:var(--fn-excess)">excess <b>${q}</b> → ${esc(v11PoLabel(a.poNumber))}</span>`:`<span style="color:var(--non)">off-PO <b>${q}</b></span>`;}
+function v11SvTog(c){S11V.open.has(c)?S11V.open.delete(c):S11V.open.add(c);v11ShipViewPaint();}
+function v11SvAll(on){S11V.open=new Set(on?v11ShipViewRows(S11V.sid).map(r=>r.canon):[]);v11ShipViewPaint();}
+function v11SvFind(v){S11V.q=v;const q=String(v||'').trim().toLowerCase();let n=0;
+  document.querySelectorAll('#s11-body tr[data-t]').forEach(tr=>{const hit=!q||tr.dataset.t.indexOf(q)>=0;tr.style.display=hit?'':'none';
+    const nx=tr.nextElementSibling;if(nx&&nx.classList.contains('sv-x'))nx.style.display=hit?'':'none';if(hit)n++;});
+  const c=document.getElementById('sv-cnt');if(c)c.textContent=q?n+' shown':'';}
+async function v11SvArrive(sid,on){await v11ShipArrive(sid,on);if(document.getElementById('ship11-modal').classList.contains('on')&&!S11)v11ShipViewPaint();}
+async function v11SvHist(){S11V.hist='loading';v11ShipViewPaint();S11V.hist=await vtHistory('Shipment',S11V.sid);if(!S11)v11ShipViewPaint();}
+function v11ShipViewPaint(){const sid=S11V.sid,s=v11ShipById(sid);if(!s){mClose('ship11-modal');return;}
+  const st=v11ShipState(s),bc=v11ShipBillChip(sid),ops=v11IsOps(),pos=v11ShipPos(sid);
+  document.getElementById('s11-title').innerHTML=`Shipment <span class="mono">${esc(s.shipmentNo)}</span>
+    <span class="chip" style="font-size:.6rem;background:${S11_STATE_CHIP[st][1]};color:#fff;border-color:transparent">${S11_STATE_CHIP[st][0]}</span>
+    <span class="chip" style="font-size:.6rem;background:${bc[1]};color:#fff;border-color:transparent">${esc(bc[0])}</span> <span class="chip lite" style="font-size:.58rem">👁 view</span>`;
+  const rows=v11ShipViewRows(sid),tot=rows.reduce((a,r)=>a+r.qty,0);
+  const ex=rows.reduce((a,r)=>a+r.parts.filter(x=>x.type==='EXCESS').reduce((b,x)=>b+(+x.qty||0),0),0),off=rows.reduce((a,r)=>a+r.parts.filter(x=>x.type==='OFFPO').reduce((b,x)=>b+(+x.qty||0),0),0);
+  const f=(l,v)=>`<div><div class="small muted">${l}</div><div>${v||'<span class="muted">—</span>'}</div></div>`;
+  const bills=v11ShipBills(sid);
+  const body=rows.map((r,ix)=>{const o=S11V.open.has(r.canon),billed=v11Billed(sid,r.canon),nm=prodName(r.code,r.name);
+    const det=o?`<tr class="sv-x"><td></td><td colspan="6" style="padding:2px 0 10px"><table class="small" style="width:auto"><thead><tr><th>On</th><th class="r">Qty</th><th class="r">Suggested</th><th class="r">PO ordered</th><th class="r">PO still pending</th></tr></thead><tbody>${
+      r.parts.map(a=>{let ord='',pend='';const p=a.poNumber&&podocFind(a.poNumber);
+        if(p){const i=(p.lines||[]).findIndex(l=>v11Canon(l.code)===r.canon);if(i>=0){const l=p.lines[i];const eff=Math.max(0,(+l.qty||0)-(+l.cancelledQty||0));ord=NUM(eff);pend=NUM(Math.max(0,eff-shipForLine(p,i)));}}
+        return `<tr><td>${a.type==='PO'?v11PoLink(a.poNumber):a.type==='EXCESS'?'excess → '+v11PoLink(a.poNumber):'off-PO'}</td><td class="r num"><b>${NUM(+a.qty||0)}</b></td><td class="r num">${a.suggestedQty===''||a.suggestedQty==null?'·':NUM(+a.suggestedQty)}</td><td class="r num">${ord||'·'}</td><td class="r num">${pend||'·'}</td></tr>`;}).join('')}</tbody></table>${r.ret?`<div class="small" style="color:var(--non)">returned ${NUM(r.ret)}</div>`:''}</td></tr>`:'';
+    return `<tr data-t="${esc((nm+' '+r.canon).toLowerCase())}" style="cursor:pointer" onclick="v11SvTog('${esc(r.canon)}')"><td class="r small muted">${ix+1}</td>
+      <td><b class="small">${esc(nm)}</b><div class="mono small muted">${esc(r.canon)}</div></td>
+      <td class="r num"><b>${NUM(r.qty)}</b></td><td class="small muted">${esc(r.uom||unitOf(r.canon)||'')}</td>
+      <td class="small">${r.parts.map(v11SvPart).join(' · ')}</td>
+      <td class="r small">${billed>0?(Math.abs(billed-r.qty)>0.0005?`<b style="color:var(--non)" title="billed ≠ shipped">${NUM(billed)}</b>`:`<span style="color:var(--ok)">${NUM(billed)} ✓</span>`):'<span class="muted">·</span>'}</td>
+      <td class="small muted">${o?'▾':'▸'}</td></tr>${det}`;}).join('');
+  document.getElementById('s11-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px 14px;margin-bottom:8px" class="small">
+      ${f('Supplier',esc(v11SupLabel(s.supplier,pos)))}${f('Ship date',esc(d8show(dOnly(s.shipDate))))}${f('Expected',esc(d8show(dOnly(s.expected))))}
+      ${f('Transport',esc(s.transport||''))}${f('LR no.',esc(s.lr||''))}${f('Arrived',s.arrivedAt?esc(d8show(dOnly(s.arrivedAt)))+(s.arrivedBy?' · '+esc(s.arrivedBy):''):'')}
+      ${f('POs',pos.map(v11PoLink).join(', '))}</div>
+    ${s.note?`<div class="small" style="margin-bottom:6px"><span class="muted">Note:</span> ${esc(s.note)}</div>`:''}
+    ${bills.length?`<div class="small" style="margin-bottom:6px"><span class="muted">Bills:</span> ${bills.map(b=>{const g=v11BillStage(b);return v11BillLink(b)+` <span class="chip" style="font-size:.55rem;background:${g.col};color:#fff;border-color:transparent">${esc(g.label)}</span>`;}).join(' · ')}</div>`:''}
+    ${s.createdAt||s.updatedAt?`<div class="small muted" style="margin-bottom:8px">Created ${esc(vtTs(s.createdAt))} · last saved ${esc(vtTs(s.updatedAt))}${s.by?' by '+esc(s.by):''}</div>`:''}
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+      <input class="po-in" style="width:260px" placeholder="🔍 find a product on this shipment…" value="${esc(S11V.q)}" oninput="v11SvFind(this.value)">
+      <span class="small muted" id="sv-cnt"></span><span style="flex:1"></span>
+      <span class="small"><b>${rows.length}</b> product(s) · <b>${NUM(tot)}</b> qty${ex?` · <span style="color:var(--fn-excess)">excess ${NUM(ex)}</span>`:''}${off?` · <span style="color:var(--non)">off-PO ${NUM(off)}</span>`:''}</span>
+      <button class="btn ghost sm" onclick="v11SvAll(true)">▾ Expand all</button><button class="btn ghost sm" onclick="v11SvAll(false)">▸ Collapse all</button></div>
+    <div style="max-height:52vh;overflow:auto"><table class="sv-tbl"><thead><tr><th>#</th><th>Product</th><th class="r">Qty</th><th>Unit</th><th>On POs</th><th class="r">Billed</th><th></th></tr></thead><tbody>${body||'<tr><td colspan="7" class="small muted">No products.</td></tr>'}</tbody></table></div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center">
+      ${st==='cancelled'?'':(s.arrivedAt?`<button class="btn ghost sm" onclick="v11SvArrive('${esc(sid)}',false)">↩ Undo arrival</button>`:`<button class="btn sm" style="background:var(--ok);border-color:var(--ok)" onclick="v11SvArrive('${esc(sid)}',true)">📦 Mark arrived</button>`)}
+      ${ops||st==='cancelled'?'':`${v11BillState(sid)!=='full'?`<button class="btn ghost sm" onclick="mClose('ship11-modal');v11BillNew('${esc(sid)}')">🧾 New bill</button>`:''}<button class="btn ghost sm" onclick="mClose('ship11-modal');v11MiOpen('${esc(sid)}')">⬇ MI</button>`}
+      <button class="btn ghost sm" onclick="v11SvHist()">🕘 History</button>
+      <span style="flex:1"></span>
+      <button class="btn sm" onclick="v11ShipEditForm('${esc(sid)}')">✎ Edit shipment</button>
+      <button class="btn ghost sm" onclick="mClose('ship11-modal')">Close</button></div>
+    ${histHTML(S11V.hist)}`;
+  if(S11V.q)v11SvFind(S11V.q);}
+// find a product inside the edit form
+function v11ShipFind(v){if(S11)S11._find=v;const q=String(v||'').trim().toLowerCase();let n=0;
+  document.querySelectorAll('#s11-rows .s11-row').forEach(el=>{const hit=!q||(el.dataset.t||'').indexOf(q)>=0;el.style.display=hit?'':'none';if(hit)n++;});
+  const c=document.getElementById('s11-find-n');if(c)c.textContent=q?n+' shown':'';}
+
+/* ---------- bill view / edit ---------- */
+function v11BillEdit(){if(!B11)return;if(B11.locked){toast('Locked — a Vasy MI or bill number is recorded. Clear those numbers first.');return;}B11._view=false;B11._hist=null;B11.lines.forEach(v11FillMS);v11BillModal();}
+function v11BillFind(v){if(B11)B11._find=v;const q=String(v||'').trim().toLowerCase();let n=0;
+  document.querySelectorAll('#b11-body tr[data-t]').forEach(tr=>{const hit=!q||tr.dataset.t.indexOf(q)>=0;tr.style.display=hit?'':'none';if(hit)n++;});
+  const c=document.getElementById('b11-find-n');if(c)c.textContent=q?n+' shown':'';}
+async function v11BillHist(){if(!B11||!B11.billId)return;B11._hist='loading';v11BillModal();const id=B11.billId;const h=await vtHistory('Bill',id);if(B11&&B11.billId===id){B11._hist=h;v11BillModal();}}
+
+/* ===================== [V1.1.9 R49 phase 4 · R78–R89] SPEED-UPS (owner picked I1 I2 I3 I5 I6 I7 I8 I10 I13 I14 I16 I19) ===================== */
+
+/* ---------- I1 · "✓ Discussed" per supplier in today's meeting (this PC, resets every day) ---------- */
+function askDiscGet(){try{const o=JSON.parse(localStorage.getItem('vt_ask_disc')||'null');if(o&&o.d===t8())return new Set(o.s||[]);}catch(e){}return new Set();}
+let ASK_DISC=askDiscGet();
+function askDiscSave(){try{localStorage.setItem('vt_ask_disc',JSON.stringify({d:t8(),s:[...ASK_DISC]}));}catch(e){}}
+let ASK_DISC_DAY=t8();
+function askDisc(sup){if(ASK_DISC_DAY!==t8()){ASK_DISC=askDiscGet();ASK_DISC_DAY=t8();}return ASK_DISC.has(sup);}
+function askDiscTog(el){const s=el.closest('[data-s]').dataset.s;askDisc(s);ASK_DISC.has(s)?ASK_DISC.delete(s):ASK_DISC.add(s);ASK_UI.unfold.delete(s);askDiscSave();posRender();}
+function askIsFold(sup){return ASK_UI.fold.has(sup)||(askDisc(sup)&&!ASK_UI.unfold.has(sup));}
+
+/* ---------- I2 · promise score + I3 · escalate ---------- */
+function supPromise(sup){const T=t8();const o={kept:0,broken:0,late:[],pending:0,noans30:0,recentBroken:0,lastCalls:[]};
+  (PODOCS||[]).filter(p=>p&&!p.parentPoId&&(p.supplier||'—')===sup).forEach(p=>{const ships=poShipDates(p).sort();
+    fuCalls(p).forEach(c=>{const ld=dOnly(c.at);
+      if(c.outcome==='noanswer'&&ld&&d8diff(ld,T)<=30)o.noans30++;
+      if(ld)o.lastCalls.push({d:ld,o:c.outcome});
+      if((c.outcome==='promised'||c.outcome==='delayed')&&c.date){const pd=dOnly(c.date);const sh=ships.find(d=>d>=ld);
+        if(sh){if(sh<=pd)o.kept++;else{o.broken++;o.late.push(d8diff(pd,sh));if(d8diff(pd,T)<=60)o.recentBroken++;}}
+        else if(pd<T){o.broken++;o.late.push(d8diff(pd,T));if(d8diff(pd,T)<=60)o.recentBroken++;}
+        else o.pending++;}});});
+  // escalate: 2+ broken promises in 60 days, or the last 3 call days were all "no answer"
+  const days=new Map();o.lastCalls.sort((a,b)=>b.d.localeCompare(a.d)).forEach(c=>{if(!days.has(c.d))days.set(c.d,[]);days.get(c.d).push(c.o);});
+  const last3=[...days.values()].slice(0,3);
+  o.noans3=last3.length===3&&last3.every(a=>a.every(x=>x==='noanswer'));
+  o.escalate=o.recentBroken>=2||o.noans3;
+  o.why=[o.recentBroken>=2?o.recentBroken+' promises broken in 60 days':'',o.noans3?'no answer 3 call-days running':''].filter(Boolean).join(' · ');
+  o.avgLate=o.late.length?Math.round(o.late.reduce((a,b)=>a+b,0)/o.late.length*10)/10:null;
+  return o;}
+function supPromiseHTML(sp){if(!sp.kept&&!sp.broken&&!sp.pending&&!sp.noans30)return '';
+  return `<span class="small" title="from the answers logged: a promise is kept when something ships on or before the promised date">🤝 ${sp.kept} kept · <span style="${sp.broken?'color:var(--non);font-weight:700':''}">${sp.broken} broken</span>${sp.avgLate!=null?' (avg '+sp.avgLate+' d late)':''}${sp.pending?' · '+sp.pending+' waiting':''}${sp.noans30?' · 📵 '+sp.noans30+' in 30 d':''}</span>`;}
+
+/* ---------- I5 · lead time & MOQ in New PO  ·  I7 · already on order ---------- */
+let LT_IDX={at:0,m:null};
+function ltIdx(){if(LT_IDX.m&&Date.now()-LT_IDX.at<15000)return LT_IDX.m;const m=new Map();
+  try{stBuild().forEach(x=>{const a=x.arr.length?_med(x.arr):null;m.set(x.sup+'|'+x.canon,a);});}catch(e){}LT_IDX={at:Date.now(),m};return m;}
+function ltFor(sup,canon){const g=stGet(sup,canon);if(g.lt!==''&&g.lt!=null)return {d:+g.lt,src:'supplier'};
+  const all=stGet(sup,'*');if(all.lt!==''&&all.lt!=null)return {d:+all.lt,src:'supplier (all products)'};
+  const r=ltIdx().get(sup+'|'+canon);if(r!=null)return {d:r,src:'our POs'};return null;}
+let ONORD={at:0,m:null};
+function onOrderIdx(){if(ONORD.m&&Date.now()-ONORD.at<4000)return ONORD.m;const m=new Map();
+  const get=c=>{let o=m.get(c);if(!o){o={pos:[],ships:[]};m.set(c,o);}return o;};
+  (PODOCS||[]).forEach(p=>{if(!p||p.closed||poIsSplit(p))return;const top=fuTop(p);if(top&&top.closed)return;
+    (p.lines||[]).forEach((l,i)=>{const eff=Math.max(0,(+l.qty||0)-(+l.cancelledQty||0));const pend=Math.max(0,eff-shipForLine(p,i));
+      if(pend>0)get(v11Canon(l.code)).pos.push({p:top||p,pend,sup:p.supplier||''});});});
+  (V11.shipments||[]).forEach(s=>{if(s.status==='Cancelled'||s.arrivedAt)return;
+    v11ShipAllocs(s.shipmentId).forEach(a=>{const o=get(a.canon);const x=o.ships.find(y=>y.s===s);if(x)x.q+=(+a.qty||0);else o.ships.push({s,q:+a.qty||0});});});
+  ONORD={at:Date.now(),m};return m;}
+function onOrderHTML(canon,short){const o=onOrderIdx().get(v11Canon(canon));if(!o||(!o.pos.length&&!o.ships.length))return '';
+  const ops=v11IsOps();
+  const pos=o.pos.slice(0,3).map(x=>`<a class="linky mono" onclick="event.stopPropagation();poDetailOpen('${esc(x.p.poId)}')">${esc(fuNo(x.p))}</a> ${NUM(x.pend)}${ops||short?'':' <span class="muted">'+esc(x.sup)+'</span>'}`).join(', ')+(o.pos.length>3?' +'+(o.pos.length-3):'');
+  const sh=o.ships.slice(0,3).map(x=>`<a class="linky mono" onclick="event.stopPropagation();v11ShipEdit('${esc(x.s.shipmentId)}')">${esc(x.s.shipmentNo)}</a> ${NUM(x.q)}`).join(', ')+(o.ships.length>3?' +'+(o.ships.length-3):'');
+  return `<div class="small" style="color:#9A6212;margin-top:2px">${o.pos.length?'⚠ already on order: '+pos:''}${o.pos.length&&o.ships.length?' · ':''}${o.ships.length?'🚚 on the way: '+sh:''}</div>`;}
+function lastPoBuy(canon){let best=null;(PODOCS||[]).forEach(p=>{if(!p)return;(p.lines||[]).forEach(l=>{if(v11Canon(l.code)!==v11Canon(canon))return;
+  const d=dOnly(p.createdAt)||'';if(!best||d>best.d)best={d,sup:p.supplier||'',price:+l.price||0,lane:p.lane,po:fuNo(p)};});});return best;}
+function poHints(l){const c=v11Canon(l.code);let h=onOrderHTML(c);
+  if(l.supplier){const g=stGet(l.supplier,c);const moq=+g.moq||0;
+    if(moq>0&&(+l.qty||0)<moq)h+=`<div class="small" style="color:var(--non);margin-top:2px">below the supplier's MOQ ${NUM(moq)} · <a class="linky" onclick="poUpd(${l.id},'qty',${moq});poRender()">round up to ${NUM(moq)}</a></div>`;
+    else if(moq>0)h+=`<div class="small muted" style="margin-top:2px">MOQ ${NUM(moq)} ✓</div>`;}
+  return h;}
+function poGroupLead(sup,rows){let best=null;rows.forEach(l=>{const x=ltFor(sup,v11Canon(l.code));if(x&&(!best||x.d>best.d))best=x;});return best;}
+function poGroupLeadHTML(sup,rows){const x=poGroupLead(sup,rows);if(!x)return '<span class="small muted" title="enter it in Analyse › Lead time & MOQ">no lead time yet</span>';
+  return `<span class="small" title="longest lead time of these products — ${esc(x.src)}">⏱ ~${x.d} d → arrives about <b>${esc(d8show(d8add(t8(),Math.round(x.d))))}</b></span>`;}
+function poDupList(rows){const out=[];rows.forEach(l=>{const o=onOrderIdx().get(v11Canon(l.code));if(o&&(o.pos.length||o.ships.length))
+  out.push('• '+prodName(l.code,l.newName||l.name||'')+': '+o.pos.map(x=>fuNo(x.p)+' ('+NUM(x.pend)+' pending)').concat(o.ships.map(x=>x.s.shipmentNo+' ('+NUM(x.q)+' on the way)')).join(', '));});return out;}
+
+/* ---------- I8 · bulk send / close in All POs ---------- */
+function apoSelPOs(){return [...FUND_SEL].map(id=>podocFind(id)).filter(p=>p&&!p.closed);}
+function apoBulkSent(){const L=apoSelPOs().filter(p=>posStage(p)==='made');if(!L.length){toast('None of the ticked POs is waiting to be sent.');return;}
+  if(!confirm('Mark '+L.length+' PO(s) as sent?\n\n'+L.map(fuNo).join(', ')))return;
+  L.forEach(p=>{p.sentAt=t8();if(p.status==='made')p.status='sent';if(liveConnected())liveRecordPO(p).catch(()=>{});});
+  saveSession();FUND_SEL.clear();posRender();try{navBadgeDirty();}catch(e){}toast(L.length+' PO(s) marked sent.');}
+function apoBulkClose(){const L=apoSelPOs().filter(p=>posStage(p)==='done');const skip=apoSelPOs().length-L.length;
+  if(!L.length){toast('None of the ticked POs is fully received.');return;}
+  if(!confirm('Close '+L.length+' fully received PO(s)?'+(skip?'\n('+skip+' ticked PO(s) are not fully received and are skipped.)':'')+'\n\nThey move to PO History. Nothing is deleted.'))return;
+  L.forEach(p=>{p.closed=true;p.closedAt=t8();p.closedBy=vtBy();_podPersist(p);try{liveAudit('PO_CLOSE','PO',fuNo(p),'closed','',p.closedAt,'bulk');}catch(e){}});
+  FUND_SEL.clear();posRender();try{navBadgeDirty();}catch(e){}toast(L.length+' PO(s) closed — moved to PO History.');}
+function apoBulkBar(){const L=apoSelPOs();if(!L.length)return '';const m=L.filter(p=>posStage(p)==='made').length,d=L.filter(p=>posStage(p)==='done').length;
+  return `<div class="card" style="margin:0 0 10px;padding:8px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-left:4px solid #0F766E"><b>${L.length} ticked</b>
+    <button class="btn sm" ${m?'':'disabled'} onclick="apoBulkSent()">✈ Mark sent (${m})</button>
+    <button class="btn ghost sm" ${d?'':'disabled'} onclick="apoBulkClose()">✓ Close fully received (${d})</button>
+    <span class="small muted">export the ticked ones with ⬇ Preview &amp; download</span><span style="flex:1"></span><button class="btn ghost sm" onclick="fundSelClear()">✕ Clear ticks</button></div>`;}
+
+/* ---------- I10 · expected date from the supplier's real transit days ---------- */
+function supTransitDays(sup){const mine=[],all=[];(V11.shipments||[]).forEach(s=>{if(!s.arrivedAt||s.status==='Cancelled')return;const d=d8diff(dOnly(s.shipDate),dOnly(s.arrivedAt));if(d==null||d<0||d>120)return;all.push(d);if(s.supplier===sup)mine.push(d);});
+  if(mine.length>=2)return {d:Math.round(_med(mine)),n:mine.length,src:'this supplier'};if(all.length>=3)return {d:Math.round(_med(all)),n:all.length,src:'all suppliers'};return null;}
+function v11AutoExpected(S){if(!S||S.sid||!S.supplier||S.expected||S._expTouched)return;const t=supTransitDays(S.supplier);if(!t)return;
+  S.expected=d8add(dOnly(S.shipDate)||t8(),t.d);S._autoExp=t;}
+
+/* ---------- I13 · since yesterday ---------- */
+function sinceYesterday(){const Y=d8add(t8(),-1);const ge=v=>{const d=dOnly(v);return d&&d>=Y;};const o={made:0,sent:0,shipIn:0,arr:0,vasy:0,ans:0};
+  (PODOCS||[]).forEach(p=>{if(!p||p.parentPoId)return;if(ge(p.createdAt))o.made++;if(ge(p.sentAt))o.sent++;fuCalls(p).forEach(c=>{if(ge(c.at))o.ans++;});});
+  (V11.shipments||[]).forEach(s=>{if(s.status==='Cancelled')return;if(ge(s.createdAt))o.shipIn++;if(ge(s.arrivedAt))o.arr++;});
+  (V11.bills||[]).forEach(b=>{if(v11BillStage(b).key==='billed'&&ge(b.vasyAt))o.vasy++;});return o;}
+function sinceYesterdayHTML(){const o=sinceYesterday();const bits=[[o.made,'PO(s) made'],[o.sent,'sent'],[o.shipIn,'shipment(s) entered'],[o.arr,'arrived'],[navOK('buyer')?o.vasy:0,'bill(s) done in Vasy'],[o.ans,'answer(s) logged']].filter(x=>x[0]);
+  return `<div class="small" style="margin-top:8px"><b>Since yesterday:</b> ${bits.length?bits.map(x=>`<span class="chip lite" style="font-size:.6rem">${x[0]} ${x[1]}</span>`).join(' '):'<span class="muted">nothing new yet</span>'}</div>`;}
+
+/* ---------- I16 · fix list ---------- */
+function fixBuild(){const T=t8(),buyer=navOK('buyer'),out=[];
+  const add=(k,title,why,rows)=>out.push({k,title,why,rows});
+  const shL=s=>`<a class="linky mono" style="font-weight:700" onclick="v11ShipEdit('${esc(s.shipmentId)}')">${esc(s.shipmentNo)}</a> <span class="small muted">${esc(v11SupLabel(s.supplier,v11ShipPos(s.shipmentId)))}</span>`;
+  const poL=p=>`<a class="linky mono" style="font-weight:700" onclick="poDetailOpen('${esc(p.poId)}')">${esc(fuNo(p))}</a> <span class="small muted">${supMask(p)}</span>`;
+  const blL=b=>`<a class="linky mono" style="font-weight:700" onclick="v11BillOpen('${esc(b.billId)}')">${esc(b.billNo)}</a> <span class="small muted">${esc(b.supplier||'')}</span>`;
+  const ships=(V11.shipments||[]).filter(s=>s.status!=='Cancelled');
+  add('noexp','Shipments in transit with no expected date','without it nobody knows when to expect the goods',ships.filter(s=>!s.arrivedAt&&!dOnly(s.expected)).map(s=>({ref:shL(s),txt:'shipped '+d8show(dOnly(s.shipDate)),btn:`<button class="btn ghost sm" onclick="v11ShipEditForm('${esc(s.shipmentId)}')">✎ Enter date</button>`})));
+  add('nolr','Shipments in transit with no LR / transport','needed to chase the goods with the transporter',ships.filter(s=>!s.arrivedAt&&!String(s.lr||'').trim()&&!String(s.transport||'').trim()&&d8diff(dOnly(s.shipDate),T)>=1).map(s=>({ref:shL(s),txt:'shipped '+d8show(dOnly(s.shipDate)),btn:`<button class="btn ghost sm" onclick="v11ShipEditForm('${esc(s.shipmentId)}')">✎ Enter LR</button>`})));
+  add('offpo','Shipments with off-PO products','products that are on no open PO — check they were really ordered',ships.filter(s=>v11ShipAllocs(s.shipmentId).some(a=>a.type==='OFFPO')).map(s=>({ref:shL(s),txt:v11ShipAllocs(s.shipmentId).filter(a=>a.type==='OFFPO').map(a=>(a.name||a.canon)+' × '+NUM(+a.qty||0)).join(', '),btn:`<button class="btn ghost sm" onclick="v11ShipEdit('${esc(s.shipmentId)}')">Open</button>`})));
+  if(buyer){const bills=(V11.bills||[]).filter(b=>v11BillStage(b).key!=='billed');
+    add('nosup','Bills without the supplier bill number','needed to match the supplier\'s invoice',bills.filter(b=>{const ln=v11BillLanes(b.billId);return (ln.g&&!String(b.supBillG||'').trim())||(ln.n&&!String(b.supBillN||'').trim());}).map(b=>({ref:blL(b),txt:v11BillStage(b).label,btn:`<button class="btn ghost sm" onclick="v11BillOpen('${esc(b.billId)}')">Open</button>`})));
+    add('mrp0','Bill lines with no MRP or selling price','the Vasy upload needs them',bills.map(b=>{const n=v11BillLinesOf(b.billId).filter(l=>(+l.qtyG>0&&(!(+l.mrpG>0)||!(+l.spG>0)))||(+l.qtyN>0&&(!(+l.mrpN>0)||!(+l.spN>0)))).length;return n?{ref:blL(b),txt:n+' line(s)',btn:`<button class="btn ghost sm" onclick="v11BillOpen('${esc(b.billId)}')">Open</button>`}:null;}).filter(Boolean));}
+  const tops=(PODOCS||[]).filter(p=>p&&!p.parentPoId&&!p.closed);
+  add('nosupp','POs with no supplier','a PO must have a supplier',tops.filter(p=>!String(p.supplier||'').trim()).map(p=>({ref:poL(p),txt:poUnitLines(p).length+' item(s)',btn:`<button class="btn ghost sm" onclick="poDetailOpen('${esc(p.poId)}')">Open</button>`})));
+  add('newcode','POs with a temporary product code','product not in the master yet — create it in Vasy, then correct it in PO edit',tops.filter(p=>poUnitLines(p).some(u=>/^NEW:/i.test(String(u.l.code||'')))).map(p=>({ref:poL(p),txt:poUnitLines(p).filter(u=>/^NEW:/i.test(String(u.l.code||''))).map(u=>prodName(u.l.code,u.l.name)).join(', '),btn:`<button class="btn ghost sm" onclick="poDetailOpen('${esc(p.poId)}')">Open</button>`})));
+  if(buyer)add('price0','PO lines with no rate','the value of the PO is unknown',tops.filter(p=>poUnitLines(p).some(u=>!(+u.l.price>0))).map(p=>({ref:poL(p),txt:poUnitLines(p).filter(u=>!(+u.l.price>0)).length+' line(s) without a rate',btn:`<button class="btn ghost sm" onclick="poDetailOpen('${esc(p.poId)}')">Open</button>`})));
+  return out;}
+function posFixList(){const L=fixBuild();const n=L.reduce((a,x)=>a+x.rows.length,0);
+  return `<div class="card" style="margin-bottom:12px"><b>${n?n+' thing(s) to fix':'✅ Nothing to fix'}</b> <span class="small muted">missing dates, numbers and prices that slow the work down later</span></div>`+
+    L.filter(x=>x.rows.length).map(x=>`<div class="card" style="margin-bottom:10px"><div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b>${esc(x.title)}</b><span class="chip lite" style="font-size:.6rem">${x.rows.length}</span><span class="small muted vt-c-hide">${esc(x.why)}</span></div>
+      ${x.rows.slice(0,60).map(r=>`<div class="td-row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px dashed var(--line-2)">${r.ref}<span class="small" style="flex:1;min-width:180px">${esc(r.txt)}</span>${r.btn}</div>`).join('')}</div>`).join('');}
+
+/* ---------- I19 · search from the menu ---------- */
+let VTQ_SEL=0;
+function vtQRun(v){const box=document.getElementById('vt-qr');if(!box)return;const q=String(v||'').trim().toLowerCase();
+  if(q.length<2){box.style.display='none';box.innerHTML='';return;}
+  const ops=v11IsOps(),buyer=navOK('buyer'),out=[];const has=s=>String(s||'').toLowerCase().indexOf(q)>=0;
+  (PODOCS||[]).forEach(p=>{if(!p||p.parentPoId)return;const prodHit=poUnitLines(p).find(u=>has(prodName(u.l.code,u.l.name))||has(u.l.code));
+    if(has(p.realNo)||has(p.poId)||(!ops&&has(p.supplier))||prodHit)out.push({w:has(p.realNo)||has(p.poId)?0:2,h:`<div class="vtq-o" onclick="vtQGo(()=>poDetailOpen('${esc(p.poId)}'))"><b class="mono">${esc(fuNo(p))}</b> <span class="muted">PO${p.closed?' · closed':''} · ${supMask(p)}</span>${prodHit?`<div class="small muted">${esc(prodName(prodHit.l.code,prodHit.l.name))}</div>`:''}</div>`});});
+  (V11.shipments||[]).forEach(s=>{const al=v11ShipAllocs(s.shipmentId);const prodHit=al.find(a=>has(a.name)||has(a.canon));
+    if(has(s.shipmentNo)||has(s.lr)||has(s.transport)||(!ops&&has(s.supplier))||prodHit)out.push({w:has(s.shipmentNo)||has(s.lr)?0:2,h:`<div class="vtq-o" onclick="vtQGo(()=>v11ShipEdit('${esc(s.shipmentId)}'))"><b class="mono">${esc(s.shipmentNo)}</b> <span class="muted">shipment · ${esc(v11SupLabel(s.supplier,v11ShipPos(s.shipmentId)))}${s.status==='Cancelled'?' · cancelled':''}${s.lr?' · LR '+esc(s.lr):''}</span>${prodHit?`<div class="small muted">${esc(prodHit.name||prodHit.canon)}</div>`:''}</div>`});});
+  if(buyer)(V11.bills||[]).forEach(b=>{if(has(b.billNo)||has(b.supBillG)||has(b.supBillN)||has(b.supplier)||has(b.vasyG)||has(b.vasyN)||has(b.miG)||has(b.miN))
+    out.push({w:has(b.billNo)?0:1,h:`<div class="vtq-o" onclick="vtQGo(()=>v11BillOpen('${esc(b.billId)}'))"><b class="mono">${esc(b.billNo)}</b> <span class="muted">bill · ${esc(b.supplier||'')}${b.supBillG||b.supBillN?' · '+esc([b.supBillG,b.supBillN].filter(Boolean).join(' / ')):''}</span></div>`});});
+  out.sort((a,b)=>a.w-b.w);VTQ_SEL=0;
+  try{const r=document.getElementById('vt-q').getBoundingClientRect();box.style.top=(r.bottom+4)+'px';box.style.left=Math.max(8,Math.min(window.innerWidth-390,r.right-380))+'px';}catch(e){}
+  box.innerHTML=out.slice(0,25).map(x=>x.h).join('')||'<div class="vtq-o muted">No PO, shipment or bill matches.</div>';box.style.display='block';vtQMark();}
+function vtQGo(fn){const i=document.getElementById('vt-q'),b=document.getElementById('vt-qr');if(b)b.style.display='none';if(i)i.blur();fn();}
+function vtQMark(){document.querySelectorAll('#vt-qr .vtq-o').forEach((el,i)=>el.classList.toggle('on',i===VTQ_SEL));}
+function vtQKey(e){const L=document.querySelectorAll('#vt-qr .vtq-o[onclick]');
+  if(e.key==='ArrowDown'){VTQ_SEL=Math.min(L.length-1,VTQ_SEL+1);vtQMark();e.preventDefault();}
+  else if(e.key==='ArrowUp'){VTQ_SEL=Math.max(0,VTQ_SEL-1);vtQMark();e.preventDefault();}
+  else if(e.key==='Enter'){if(L[VTQ_SEL])L[VTQ_SEL].click();e.preventDefault();}
+  else if(e.key==='Escape'){const b=document.getElementById('vt-qr');if(b)b.style.display='none';}}
+document.addEventListener('keydown',e=>{if(e.key==='/'&&!/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement||{}).tagName||'')){const i=document.getElementById('vt-q');if(i){i.focus();e.preventDefault();}}});
+
+function reqExtraHTML(r){const c=r.canon||String(r.code||'').replace(/\/+$/,'');if(!c)return '';let h=onOrderHTML(c,true);
+  if(!v11IsOps()){const b=lastPoBuy(c);if(b)h+=`<div class="small muted">last PO: ${esc(b.sup)} @ ${INR2(b.price)} · ${esc(d8show(b.d))} (${esc(b.po)})</div>`;}return h;}
 
 /* ===================== [V1.1.8 R49 phase 3 · R62–R66] TODAY · ASK DAD · FOLLOW-UP CALENDAR · LEAD TIME & MOQ =====================
    Dad is the only contact with suppliers. In a short daily meeting the purchase team drives him supplier by supplier:
@@ -10360,9 +10716,9 @@ function askBuild(){
   return out.sort((a,b)=>(b.high-a.high)||(b.n-a.n)||String(a.sup).localeCompare(String(b.sup)));
 }
 const ASK_ICON={nopromise:'📅',late:'⏰',soon:'🗓',shipcheck:'🚚',balance:'📦',todo:'📝',fudue:'📞',send:'✈',billgroup:'🧾',billfwd:'📱',lr:'🚛',shiplate:'⏰',eta:'🚛'};
-let ASK_UI={q:'',all:false,fold:new Set(),sel:new Set()};
+let ASK_UI={q:'',all:false,fold:new Set(),unfold:new Set(),sel:new Set()};
 function askSetQ(v){ASK_UI.q=v;posRenderKeepFocus();}
-function askFold(el){const s=el.closest('[data-s]').dataset.s;ASK_UI.fold.has(s)?ASK_UI.fold.delete(s):ASK_UI.fold.add(s);posRender();}
+function askFold(el){const s=el.closest('[data-s]').dataset.s;if(askIsFold(s)){ASK_UI.fold.delete(s);if(askDisc(s))ASK_UI.unfold.add(s);}else{ASK_UI.fold.add(s);ASK_UI.unfold.delete(s);}posRender();}
 function askShipNo(s){return s.shipmentNo||s.shipmentId;}
 function askText(x){const T=t8();let t=`*${x.sup}* — to ask (${d8show(T)})\n`;
   x.pos.forEach(r=>{const pi=poPendingItems(r.p);t+=`${fuPoTxt(r.p)}${r.bal>0?' ('+NUM(r.bal)+' pcs pending)':''}:\n`;
@@ -10390,7 +10746,7 @@ function askSelAll(on){document.querySelectorAll('#pos-list input[data-k]').forE
 function askSelClear(){ASK_UI.sel.clear();askSelAll(false);}
 function askHeadPaint(){document.querySelectorAll('#pos-list [data-s]').forEach(card=>{const h=card.querySelector('input[data-supsel]');if(!h)return;
   const cbs=[...card.querySelectorAll('input[data-k]')];h.checked=cbs.length>0&&cbs.every(c=>c.checked);h.indeterminate=!h.checked&&cbs.some(c=>c.checked);});}
-function askFoldAll(fold){ASK_UI.fold=new Set();if(fold)askBuild().forEach(x=>ASK_UI.fold.add(x.sup));posRender();}
+function askFoldAll(fold){ASK_UI.fold=new Set();ASK_UI.unfold=new Set();askBuild().forEach(x=>(fold?ASK_UI.fold:ASK_UI.unfold).add(x.sup));posRender();}
 function askBarPaint(){const el=document.getElementById('ask-bar');if(!el)return;
   const pos=askSelKeys('po').filter(id=>podocFind(id)),sh=askSelKeys('sh').filter(id=>v11ShipById(id));
   if(!pos.length&&!sh.length){el.style.display='none';el.innerHTML='';return;}
@@ -10421,14 +10777,18 @@ function posAskDad(){
   if(!navOK('buyer'))return `<div class="card"><div class="empty">Ask by supplier shows supplier names — Purchase team / Management only.</div></div>`;
   const T=t8();const all=askBuild();const q=ASK_UI.q.trim().toLowerCase();
   let list=all.filter(x=>ASK_UI.all?(x.openPos||x.ships.length):x.n);
+  // [V1.1.9 I1–I3] promise score, escalate first, discussed ones go to the bottom (folded)
+  const SP=new Map();list.forEach(x=>SP.set(x.sup,supPromise(x.sup)));
+  list.sort((a,b)=>(askDisc(a.sup)-askDisc(b.sup))||((SP.get(b.sup).escalate?1:0)-(SP.get(a.sup).escalate?1:0)));
   if(q)list=list.filter(x=>(x.sup+' '+x.pos.map(r=>fuNo(r.p)).join(' ')+' '+x.ships.map(r=>askShipNo(r.s)).join(' ')).toLowerCase().indexOf(q)>=0);
   // drop ticks that are no longer on screen
-  const onScreen=new Set();list.forEach(x=>{if(ASK_UI.fold.has(x.sup))return;x.pos.forEach(r=>onScreen.add('po:'+r.p.poId));x.ships.forEach(r=>onScreen.add('sh:'+r.s.shipmentId));});
+  const onScreen=new Set();list.forEach(x=>{if(askIsFold(x.sup))return;x.pos.forEach(r=>onScreen.add('po:'+r.p.poId));x.ships.forEach(r=>onScreen.add('sh:'+r.s.shipmentId));});
   [...ASK_UI.sel].forEach(k=>{if(!onScreen.has(k))ASK_UI.sel.delete(k);});
   const nAsk=all.reduce((a,x)=>a+x.n,0),nHigh=all.reduce((a,x)=>a+x.high,0),nSup=all.filter(x=>x.n).length,nCalls=all.reduce((a,x)=>a+x.calls,0);
+  const nDisc=all.filter(x=>x.n&&askDisc(x.sup)).length,nEsc=[...SP.values()].filter(x=>x.escalate).length;
   const head=`<div class="card" style="margin-bottom:12px">
     <div class="ovgrid" style="margin:0 0 8px">
-      <div class="card ovc" style="cursor:default"><div class="ovn">${nSup}</div><div class="ovl">Suppliers to discuss</div></div>
+      <div class="card ovc" style="cursor:default"><div class="ovn">${nSup}</div><div class="ovl">Suppliers to discuss</div>${nSup?`<div class="small muted">✓ ${nDisc} of ${nSup} discussed</div><div class="pbar" style="margin-top:4px"><i style="width:${Math.round(nDisc/nSup*100)}%"></i></div>`:''}${nEsc?`<div class="small" style="color:var(--non);font-weight:700;margin-top:3px">⚠ ${nEsc} to escalate</div>`:''}</div>
       <div class="card ovc" style="cursor:default;border-left:4px solid var(--non)"><div class="ovn" style="color:var(--non)">${nHigh}</div><div class="ovl">Urgent questions</div><div class="small muted vt-c-hide">no date · late · bill · shipped?</div></div>
       <div class="card ovc" style="cursor:default"><div class="ovn">${nAsk}</div><div class="ovl">All questions</div></div>
       <div class="card ovc" style="cursor:default;border-left:4px solid var(--ok)"><div class="ovn" style="color:var(--ok)">${nCalls}</div><div class="ovl">Answers logged today</div></div></div>
@@ -10473,15 +10833,19 @@ function posAskDad(){
       <div class="ask-act">
         ${k.includes('billgroup')?`<button class="btn sm" onclick="shfBill('${sid}','group')">✓ Bill is in the group</button><button class="btn ghost sm" onclick="shfBill('${sid}','personal')">📱 On personal phone</button>`:''}
         ${k.includes('billfwd')?`<button class="btn sm" onclick="shfBill('${sid}','group')">✓ Forwarded to the group</button>`:''}
-        ${(k.includes('lr')||k.includes('eta')||k.includes('shiplate'))?`<button class="btn ghost sm" onclick="v11ShipEdit('${sid}')" title="enter LR, transport, expected date or mark arrived">✎ Enter LR / date / arrived</button><button class="btn ghost sm" onclick="shfLater('${sid}',1)">Ask tomorrow</button>`:''}</div></div>`;};
-  return head+list.map(x=>{const fold=ASK_UI.fold.has(x.sup);const fake={supplier:x.sup};
-    return `<div class="card ask-card" data-s="${esc(x.sup)}" style="margin-bottom:10px;${x.high?'border-left:4px solid var(--non)':x.n?'border-left:4px solid var(--gst)':''}">
+        ${(k.includes('lr')||k.includes('eta')||k.includes('shiplate'))?`<button class="btn ghost sm" onclick="v11ShipEditForm('${sid}')" title="enter LR, transport or expected date">✎ Enter LR / date</button><button class="btn ghost sm" onclick="v11ShipEdit('${sid}')" title="open the shipment — mark arrived from there">📦 Open</button><button class="btn ghost sm" onclick="shfLater('${sid}',1)">Ask tomorrow</button>`:''}</div></div>`;};
+  return head+list.map(x=>{const fold=askIsFold(x.sup);const fake={supplier:x.sup};const sp=SP.get(x.sup),disc=askDisc(x.sup);
+    return `<div class="card ask-card${disc?' ask-disc':''}" data-s="${esc(x.sup)}" style="margin-bottom:10px;${sp.escalate?'border-left:4px solid var(--non);background:var(--non-soft,#fdf0ef)':x.high?'border-left:4px solid var(--non)':x.n?'border-left:4px solid var(--gst)':''}">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         ${fold?'':`<input type="checkbox" data-supsel="1" onchange="askSelSup(this)" title="tick everything of this supplier">`}
         <a class="linky" style="font-weight:800;font-size:1rem" onclick="askFold(this)">${fold?'▸':'▾'} ${esc(x.sup)}</a>
+        ${sp.escalate?`<span class="chip" style="background:#7f1d1d;color:#fff;border-color:transparent;font-size:.6rem" title="${esc(sp.why)}">⚠ Escalate — ${esc(sp.why)}</span>`:''}
+        ${disc?'<span class="chip ok" style="font-size:.6rem">✓ discussed</span>':''}
         ${x.high?`<span class="chip" style="background:var(--non);color:#fff;border-color:transparent;font-size:.6rem">${x.high} urgent</span>`:''}
         <span class="small muted">${x.n} question${x.n===1?'':'s'} · ${x.openPos} open PO${x.openPos===1?'':'s'}${x.pend?' · '+NUM(x.pend)+' pcs pending':''}${x.transit?' · '+x.transit+' in transit':''}${x.calls?' · ✓ '+x.calls+' answered today':''}</span>
+        ${supPromiseHTML(sp)}
         <span style="flex:1"></span>${supCallHtml(fake,true)}
+        <button class="btn ${disc?'ghost':''} sm" onclick="askDiscTog(this)" title="mark this supplier as done in today's meeting">${disc?'↺ Not discussed':'✓ Discussed'}</button>
         ${x.pos.length>1?`<button class="btn ghost sm" onclick="askLogAll(this)" title="one answer for all this supplier's POs">📞 One answer for all POs</button>`:''}
         <button class="btn ghost sm" onclick="askCopySup(this)" title="copy this supplier's questions for WhatsApp">📋 Copy</button></div>
       ${fold?'':x.pos.map(poBlock).join('')+x.ships.map(shipBlock).join('')}
@@ -10602,7 +10966,7 @@ function posToday(){const secs=todaySecs();const shown=secs.filter(s=>s.rows.len
   const head=`<div class="card" style="margin-bottom:12px"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
     <b>${esc(new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'}))}</b><span class="small muted">everything waiting, in workflow order · open POs only</span>
     <span style="flex:1"></span>${hot?`<span class="chip" style="background:var(--non);color:#fff;border-color:transparent">${hot} to chase today</span>`:''}
-    ${navOK('buyer')?`<button class="btn sm" onclick="navGo('today','askdad')">📞 Ask by supplier</button>`:''}</div>${tiles}</div>`;
+    ${navOK('buyer')?`<button class="btn sm" onclick="navGo('today','askdad')">📞 Ask by supplier</button>`:''}</div>${tiles}${sinceYesterdayHTML()}</div>`;
   if(!shown.length)return head+`<div class="card"><div class="empty">✅ Nothing waiting. ${PODOCS.length?'':'Sync the live sheet to load POs.'}</div></div>`;
   return head+shown.map(s=>{const all=TODAY_ALL.has(s.k),N=8,rows=all?s.rows:s.rows.slice(0,N);
     return `<div class="card" id="today-${s.k}" style="margin-bottom:10px;${s.rows.some(r=>r.cls==='hot')?'border-left:4px solid var(--non)':''}">
@@ -10661,14 +11025,14 @@ function posFuCal(){const T=t8();const ev=new Map();const put=(d,o)=>{const k=d<
     <span class="lane-toggle"><button class="${FUCAL_DAYS===7?'active':''}" onclick="FUCAL_DAYS=7;posRender()">7 days</button><button class="${FUCAL_DAYS===14?'active':''}" onclick="FUCAL_DAYS=14;posRender()">14 days</button><button class="${FUCAL_DAYS===30?'active':''}" onclick="FUCAL_DAYS=30;posRender()">30 days</button></span></div>${body}</div>`;}
 
 /* ---------- menu badges (counted at most every few seconds) ---------- */
-let NAV_BADGE={at:0,v:{}};
+let NAV_BADGE={at:0,v:{}};const VT_TITLE=document.title.replace(/^\(\d+\)\s*/,'');
 function navBadgeDirty(){NAV_BADGE.at=0;try{navPaint();}catch(e){}}
 function navBadges(){if(Date.now()-NAV_BADGE.at<4000)return NAV_BADGE.v;const v={};
   try{const secs=todaySecs();const n=k=>{const s=secs.find(x=>x.k===k);return s?s.rows.length:0;};
     v.today=secs.filter(s=>s.k!=='req').reduce((a,s)=>a+s.rows.length,0);v.req=n('req')?(typeof REQ!=='undefined'?REQ.filter(r=>reqStatus(r)==='pending').length:0):0;
     v.ships=n('shiplate');v.bills=n('readymi');
     v.askdad=navOK('buyer')?askBuild().filter(x=>x.n).length:0;}catch(e){}
-  NAV_BADGE={at:Date.now(),v};return v;}
+  NAV_BADGE={at:Date.now(),v};try{document.title=(v.today?'('+v.today+') ':'')+VT_TITLE;}catch(e){}return v;}   // [V1.1.9 I14]
 
 /* ===================== [V1.1.8 R66] SUPPLIER LEAD TIME & MOQ (per product × supplier) =====================
    Real lead time comes from the POs (sent → shipped, sent → arrived). The supplier-given lead time and MOQ are typed here.
@@ -10783,102 +11147,127 @@ function ovWeeks(n){const out=[];const m=ovWeekKey(t8());for(let i=n-1;i>=0;i--)
 function ovGo(go,extra){todayGo(go);if(extra)extra();}
 function ovShipFlag(k){navGo('ships');QV11.ships='';F11.ships.flags=[k];F11_OPEN=true;f11Save();v11ShipsRefresh();}
 function ovTileGo(label,val,sub,go,tone){return ovTile(label,val,sub,go?`todayGo('${go}')`:'',tone);}
+/* [V1.1.9 R76] every overview tile opens its list — click a line to open that shipment / bill (like the PO overview) */
+let OV11={};
+function ovReg(kind,o){OV11[kind]=o;return `ovDrill11('${kind}')`;}
+function ovTileD(kind,label,list,sub,tone,type,go,val){return ovTile(label,val!=null?val:list.length,sub,ovReg(kind,{title:label,list,type,go}),tone);}
+function ovShipRowHTML(x){const s=x.s||x;const st=v11ShipState(s),bc=v11ShipBillChip(s.shipmentId);
+  const q=v11ShipAllocs(s.shipmentId).reduce((a,y)=>a+(+y.qty||0),0);const e=dOnly(s.expected),late=!s.arrivedAt&&e&&e<t8();
+  return `<div class="ovrow" onclick="v11ShipEdit('${esc(s.shipmentId)}')">
+    <b class="mono small" style="min-width:140px">${esc(s.shipmentNo||s.shipmentId)}</b>
+    <span class="small" style="flex:1">${esc(v11SupLabel(s.supplier,v11ShipPos(s.shipmentId)))}</span>
+    <span class="small">${NUM(q)} nos</span>
+    <span class="small muted">shipped ${esc(d8show(dOnly(s.shipDate))||'—')}</span>
+    <span class="small" style="${late?'color:var(--non);font-weight:700':''}">${s.arrivedAt?'arrived '+esc(d8show(dOnly(s.arrivedAt))):(e?(late?'⚠ due ':'due ')+esc(d8show(e)):'no expected date')}</span>
+    ${x.extra?`<span class="small"><b>${esc(x.extra)}</b></span>`:''}
+    <span class="chip" style="font-size:.56rem;background:${S11_STATE_CHIP[st][1]};color:#fff;border-color:transparent">${S11_STATE_CHIP[st][0]}</span>
+    <span class="chip" style="font-size:.56rem;background:${bc[1]};color:#fff;border-color:transparent">${esc(bc[0])}</span>
+    <span class="small muted">open ›</span></div>`;}
+function ovBillRowHTML(x){const b=x.b||x;const g=v11BillStage(b);let t={};try{t=JSON.parse(b.totalsJson||'{}')||{};}catch(e){}
+  return `<div class="ovrow" onclick="v11BillOpen('${esc(b.billId)}')">
+    <b class="mono small" style="min-width:140px">${esc(b.billNo||b.billId)}</b>
+    <span class="small" style="flex:1">${esc(b.supplier||'')}${b.supBillG||b.supBillN?' · <span class="muted">'+esc([b.supBillG,b.supBillN].filter(Boolean).join(' / '))+'</span>':''}</span>
+    <span class="small">${INR2((+t.wTotal||0)+(+t.nTotal||0))}</span>
+    ${x.extra?`<span class="small"><b>${esc(x.extra)}</b></span>`:''}
+    <span class="chip" style="font-size:.56rem;background:${g.col};color:#fff;border-color:transparent">${esc(g.label)}</span>
+    <span class="small muted">open ›</span></div>`;}
+function ovDrill11(kind){const d=OV11[kind];if(!d)return;
+  const rows=d.list.map(x=>d.type==='bill'?ovBillRowHTML(x):ovShipRowHTML(x)).join('');
+  document.getElementById('ovd-title').textContent=d.title+' · '+d.list.length;
+  document.getElementById('ovd-body').innerHTML=(rows||'<div class="small muted" style="padding:12px">Nothing here right now.</div>')+
+    (d.go?`<div style="text-align:right;margin-top:8px"><a class="linky small" onclick="mClose('ovdrill-modal');todayGo('${d.go}')">open the full list with this filter →</a></div>`:'');
+  mOpen('ovdrill-modal');}
 function posShipOverview(){
-  const T=t8();const ships=(V11.shipments||[]).filter(s=>s.status!=='Cancelled');
+  const T=t8();const ships=(V11.shipments||[]).filter(s=>s.status!=='Cancelled');OV11={};
   const qty=s=>v11ShipAllocs(s.shipmentId).reduce((a,x)=>a+(+x.qty||0),0);
-  const transit=ships.filter(s=>!s.arrivedAt),arrived=ships.filter(s=>s.arrivedAt);
-  const over=ships.filter(s=>qv11Ok('ships',s,'overdue'));
+  const byExp=(a,b)=>String(dOnly(a.expected)||'9999').localeCompare(String(dOnly(b.expected)||'9999'));
+  const transit=ships.filter(s=>!s.arrivedAt).sort(byExp),arrived=ships.filter(s=>s.arrivedAt).sort((a,b)=>String(b.arrivedAt).localeCompare(String(a.arrivedAt)));
+  const over=ships.filter(s=>qv11Ok('ships',s,'overdue')).sort(byExp);
   const next7=transit.filter(s=>{const e=dOnly(s.expected);return e&&e>=T&&e<=d8add(T,6);});
   const noLr=transit.filter(s=>!String(s.lr||'').trim()&&!String(s.transport||'').trim());
   const noExp=transit.filter(s=>!dOnly(s.expected));
   const arrNoBill=ships.filter(s=>qv11Ok('ships',s,'arrnobill')),billNoArr=ships.filter(s=>qv11Ok('ships',s,'billnoarr'));
   const flags=ships.map(s=>({s,f:shfGet(s.shipmentId),bs:v11BillState(s.shipmentId)}));
-  const onPhone=flags.filter(x=>x.bs==='none'&&x.f.bill==='personal'),inGroup=flags.filter(x=>x.bs==='none'&&x.f.bill==='group');
+  const onPhone=flags.filter(x=>x.bs==='none'&&x.f.bill==='personal').map(x=>x.s),inGroup=flags.filter(x=>x.bs==='none'&&x.f.bill==='group').map(x=>x.s);
   const arr30=arrived.filter(s=>{const d=d8diff(dOnly(s.arrivedAt),T);return d!=null&&d<=30;});
-  const transitDays=arrived.map(s=>({s,d:d8diff(dOnly(s.shipDate),dOnly(s.arrivedAt))})).filter(x=>x.d!=null&&x.d>=0&&d8diff(dOnly(x.s.arrivedAt),T)<=180);
+  const trans=arrived.map(s=>({s,d:d8diff(dOnly(s.shipDate),dOnly(s.arrivedAt))})).filter(x=>x.d!=null&&x.d>=0&&d8diff(dOnly(x.s.arrivedAt),T)<=180).map(x=>Object.assign(x,{extra:x.d+' d in transit'}));
+  const openAll=ships.filter(s=>!(s.arrivedAt&&v11BillState(s.shipmentId)!=='none'));
   const ops=v11IsOps();
+  const avg=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length*10)/10:null;
   const weeks=ovWeeks(8);const wk=new Map(weeks.map(w=>[w,0]));arrived.forEach(s=>{const k=ovWeekKey(dOnly(s.arrivedAt));if(wk.has(k))wk.set(k,wk.get(k)+1);});
   const exp7=[];for(let i=0;i<7;i++){const d=d8add(T,i);exp7.push({label:d.slice(5),v:transit.filter(s=>dOnly(s.expected)===d).length});}
-  const bySup=new Map();ships.forEach(s=>{const k=s.supplier||'—';const o=bySup.get(k)||{sup:k,transit:0,over:0,arr90:0,days:[],nobill:0};
-    if(!s.arrivedAt)o.transit++;if(qv11Ok('ships',s,'overdue'))o.over++;if(qv11Ok('ships',s,'arrnobill'))o.nobill++;
-    if(s.arrivedAt&&d8diff(dOnly(s.arrivedAt),T)<=90){o.arr90++;const d=d8diff(dOnly(s.shipDate),dOnly(s.arrivedAt));if(d!=null&&d>=0)o.days.push(d);}bySup.set(k,o);});
-  const supRows=[...bySup.values()].filter(o=>o.transit||o.over||o.arr90||o.nobill).sort((a,b)=>(b.over-a.over)||(b.transit-a.transit)||a.sup.localeCompare(b.sup));
-  const avg=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length*10)/10:null;
-  const soon=transit.slice().sort((a,b)=>String(dOnly(a.expected)||'9999').localeCompare(String(dOnly(b.expected)||'9999'))).slice(0,8);
-  const link=s=>`<a class="linky mono" style="font-weight:700" onclick="v11ShipEdit('${esc(s.shipmentId)}')">${esc(s.shipmentNo||s.shipmentId)}</a>`;
+  const bySup=new Map();ships.forEach(s=>{const k=s.supplier||'—';const o=bySup.get(k)||{sup:k,transit:[],over:[],arr90:[],days:[],nobill:[]};
+    if(!s.arrivedAt)o.transit.push(s);if(qv11Ok('ships',s,'overdue'))o.over.push(s);if(qv11Ok('ships',s,'arrnobill'))o.nobill.push(s);
+    if(s.arrivedAt&&d8diff(dOnly(s.arrivedAt),T)<=90){o.arr90.push(s);const d=d8diff(dOnly(s.shipDate),dOnly(s.arrivedAt));if(d!=null&&d>=0)o.days.push(d);}bySup.set(k,o);});
+  const supRows=[...bySup.values()].filter(o=>o.transit.length||o.over.length||o.arr90.length||o.nobill.length).sort((a,b)=>(b.over.length-a.over.length)||(b.transit.length-a.transit.length)||a.sup.localeCompare(b.sup));
+  const cell=(kind,title,list,tone)=>list.length?`<a class="linky" style="${tone||''}" onclick="${ovReg(kind,{title,list,type:'ship'})}">${list.length}</a>`:'·';
+  const soon=transit.slice(0,8);
   return `<div class="ovgrid">
-      ${ovTileGo('In transit',transit.length,NUM(transit.reduce((a,s)=>a+qty(s),0))+' nos on the way','ships:toarrive',transit.length?'#2563eb':'')}
-      ${ovTileGo('Overdue',over.length,'past the expected date','ships:overdue',over.length?'var(--non)':'')}
-      ${ovTile('Arriving in 7 days',next7.length,'by expected date',`todayGo('ships:toarrive')`)}
-      ${ovTile('No LR / transport',noLr.length,'in transit, nothing recorded',`ovShipFlag('nolr')`,noLr.length?'#B8893A':'')}
-      ${ovTile('No expected date',noExp.length,'in transit',`todayGo('ships:toarrive')`,noExp.length?'#B8893A':'')}
-      ${ovTileGo('Arrived, not on a bill',arrNoBill.length,'enter the bill','ships:arrnobill',arrNoBill.length?'#5B4B8A':'')}
-      ${ovTileGo('Billed, not arrived',billNoArr.length,'bill prepared before arrival','ships:billnoarr')}
-      ${ovTile('Arrived — last 30 days',arr30.length,NUM(arr30.reduce((a,s)=>a+qty(s),0))+' nos',`todayGo('ships:all')`,'var(--ok)')}
-      ${ovTile('Bill on a personal phone',onPhone.length,'forward it to the group',navOK('buyer')?`navGo('today','askdad')`:'',onPhone.length?'var(--non)':'')}
-      ${ovTile('Bill in the group, not entered',inGroup.length,'enter it in Bills',navOK('buyer')?`navGo('bills')`:'')}
-      ${ovTile('Average transit',avg(transitDays.map(x=>x.d))!=null?avg(transitDays.map(x=>x.d))+' d':'—','ship date → arrival · last 6 months','')}
-      ${ovTile('Shipments open',ships.filter(s=>!(s.arrivedAt&&v11BillState(s.shipmentId)!=='none')).length,'not arrived, or arrived without a bill','')}
+      ${ovTileD('tr','In transit',transit,NUM(transit.reduce((a,s)=>a+qty(s),0))+' nos on the way',transit.length?'#2563eb':'','ship','ships:toarrive')}
+      ${ovTileD('ov','Overdue',over,'past the expected date',over.length?'var(--non)':'','ship','ships:overdue')}
+      ${ovTileD('n7','Arriving in 7 days',next7,'by expected date','','ship')}
+      ${ovTileD('nolr','No LR / transport',noLr,'in transit, nothing recorded',noLr.length?'#B8893A':'','ship')}
+      ${ovTileD('noexp','No expected date',noExp,'in transit',noExp.length?'#B8893A':'','ship')}
+      ${ovTileD('anb','Arrived, not on a bill',arrNoBill,'enter the bill',arrNoBill.length?'#5B4B8A':'','ship','ships:arrnobill')}
+      ${ovTileD('bna','Billed, not arrived',billNoArr,'bill prepared before arrival','','ship','ships:billnoarr')}
+      ${ovTileD('a30','Arrived — last 30 days',arr30,NUM(arr30.reduce((a,s)=>a+qty(s),0))+' nos','var(--ok)','ship')}
+      ${ovTileD('ph','Bill on a personal phone',onPhone,'forward it to the group',onPhone.length?'var(--non)':'','ship')}
+      ${ovTileD('grp','Bill in the group, not entered',inGroup,'enter it in Bills','','ship')}
+      ${ovTileD('avg','Average transit',trans,'ship date → arrival · last 6 months · click for each','','ship',null,avg(trans.map(x=>x.d))!=null?avg(trans.map(x=>x.d))+' d':'—')}
+      ${ovTileD('open','Shipments open',openAll,'not arrived, or arrived without a bill','','ship')}
     </div>
     <div class="card" style="margin-top:12px"><b class="small">Arrivals</b>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:8px">
         <div><div class="small muted" style="margin-bottom:4px">Shipments arrived per week (last 8 weeks)</div>${svgBars(weeks.map(w=>({label:w.slice(5),v:wk.get(w)})),{color:'var(--ok)',h:110})}</div>
         <div><div class="small muted" style="margin-bottom:4px">Expected to arrive — next 7 days</div>${svgBars(exp7,{color:'#2563eb',h:110})}</div></div></div>
-    ${soon.length?`<div class="card" style="margin-top:12px"><b class="small">Arriving next</b>${soon.map(s=>{const e=dOnly(s.expected),late=e&&e<T;
-      return `<div style="display:flex;gap:10px;align-items:center;padding:4px 0;border-top:1px dashed var(--line-2)">${link(s)}<span class="small muted">${esc(v11SupLabel(s.supplier,v11ShipPos(s.shipmentId)))}</span>
-        <span class="small" style="flex:1">${NUM(qty(s))} nos · shipped ${esc(d8show(dOnly(s.shipDate))||'—')}${s.lr?' · LR '+esc(s.lr):''}</span>
-        <span class="small" style="${late?'color:var(--non);font-weight:700':''}">${e?(late?'⚠ was due ':'due ')+esc(d8show(e)):'no expected date'}</span></div>`;}).join('')}</div>`:''}
-    ${!ops&&supRows.length?`<div class="card" style="margin-top:12px;overflow:auto"><b class="small">By supplier</b><table style="margin-top:6px"><thead><tr><th>Supplier</th><th class="r">In transit</th><th class="r">Overdue</th><th class="r">Arrived, no bill</th><th class="r">Arrived (90 d)</th><th class="r">Avg transit</th></tr></thead><tbody>
-      ${supRows.map(o=>`<tr><td class="small">${esc(o.sup)}</td><td class="r num">${o.transit||'·'}</td><td class="r num" style="${o.over?'color:var(--non);font-weight:700':''}">${o.over||'·'}</td><td class="r num">${o.nobill||'·'}</td><td class="r num">${o.arr90||'·'}</td><td class="r num">${avg(o.days)!=null?avg(o.days)+' d':'·'}</td></tr>`).join('')}</tbody></table></div>`:''}`;}
+    ${soon.length?`<div class="card" style="margin-top:12px"><b class="small">Arriving next</b><div style="margin-top:4px">${soon.map(ovShipRowHTML).join('')}</div></div>`:''}
+    ${!ops&&supRows.length?`<div class="card" style="margin-top:12px;overflow:auto"><b class="small">By supplier</b> <span class="small muted">— click a number for the list</span><table style="margin-top:6px"><thead><tr><th>Supplier</th><th class="r">In transit</th><th class="r">Overdue</th><th class="r">Arrived, no bill</th><th class="r">Arrived (90 d)</th><th class="r">Avg transit</th></tr></thead><tbody>
+      ${supRows.map((o,i)=>`<tr><td class="small">${esc(o.sup)}</td><td class="r num">${cell('st'+i,o.sup+' · in transit',o.transit)}</td><td class="r num">${cell('so'+i,o.sup+' · overdue',o.over,'color:var(--non);font-weight:700')}</td><td class="r num">${cell('sn'+i,o.sup+' · arrived, no bill',o.nobill)}</td><td class="r num">${cell('sa'+i,o.sup+' · arrived (90 d)',o.arr90)}</td><td class="r num">${avg(o.days)!=null?avg(o.days)+' d':'·'}</td></tr>`).join('')}</tbody></table></div>`:''}`;}
 function posBillOverview(){
   if(!navOK('buyer'))return `<div class="card"><div class="empty">Bills — Purchase team / Management only.</div></div>`;
-  const T=t8();const bills=V11.bills||[];const st=b=>v11BillStage(b).key;
+  const T=t8();const bills=V11.bills||[];const st=b=>v11BillStage(b).key;OV11={};
   const tot=b=>{try{const t=JSON.parse(b.totalsJson||'{}')||{};return {w:+t.wTotal||0,n:+t.nTotal||0};}catch(e){return {w:0,n:0};}};
   const inr=v=>'₹'+Math.round(v).toLocaleString('en-IN');
-  const k=key=>bills.filter(b=>qv11Ok('bills',b,key));
+  const age=b=>d8diff(dOnly(b.readyAt)||dOnly(b.billDate)||dOnly(b.createdAt),T);
+  const k=key=>bills.filter(b=>qv11Ok('bills',b,key)).map(b=>({b,extra:age(b)!=null?age(b)+' d':''})).sort((a,b)=>(age(b.b)||0)-(age(a.b)||0));
   const open=bills.filter(b=>st(b)!=='billed');
   const vOpen=open.reduce((a,b)=>{const t=tot(b);return {w:a.w+t.w,n:a.n+t.n};},{w:0,n:0});
   const mStart=T.slice(0,8)+'01';
   const billedM=bills.filter(b=>st(b)==='billed'&&dOnly(b.vasyAt)>=mStart);
   const vBilledM=billedM.reduce((a,b)=>{const t=tot(b);return a+t.w+t.n;},0);
-  const age=b=>d8diff(dOnly(b.readyAt)||dOnly(b.billDate)||dOnly(b.createdAt),T);
-  const waitMI=k('readymi');const oldestMI=waitMI.map(age).filter(x=>x!=null).sort((a,b)=>b-a)[0];
-  // arrival → Vasy bill speed (billed bills, last 90 days)
+  const waitMI=k('readymi');const oldestMI=waitMI.map(x=>age(x.b)).filter(x=>x!=null).sort((a,b)=>b-a)[0];
   const speed=bills.filter(b=>st(b)==='billed'&&d8diff(dOnly(b.vasyAt),T)<=90).map(b=>{const a=qv11Bill(b).sids.map(id=>dOnly((v11ShipById(id)||{}).arrivedAt)).filter(Boolean).sort();
-    return a.length?d8diff(a[a.length-1],dOnly(b.vasyAt)):null;}).filter(x=>x!=null&&x>=0);
+    return {b,d:a.length?d8diff(a[a.length-1],dOnly(b.vasyAt)):null};}).filter(x=>x.d!=null&&x.d>=0).map(x=>Object.assign(x,{extra:x.d+' d arrival → bill'}));
   const avg=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length*10)/10:null;
   const weeks=ovWeeks(8);const wk=new Map(weeks.map(w=>[w,0]));bills.forEach(b=>{if(st(b)!=='billed')return;const kk=ovWeekKey(dOnly(b.vasyAt));if(wk.has(kk))wk.set(kk,wk.get(kk)+1);});
   const mix=[['draft','Draft','#6B6359'],['ready','Ready','#B8893A'],['mi','MI done','#2563eb'],['partbilled','Part billed','#7FA3D8'],['billed','Billed (this month)','#5FA983']]
     .map(([key,l,c])=>({l,c,v:key==='billed'?billedM.length:bills.filter(b=>st(b)===key).length})).filter(x=>x.v>0);
   const mixBar=mix.length?`<div style="display:flex;height:20px;border-radius:6px;overflow:hidden">${mix.map(d=>`<div style="flex:${d.v};background:${d.c}" title="${d.l}: ${d.v}"></div>`).join('')}</div>
     <div class="small muted" style="margin-top:4px;display:flex;gap:12px;flex-wrap:wrap">${mix.map(d=>`<span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${d.c};margin-right:3px"></i>${d.l} ${d.v}</span>`).join('')}</div>`:'<div class="small muted">No bills yet.</div>';
-  const bySup=new Map();open.forEach(b=>{const s=b.supplier||'—';const o=bySup.get(s)||{s,n:0,v:0,old:0};o.n++;const t=tot(b);o.v+=t.w+t.n;o.old=Math.max(o.old,age(b)||0);bySup.set(s,o);});
+  const bySup=new Map();open.forEach(b=>{const s=b.supplier||'—';const o=bySup.get(s)||{s,list:[],v:0,old:0};o.list.push({b,extra:(age(b)||0)+' d'});const t=tot(b);o.v+=t.w+t.n;o.old=Math.max(o.old,age(b)||0);bySup.set(s,o);});
   const supRows=[...bySup.values()].sort((a,b)=>b.v-a.v);
-  const oldest=open.slice().sort((a,b)=>(age(b)||0)-(age(a)||0)).slice(0,8);
+  const oldest=open.slice().sort((a,b)=>(age(b)||0)-(age(a)||0)).slice(0,8).map(b=>({b,extra:(age(b)||0)+' d'}));
+  const openL=open.map(b=>({b,extra:(age(b)||0)+' d'}));
+  const noBillShips=(V11.shipments||[]).filter(s=>s.status!=='Cancelled'&&v11BillState(s.shipmentId)==='none');
   return `<div class="ovgrid">
-      ${ovTileGo('Draft',k('draft').length,'still being entered','bills:draft')}
-      ${ovTileGo('Ready — goods not arrived',k('readywait').length,'prepared before arrival','bills:readywait')}
-      ${ovTileGo('Ready → upload MI',waitMI.length,oldestMI!=null?'oldest waiting '+oldestMI+' d':'goods are here','bills:readymi',waitMI.length?'#B8893A':'')}
-      ${ovTileGo('MI done → Vasy bill',k('mi').length,'record the Vasy bill no.','bills:mi',k('mi').length?'#2563eb':'')}
-      ${ovTileGo('Recheck qty',k('recheck').length,'bill more than shipment','bills:recheck',k('recheck').length?'var(--non)':'')}
-      ${ovTileGo('Billed this month',billedM.length,inr(vBilledM),'bills:billed','var(--ok)')}
-    </div>
-    <div class="ovgrid" style="margin-top:10px">
-      ${ovTile('Open bill value (w)',inr(vOpen.w),'not yet billed in Vasy',`todayGo('bills:')`)}
-      ${ovTile('Open bill value (wo)',inr(vOpen.n),'not yet billed in Vasy',`todayGo('bills:')`)}
-      ${ovTile('Arrival → Vasy bill',avg(speed)!=null?avg(speed)+' d':'—','average · last 90 days','')}
-      ${ovTile('Shipments with no bill',(V11.shipments||[]).filter(s=>s.status!=='Cancelled'&&v11BillState(s.shipmentId)==='none').length,'in transit or arrived',`todayGo('ships:arrnobill')`)}
+      ${ovTileD('bd','Draft',k('draft'),'still being entered','','bill','bills:draft')}
+      ${ovTileD('brw','Ready — goods not arrived',k('readywait'),'prepared before arrival','','bill','bills:readywait')}
+      ${ovTileD('brm','Ready → upload MI',waitMI,oldestMI!=null?'oldest waiting '+oldestMI+' d':'goods are here',waitMI.length?'#B8893A':'','bill','bills:readymi')}
+      ${ovTileD('bmi','MI done → Vasy bill',k('mi'),'record the Vasy bill no.',k('mi').length?'#2563eb':'','bill','bills:mi')}
+      ${ovTileD('brc','Recheck qty',k('recheck'),'bill more than shipment',k('recheck').length?'var(--non)':'','bill','bills:recheck')}
+      ${ovTileD('bbm','Billed this month',billedM,inr(vBilledM),'var(--ok)','bill','bills:billed')}
+      ${ovTileD('bvw','Open bill value (w)',openL,'not yet billed in Vasy','','bill','bills:',inr(vOpen.w))}
+      ${ovTileD('bvn','Open bill value (wo)',openL,'not yet billed in Vasy','','bill','bills:',inr(vOpen.n))}
+      ${ovTileD('bsp','Arrival → Vasy bill',speed,'average · last 90 days · click for each','','bill',null,avg(speed.map(x=>x.d))!=null?avg(speed.map(x=>x.d))+' d':'—')}
+      ${ovTileD('bns','Shipments with no bill',noBillShips,'in transit or arrived','','ship','ships:arrnobill')}
     </div>
     <div class="card" style="margin-top:12px"><b class="small">Bill pipeline</b>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:8px">
         <div><div class="small muted" style="margin-bottom:4px">Where the bills are</div>${mixBar}</div>
         <div><div class="small muted" style="margin-bottom:4px">Bills completed in Vasy per week (last 8 weeks)</div>${svgBars(weeks.map(w=>({label:w.slice(5),v:wk.get(w)})),{color:'var(--ok)',h:110})}</div></div></div>
-    ${oldest.length?`<div class="card" style="margin-top:12px"><b class="small">Oldest open bills</b>${oldest.map(b=>{const t=tot(b),a=age(b);
-      return `<div style="display:flex;gap:10px;align-items:center;padding:4px 0;border-top:1px dashed var(--line-2)"><a class="linky mono" style="font-weight:700" onclick="v11BillOpen('${esc(b.billId)}')">${esc(b.billNo||b.billId)}</a>
-        <span class="small muted">${esc(b.supplier||'')}</span><span class="small" style="flex:1">${esc(v11BillStage(b).label)} · ${inr(t.w+t.n)}${a!=null?' · '+a+' d':''}</span>
-        <button class="btn ghost sm" onclick="v11BillOpen('${esc(b.billId)}')">${esc(v11BillNext(b).label)}</button></div>`;}).join('')}</div>`:''}
-    ${supRows.length?`<div class="card" style="margin-top:12px;overflow:auto"><b class="small">Open bills by supplier</b><table style="margin-top:6px"><thead><tr><th>Supplier</th><th class="r">Open bills</th><th class="r">Value</th><th class="r">Oldest</th></tr></thead><tbody>
-      ${supRows.map(o=>`<tr><td class="small">${esc(o.s)}</td><td class="r num">${o.n}</td><td class="r num">${inr(o.v)}</td><td class="r num">${o.old} d</td></tr>`).join('')}</tbody></table></div>`:''}`;}
+    ${oldest.length?`<div class="card" style="margin-top:12px"><b class="small">Oldest open bills</b><div style="margin-top:4px">${oldest.map(ovBillRowHTML).join('')}</div></div>`:''}
+    ${supRows.length?`<div class="card" style="margin-top:12px;overflow:auto"><b class="small">Open bills by supplier</b> <span class="small muted">— click a number for the list</span><table style="margin-top:6px"><thead><tr><th>Supplier</th><th class="r">Open bills</th><th class="r">Value</th><th class="r">Oldest</th></tr></thead><tbody>
+      ${supRows.map((o,i)=>`<tr><td class="small">${esc(o.s)}</td><td class="r num"><a class="linky" onclick="${ovReg('bs'+i,{title:o.s+' · open bills',list:o.list,type:'bill'})}">${o.list.length}</a></td><td class="r num">${inr(o.v)}</td><td class="r num">${o.old} d</td></tr>`).join('')}</tbody></table></div>`:''}`;}
 
 /* ===================== [V1.1.7 R49 phase 1] WORKFLOW MENU =====================
    POs (Requests · New PO · All POs) → Shipments → Bills → Track → Analyse.
@@ -10889,14 +11278,15 @@ function navOK(need){const m=navWho();
   if(need==='buyer')return m==='followup'||m==='mgmt';
   if(need==='mgmt')return m==='mgmt';
   if(need==='intel')return typeof acIntelOn==='function'&&acIntelOn();
+  if(need==='edit')return !VT_VIEW;
   return true;}
 const NAV_G=[
   {g:'today',label:'🏠 Today',items:[{k:'today',label:'Today',s:'pos',v:'today'},{k:'askdad',label:'📞 Ask by supplier',s:'pos',v:'askdad',need:'buyer'},{k:'fucal',label:'Follow-up calendar',s:'pos',v:'fucal'}]},   // [V1.1.8]
-  {g:'pos',label:'📋 POs',items:[{k:'poov',label:'Overview',s:'pos',v:'dash'},{k:'requests',label:'Requests',s:'requests'},{k:'newpo',label:'＋ New PO',s:'po'},{k:'allpos',label:'All POs',s:'pos',v:'allpos',def:true}]},
+  {g:'pos',label:'📋 POs',items:[{k:'poov',label:'Overview',s:'pos',v:'dash'},{k:'requests',label:'Requests',s:'requests'},{k:'newpo',label:'＋ New PO',s:'po',need:'edit'},{k:'allpos',label:'All POs',s:'pos',v:'allpos',def:true}]},
   {g:'ships',label:'🚚 Shipments',items:[{k:'shipov',label:'Overview',s:'pos',v:'shipov'},{k:'ships',label:'Shipments',s:'ships',sv:'ships',def:true}]},
   {g:'bills',label:'🧾 Bills',need:'buyer',items:[{k:'billov',label:'Overview',s:'pos',v:'billov'},{k:'bills',label:'Bills',s:'ships',sv:'bills',def:true}]},
   {g:'track',label:'🔎 Track',items:[{k:'brief',label:'Daily brief',s:'pos',v:'brief',need:'mgmt'},{k:'kanban',label:'Board',s:'pos',v:'kanban'},
-    {k:'product',label:'By product',s:'pos',v:'product'},{k:'goods',label:'Goods check',s:'pos',v:'goods'}]},
+    {k:'product',label:'By product',s:'pos',v:'product'},{k:'goods',label:'Goods check',s:'pos',v:'goods'},{k:'fix',label:'🧹 Fix list',s:'pos',v:'fixlist'}]},
   {g:'analyse',label:'📊 Analyse',need:'buyer',items:[{k:'fund',label:'Fund planning',s:'pos',v:'fund',need:'buyer'},{k:'history',label:'PO History (closed)',s:'pos',v:'history',need:'buyer'},
     {k:'analytics',label:'PO analytics',s:'pos',v:'analytics',need:'mgmt'},{k:'dashboard',label:'Register · Dashboard',s:'dashboard',need:'intel'},
     {k:'search',label:'Register · Search',s:'search',need:'intel'},{k:'fulldata',label:'Register · Full data',s:'fulldata',need:'intel'},{k:'supterms',label:'Lead time & MOQ',s:'pos',v:'supterms',need:'buyer'}]}];   // [V1.1.8 R66] MOQ/EOQ Levels removed from the menu
@@ -10904,7 +11294,7 @@ let NAV_CUR={g:'',k:''}, NAV_BUSY=false;
 function navItem(g,k){const G=NAV_G.find(x=>x.g===g);return G&&G.items.find(i=>i.k===k);}
 function navTitle(){const G=NAV_G.find(x=>x.g===NAV_CUR.g),it=navItem(NAV_CUR.g,NAV_CUR.k);if(!G||!it)return;
   const h=document.querySelector('#scr-pos h2.sect');if(h&&it.s==='pos'){
-    const sub={dash:'POs at a glance — click a tile for the list',shipov:'shipments at a glance — click a tile for the list',billov:'bills at a glance — click a tile for the list',today:'everything waiting, in workflow order',askdad:'for the daily meeting — what to ask each supplier today · tick several to answer together',fucal:'next follow-ups, to-dos, promised dates and arrivals, day by day',supterms:'lead time and MOQ for each product × supplier',allpos:'open POs — send, chase, ship, close · closed POs are in Analyse › PO History',fund:'value of open POs — finance & purchase planning',history:'closed POs',analytics:'purchase analytics',goods:'what is still coming — no supplier, no rate'}[it.v]||'open POs only';
+    const sub={fixlist:'missing dates, numbers and prices — fix them before they slow the work down',dash:'POs at a glance — click a tile for the list',shipov:'shipments at a glance — click a tile for the list',billov:'bills at a glance — click a tile for the list',today:'everything waiting, in workflow order',askdad:'for the daily meeting — what to ask each supplier today · tick several to answer together',fucal:'next follow-ups, to-dos, promised dates and arrivals, day by day',supterms:'lead time and MOQ for each product × supplier',allpos:'open POs — send, chase, ship, close · closed POs are in Analyse › PO History',fund:'value of open POs — finance & purchase planning',history:'closed POs',analytics:'purchase analytics',goods:'what is still coming — no supplier, no rate'}[it.v]||'open POs only';
     h.innerHTML=((G.g==='pos'||G.g==='today')?'':G.label.replace(/^\S+\s/,'')+' · ')+it.label+` <span class="sub">${sub}</span>`;}
   const hs=document.querySelector('#scr-ships h2.sect');if(hs&&it.s==='ships')hs.innerHTML=it.sv==='bills'
     ?'Bills <span class="sub">prepare before or after the goods arrive · Vasy MI and bill numbers · locked once a Vasy number is recorded</span>'
@@ -10979,13 +11369,13 @@ liveLoadCfg();
 // [OPS-MODE] enter without a register — PO Request + PO Builder on the synced master only
 function enterOps(){
   REGISTER_LOADED=false;
-  VT_MODE='ops';acApply();if(typeof posControlsRender==='function')posControlsRender();
+  VT_MODE='ops';acBootView();acApply();if(typeof posControlsRender==='function')posControlsRender();
   window.__rendered=true;
   document.getElementById('btn-reload').style.display='none';
   document.getElementById('pill-range').innerHTML='<b>Operations / Purchase team</b> · no register loaded';
   outboxLoad();const hadSession=loadSession();reqLoadState();
   poRender();posRender();
-  try{navGo('today','today');}catch(e){switchScreen('requests');}   // [V1.1.8] land on Today
+  try{if(VT_VIEW)navGo('track','goods');else navGo('today','today');}catch(e){switchScreen('requests');}   // [V1.1.8] land on Today · [V1.1.9] View only → Goods check
   const rb=document.getElementById('req-body');if(rb)rb.style.display='block';
   if(liveConnected()){liveRenderConn();liveSync();}
   toast('Operations mode — connect your live sheet to load products & requests. Upload the register any time for full intelligence.');

@@ -44,7 +44,7 @@ V1.1.1 onwards were tested in simulation first, then on a separate trial deploym
 
 ## Current next items
 
-0. R49 dashboard restructure — phases 1 (V1.1.7) and 3 (V1.1.8: Today, Ask dad by supplier, answer log, follow-up calendar, Lead time & MOQ, simpler All POs panel) built, local only; phase 4 (V1.1.9) next; the owner tests 1+3+4 together; phase 2 (server PIN for Operations, View-only mode) only after approval.
+0. R49 dashboard restructure — ALL phases built, local only: 1 (V1.1.7), 3 (V1.1.8 / 8b), 2 + 4 (V1.1.9 + server 2.8: View only, Operations PIN, audited edit history, view-first shipment / bill windows, overview drill lists, Board redesign, the 12 picked speed-ups). Waiting for the owner's combined LIVE test → then fill the V1.1.7–V1.1.9 register placeholders and push.
 0. R50 Apps Script clean-up — owner action.
 1. R41 — product charge insight should also read V1.1 bill charges.
 2. V1.1-06 — line-level Goods Check / receipt with rejections (replaces the interim "Mark arrived").

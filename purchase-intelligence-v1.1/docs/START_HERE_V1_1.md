@@ -28,7 +28,7 @@ This repository is the memory. Do not rely on any earlier chat.
 | ProductsApi | `apps-script/ProductsApi.js` | Products tab from Supabase, master fallback |
 | ShipmentTools | `apps-script/ShipmentTools.js` | correct product, lot conversion + undo, speed check |
 
-Script Properties (values never in Git): `VT_API_TOKEN`, `VT_SB_KEY`, `VT_PIN_SALT`, `VT_PIN_FOLLOW`, `VT_PIN_MGMT`, `V11_LOT_LOCK=on`, `V11_PRODUCTS_SB=on`, `V11_SEQ_*` counters, `V11_CONV_CODEFIX`.
+Script Properties (values never in Git): `VT_API_TOKEN`, `VT_SB_KEY`, `VT_PIN_SALT`, `VT_PIN_OPS` (2.8), `VT_PIN_FOLLOW`, `VT_PIN_MGMT`, `V11_LOT_LOCK=on`, `V11_PRODUCTS_SB=on`, `V11_SEQ_*` counters, `V11_CONV_CODEFIX`.
 
 ## 3. How the owner works (must follow)
 
@@ -48,6 +48,6 @@ Script Properties (values never in Git): `VT_API_TOKEN`, `VT_SB_KEY`, `VT_PIN_SA
 ## 5. Current state (keep this short and current)
 
 - LIVE: V1.1.6 · server 2.7 · products 1.2 (deployment version 7, 13 Oct 2026).
-- Built, not yet LIVE: V1.1.7 (restructure phase 1) and V1.1.8 (phase 3 — Today, Ask dad, Lead time & MOQ) — dashboard file only.
+- Built, not yet LIVE: V1.1.7 (phase 1), V1.1.8 / 8b (phase 3) and V1.1.9 + server 2.8 (phases 2 + 4). Server 2.8 = LiveApi 7.2 + ShipmentApi + BillApi.
 - In progress: see the top of `PROJECT_STATE.md` → "Current next items".
 - Restructure plan v3 approved in principle: `DASHBOARD_STRUCTURE_PROPOSAL.md` (R49, phases 1–4; four modes R56; closed POs only in Analyse R57; bills before or after arrival R58).

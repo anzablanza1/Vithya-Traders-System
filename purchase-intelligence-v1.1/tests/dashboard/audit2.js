@@ -7,7 +7,7 @@ const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole:vc,url:'https:
   beforeParse(w){w.alert=()=>{};w.confirm=()=>false;w.prompt=()=>null;w.open=()=>null;w.scrollTo=()=>{};
     w.addEventListener('unhandledrejection',e=>pageErrs.push('promise: '+String(e.reason&&e.reason.message||e.reason)));}});
 const w=dom.window;const ev=c=>w.eval(c);
-const SETUP=`document.querySelectorAll('.modal-bg.on').forEach(m=>m.classList.remove('on'));MODAL_STACK=[];VT_LIVE.url='https://x';VT_LIVE.token='t';VT_MODE='mgmt';
+const SETUP=`VT_VIEW=false;document.body.classList.remove('vt-view');document.querySelectorAll('.modal-bg.on').forEach(m=>m.classList.remove('on'));MODAL_STACK=[];VT_LIVE.url='https://x';VT_LIVE.token='t';VT_MODE='mgmt';
   vtApiPost=async b=>({ok:true,v11data:{ok:true,shipments:V11.shipments,shipAllocs:V11.allocs,bills:V11.bills,billLines:V11.billLines}});liveSync=async()=>{};
   XLSX={utils:{book_new:()=>({}),aoa_to_sheet:()=>({}),book_append_sheet:()=>{},json_to_sheet:()=>({}),sheet_to_json:()=>[]},writeFile:()=>{},write:()=>''};
   PRODUCTS=new Map([['111',{name:'Bearing 6203',gstPrice:10,nonPrice:9,gstMrp:70,nonMrp:59,gstSp:58,nonSp:49,unit:'nos',gstPct:18}],['222',{name:'Oil seal 30x58',gstPrice:3,nonPrice:3,gstMrp:9,nonMrp:9}]]);
@@ -41,6 +41,16 @@ const CTX=[
  ['Bills overview',`navGo('bills','billov')`],
  ['POs overview',`navGo('pos','poov')`],
  ['Condensed · Today',`setDensity('condensed');navGo('today','today')`],
+ ['View only · All POs',`localStorage.setItem('vt_ops_ok','x');VT_SEC.opsHash='h';acEnterView();navGo('pos','allpos')`],
+ ['View only · Today',`VT_VIEW=true;acApply();navGo('today','today')`],
+ ['Shipment view',`VT_VIEW=false;v11ShipEdit('S1')`],
+ ['Shipment view (expanded + history)',`VT_VIEW=false;v11ShipEdit('S2');v11SvAll(true);S11V.hist={ok:true,history:[{at:'x',user:'u',action:'SHIPMENT_UPSERT',oldV:'updated',note:'n'}]};v11ShipViewPaint()`],
+ ['Bill view',`VT_VIEW=false;v11BillOpen('B1')`],
+ ['Bill edit',`VT_VIEW=false;v11BillOpen('B1');v11BillEdit()`],
+ ['Board',`VT_VIEW=false;navGo('track','kanban')`],
+ ['Fix list',`VT_VIEW=false;navGo('track','fix')`],
+ ['Menu search open',`VT_VIEW=false;vtQRun('sh')`],
+ ['Ship overview drill',`VT_VIEW=false;navGo('ships','shipov');ovDrill11('tr')`],
  ['Call log window',`fuLogOpen(['PO-1'],'promised')`],
  ['Call log window (no choice yet)',`fuLogOpen(['PO-1','PO-2'],'')`],
  ['Shipments + filters open',`F11_OPEN=true;switchScreen('ships');v11ShipsView('ships')`],

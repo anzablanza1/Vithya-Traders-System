@@ -380,3 +380,36 @@ No production change is complete until this log is updated.
 - One Detailed / Condensed switch at the top drives every screen (`setDensity` also sets `POS_COMPACT`); the module "Density" switch is gone; PO builder "Condensed" → "Summary".
 - Overview in each module: POs › Overview (the PO overview, moved out of Track), Shipments › Overview (`posShipOverview`: in transit, overdue, arriving in 7 days, no LR, no expected date, arrived not on a bill, billed not arrived, arrived 30 d, bills on a personal phone / in the group not entered, average transit, arrivals per week, next arrivals, by supplier), Bills › Overview (`posBillOverview`: stages, open value w / wo, billed this month, arrival → Vasy bill days, pipeline bar, bills completed per week, oldest open bills with next step, by supplier). Each group opens on its working list (`def`), Overview is one click away.
 - Tests: `tests/dashboard/t41.js`; t28–t40; button audit 2,532 buttons — 0 problems. Data / API: none.
+
+---
+
+### <<LIVE_DATE_119>> — V1.1.9 + server 2.8 — restructure phases 2 + 4 · R56 · R72–R90
+
+**Requirement** — owner approved the Apps Script change (phase 2) and all recommended phase-4 ideas; plus: every overview tile opens its list; shipments and bills open read-only first with an Edit button and an audited edit history; product search in shipments; Board cards fit their columns.
+
+**Files changed**
+- `apps-script/LiveApi 7.2.js` — route `history` (Audit Log rows of one record, newest first; TextFinder with a scan fallback); `security` accepts tier `ops` (Script Property `VT_PIN_OPS`, set only with the Management PIN) and returns `opsHash`.
+- `apps-script/ShipmentApi.js` — server **2.8**: `v11Str_`, `v11NumStr_`, `v11DiffFields_`, `v11DiffLines_`, `v11DiffNote_`; a shipment edit writes "changed: …" (header fields and per-line qty, added / removed) and the optional reason into the Audit Log note.
+- `apps-script/BillApi.js` — the same for bills (header, charges, per-line w / wo qty and rate, GST %, MRP, selling).
+- `frontend/VT_Purchase_Intelligence_V1_1.html` (chip "V1.1.9 · Vaigai"):
+  - Modes: View only (`VT_VIEW`; `vtApiPost` and the outbox let only reads through; buttons that change data are greyed and caught before they run — `VT_WRITE_RE`, `vtLockScan`, capture-phase guard); Operations PIN (`acEnterOps`, remembered per PC in `vt_ops_ok` until View only or a PIN change); Operations cannot delete (`VT_OPS_NO_RE`); Settings rows for both; View only opens on Track › Goods check; New PO hidden in View only.
+  - Shipment window opens as a view (`v11ShipEdit` → `v11ShipViewPaint`; old editor renamed `v11ShipEditForm`): product + qty, expand for the PO split, search, expand / collapse all, Mark arrived, New bill, MI, 🕘 History, ✎ Edit shipment; editor gets product search, "what changed / why", ↩ Back to view.
+  - Bill window opens read-only (`B11._view`), ✎ Edit bill, search, 🕘 History, "what changed / why"; saved MRP / selling shown as saved (defaults filled only when editing).
+  - Overviews: every Shipments / Bills tile and supplier-table number opens a list (`ovDrill11`) with clickable lines.
+  - Board: new cards (`kbPoCard`, `kbShipCard`), one card per shipment; `posDispDate` reads any date format.
+  - Phase 4: ✓ Discussed + progress, promise score, escalate (Ask by supplier); lead time / MOQ / duplicate warning in New PO (PO expected date = today + lead time); requests "already on order / on the way / last PO"; bulk mark sent / close in All POs; expected date auto-filled on new shipments; "Since yesterday" on Today; tab title count; Track › 🧹 Fix list; menu search box.
+
+**Data / Sheet / API changes** — new Script Property `VT_PIN_OPS` (set from the dashboard, Management mode). New read route `history`. Audit Log notes carry change details. No sheet columns added or moved.
+
+**Backward-compatibility impact** — older dashboards keep working with server 2.8 (new route and tier are additive). The V1.1.9 dashboard on server 2.7: history says it needs 2.8, and an Operations PIN cannot be shared — so deploy the server first.
+
+**Deployment** — <<NEW_VERSION_119>> (Apps Script: LiveApi 7.2, ShipmentApi, BillApi) + new dashboard file on every PC.
+
+**Tests performed** — server: self-tests 42 + 54, product sync, lot conversion / undo, `tests/server/hhist.js` (ops tier and auth, history route, change notes for shipment and bill edits); dashboard: t28–t42 (`t42.js` = this release), button audit 3,212 buttons incl. View only, shipment / bill view + edit, board, fix list, search, overview drill — 0 problems.
+- LIVE checks: <<LIVE_CHECKS_119>>
+
+**Result** — <<RESULT_119>>
+
+**Known issues** — PINs protect the dashboard, not the server (the token does). "Discussed" marks are per PC. The promise score counts a promise as kept when anything on that PO ships by the promised date. Saves made before server 2.8 have no change details in the history.
+
+**V2 learning** — records should be read-only by default with an explicit edit action, and every edit should store a structured diff (field, old, new, who, when, why); roles must be enforced on the server, not only in the screen.

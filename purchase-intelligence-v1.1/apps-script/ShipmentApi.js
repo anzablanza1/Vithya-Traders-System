@@ -37,7 +37,7 @@
  * SETUP: run setupShipmentsV11() once (it only creates the two tabs if missing).
  */
 
-var V11_VERSION = 'V1.1 "Vaigai" · server 2.7';
+var V11_VERSION = 'V1.1 "Vaigai" · server 2.8';
 var V11_TEST_SHEET_ID = '1ojAFR5wv6tKt94CB0EwoEs14iCp7lPeRbnhBvjm6XX8';   // self-test runs ONLY here
 
 var SHP_TAB  = 'Shipments';
@@ -113,6 +113,36 @@ function shpPoUse_() {
 function shpCanon_(c) { return String(c == null ? '' : c).replace(/\/+\s*$/, '').trim(); }
 function shpStr_(v) { return (typeof dstr_ === 'function') ? dstr_(v) : String(v == null ? '' : v); }
 function shpNum_(v) { var n = Number(v); return isFinite(n) ? n : NaN; }
+/* [2.8 R72] what changed on an edit — written into the Audit Log note so every edit can be checked later */
+function v11Str_(v) { return (v instanceof Date) ? shpStr_(v) : String(v == null ? '' : v).trim(); }
+function v11NumStr_(v) { var s = v11Str_(v); if (s === '') return ''; var n = Number(s); return isFinite(n) ? String(Math.round(n * 1000) / 1000) : s; }
+function v11DiffFields_(labels, oldRow, newRow) {
+  var out = [];
+  labels.forEach(function (l) {
+    var a = l[2] ? v11NumStr_(oldRow[l[0]]) : v11Str_(oldRow[l[0]]), b = l[2] ? v11NumStr_(newRow[l[0]]) : v11Str_(newRow[l[0]]);
+    if (a !== b) out.push(l[3] ? l[1] + ' changed' : l[1] + ' "' + a + '" → "' + b + '"');
+  });
+  return out;
+}
+// keyFn(row) → {k: unique key, label: what to call the line}; fields = [[label, colIndex]]
+function v11DiffLines_(oldRows, newRows, keyFn, fields) {
+  var o = {}, n = {}, lab = {}, out = [];
+  oldRows.forEach(function (r) { var x = keyFn(r); o[x.k] = r; lab[x.k] = x.label; });
+  newRows.forEach(function (r) { var x = keyFn(r); n[x.k] = r; lab[x.k] = x.label; });
+  Object.keys(n).forEach(function (k) {
+    if (!o[k]) { out.push('added ' + lab[k] + ' (' + fields.filter(function (f) { return v11NumStr_(n[k][f[1]]) !== '' && v11NumStr_(n[k][f[1]]) !== '0'; })
+      .map(function (f) { return f[0] + ' ' + v11NumStr_(n[k][f[1]]); }).join(', ') + ')'); return; }
+    fields.forEach(function (f) { var a = v11NumStr_(o[k][f[1]]), b = v11NumStr_(n[k][f[1]]);
+      if (a !== b) out.push(lab[k] + ' ' + f[0] + ' ' + (a || '0') + ' → ' + (b || '0')); });
+  });
+  Object.keys(o).forEach(function (k) { if (!n[k]) out.push('removed ' + lab[k]); });
+  return out;
+}
+function v11DiffNote_(head, parts, editNote) {
+  var s = head + (parts.length ? ' · changed: ' + parts.join('; ') : ' · nothing changed');
+  if (editNote) s += ' · reason: ' + String(editNote).slice(0, 300);
+  return s.length > 1800 ? s.slice(0, 1790) + ' …' : s;
+}
 /* [2.6 R23] remove every data row for which isGone(row) is true and append newRows — in ONE block write.
    Replaces the old one-deleteRow-per-line loops (each deleteRow costs ~0.2 s).
    Keeps any extra columns the sheet may have to the right. Returns the removed rows. */
@@ -395,11 +425,21 @@ function apiShipment_(body) {
       return [id + '-' + (k + 1), id, ty, po, cn,
         String(a.code || ''), String(a.name || ''), Number(a.qty), sug, String(a.note || ''), now, by, String(a.uom || ''), ret];
     });
-    var removed = v11ReplaceRows_(sa, SHPA_HEADERS.length, function (r) { return String(r[1]) === id; }, rows).length;
+    var goneRows = v11ReplaceRows_(sa, SHPA_HEADERS.length, function (r) { return String(r[1]) === id; }, rows);
+    var removed = goneRows.length;
 
-    if (typeof audit_ === 'function')
-      audit_(by, 'SHIPMENT_UPSERT', 'Shipment', id, '', cur ? 'updated' : '', shipNo,
-        rows.length + ' allocation(s)' + (chk.warnings.length ? ' · ' + chk.warnings.length + ' warning(s)' : ''));
+    if (typeof audit_ === 'function') {
+      var head = rows.length + ' allocation(s)' + (chk.warnings.length ? ' · ' + chk.warnings.length + ' warning(s)' : '');
+      var note = head;
+      if (cur) {                                                                  // [2.8 R72] list what changed
+        var parts = v11DiffFields_([[2, 'supplier'], [3, 'ship date'], [4, 'transport'], [5, 'LR'], [6, 'expected'], [7, 'status'], [8, 'note']], cur, vals)
+          .concat(v11DiffLines_(goneRows, rows, function (r) { var ty = String(r[2]).toUpperCase(), po = String(r[3] || '');
+            return { k: ty + '|' + po + '|' + String(r[4]), label: String(r[4]) + (ty === 'PO' ? ' on ' + po : ty === 'EXCESS' ? ' excess on ' + po : ' off-PO') }; },
+            [['qty', 7]]));
+        note = v11DiffNote_(head, parts, body && body.editNote);
+      }
+      audit_(by, 'SHIPMENT_UPSERT', 'Shipment', id, '', cur ? 'updated' : '', shipNo, note);
+    }
     return { ok: true, shipmentId: id, shipmentNo: shipNo, created: !cur, allocations: rows.length,
       replacedAllocations: removed, warnings: chk.warnings };
   } finally { lock.releaseLock(); }

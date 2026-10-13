@@ -242,10 +242,20 @@ function apiBill_(body) {
         billNumOr_(l.qtyN, 0), billNumOr_(l.rateN, 0), (l.tax === '' || l.tax == null) ? '' : Number(l.tax),
         !!l.upName, String(l.upCode || ''), nz(l.mrpG), nz(l.spG), nz(l.mrpN), nz(l.spN), String(l.note || ''), now, by];
     });
-    var removed = v11ReplaceRows_(sl, BILLL_HEADERS.length, function (r) { return String(r[1]) === id; }, rows).length;   // [2.6 R23] one block write
-    if (typeof audit_ === 'function')
-      audit_(by, 'BILL_UPSERT', 'Bill', id, '', cur ? 'updated' : '', billNo,
-        rows.length + ' line(s)' + (chk.warnings.length ? ' · ' + chk.warnings.length + ' warning(s)' : ''));
+    var goneRows = v11ReplaceRows_(sl, BILLL_HEADERS.length, function (r) { return String(r[1]) === id; }, rows);   // [2.6 R23] one block write
+    var removed = goneRows.length;
+    if (typeof audit_ === 'function') {
+      var head = rows.length + ' line(s)' + (chk.warnings.length ? ' · ' + chk.warnings.length + ' warning(s)' : '');
+      var note = head;
+      if (cur && typeof v11DiffFields_ === 'function') {                         // [2.8 R72] list what changed
+        var parts = v11DiffFields_([[2, 'supplier'], [3, 'bill date'], [4, 'supplier bill no. w'], [5, 'supplier bill no. wo'],
+          [6, 'round-off w', true], [7, 'round-off wo', true], [8, 'charges', false, true], [21, 'note']], cur, vals)
+          .concat(v11DiffLines_(goneRows, rows, function (r) { return { k: String(r[2]) + '|' + String(r[3]), label: String(r[3]) }; },
+            [['w qty', 7], ['w rate', 8], ['wo qty', 9], ['wo rate', 10], ['GST %', 11], ['MRP w', 14], ['selling w', 15], ['MRP wo', 16], ['selling wo', 17]]));
+        note = v11DiffNote_(head, parts, body && body.editNote);
+      }
+      audit_(by, 'BILL_UPSERT', 'Bill', id, '', cur ? 'updated' : '', billNo, note);
+    }
     return { ok: true, billId: id, billNo: billNo, created: !cur, lines: rows.length, replacedLines: removed,
       status: st, warnings: chk.warnings };
   } finally { lock.releaseLock(); }
