@@ -64,6 +64,7 @@ const w=dom.window;setTimeout(async()=>{const ev=c=>w.eval(c);
  ev(`mClose('ship11-modal');mClose('ovdrill-modal');navGo('bills','billov');ovDrill11('brm')`);console.log('bill drill "Ready → MI":',ev(`document.querySelectorAll('#ovd-body .ovrow').length`));ev(`mClose('ovdrill-modal')`);
  // ---------- board ----------
  ev(`navGo('track','kanban')`);console.log('board cards:',ev(`document.querySelectorAll('#pos-list .kb-card').length`),'| shipment cards:',ev(`[...document.querySelectorAll('#pos-list .kb-card.ship .kb-no')].map(a=>a.textContent).join()`),'| raw date text?',ev(`/GMT/.test(document.getElementById('pos-list').textContent)`));
+ console.log('cards never squashed (flex-shrink 0):',ev(`[...document.querySelectorAll('#pos-list .kcol-b > *')].every(e=>getComputedStyle(e).flexShrink==='0')`));
  console.log('posDispDate("Tue Oct 13 2026 00:00:00 GMT+0530"):',ev(`posDispDate('Tue Oct 13 2026 00:00:00 GMT+0530 (India Standard Time)')`));
  // ---------- phase 4 ----------
  ev(`navGo('today','askdad')`);

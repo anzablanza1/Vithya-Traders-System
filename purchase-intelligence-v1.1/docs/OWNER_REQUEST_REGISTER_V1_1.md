@@ -100,3 +100,4 @@ Releases: **Vaigai** = V1.1 server 2.4, live Oct 2026 · **V1.1.1** = server 2.5
 | R87 | All | Browser tab shows the Today count (I14) | Change | 🧪 V1.1.9 | |
 | R88 | Track | Fix list (I16) | Change | 🧪 V1.1.9 | no expected date, no LR, off-PO, no supplier bill no., MRP 0, no supplier, temporary codes, no rate |
 | R89 | Menu | Search box (I19) | Change | 🧪 V1.1.9 | POs (incl. closed), shipments, LR, bills, products; "/" to jump there; Enter opens |
+| R91 | Board | After V1.1.9 the Board did not show fully — cards in a long column were squashed to a thin strip; old V1 lot cards still showed "Thu Oct 08 2026 … GMT" | Bug (from R77) | 🧪 V1.1.9b | Cards keep their full height and the column scrolls; old V1 lots get the same compact card with short dates. Test t42 now checks it (it fails on the V1.1.9 file) |

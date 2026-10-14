@@ -412,4 +412,6 @@ No production change is complete until this log is updated.
 
 **Known issues** — PINs protect the dashboard, not the server (the token does). "Discussed" marks are per PC. The promise score counts a promise as kept when anything on that PO ships by the promised date. Saves made before server 2.8 have no change details in the history.
 
+**V1.1.9b addendum (same release, before LIVE) — R91** — chip "V1.1.9b · Vaigai". Board fix: the new cards had `overflow:hidden`, which let the column (a flex box with a maximum height) shrink every card to a sliver when there were many; now `.kcol-b > *` and `.kb-card` are `flex: 0 0 auto` and the column scrolls. Old V1 lots on the Board use a compact card (`kbLotCard`) with short dates; the old lot card elsewhere shows `posDispDate(L.date)`. The V1.1.9 check used too few cards to show it — `t42.js` now asserts no card can shrink (fails on V1.1.9, passes on 9b).
+
 **V2 learning** — records should be read-only by default with an explicit edit action, and every edit should store a structured diff (field, old, new, who, when, why); roles must be enforced on the server, not only in the screen.

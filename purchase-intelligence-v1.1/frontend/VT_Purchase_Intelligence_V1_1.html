@@ -496,7 +496,8 @@ html[data-theme="dark"] .kcol{background:#1b1a14}
 .pos-card{background:var(--surface,#fff);border:1px solid var(--line-2);border-radius:10px;padding:9px 10px}
 /* [V1.1.9 R77] board cards — never wider than their column */
 .kcol{min-width:0}.kcol-b{overflow-x:hidden}
-.kb-card{background:var(--surface,#fff);border:1px solid var(--line-2);border-radius:10px;padding:8px 10px;min-width:0;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.kcol-b>*{flex:0 0 auto}   /* [V1.1.9b R91] never squash a card to fit the column — the column scrolls instead */
+.kb-card{background:var(--surface,#fff);border:1px solid var(--line-2);border-radius:10px;padding:8px 10px;min-width:0;overflow:hidden;flex:0 0 auto;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 html[data-theme="dark"] .kb-card{background:#222019}
 .kb-card.over{border-left:3px solid var(--non)}.kb-card.ship{border-left:3px solid #2563eb}.kb-card.ship.over{border-left-color:var(--non)}
 .kb-top{display:flex;align-items:baseline;gap:6px;min-width:0}
@@ -688,7 +689,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
     </span>
 
     <span class="nav-right"><span class="vtq"><input id="vt-q" placeholder="🔍 PO · SH · BL · LR · product  ( / )" autocomplete="off" oninput="vtQRun(this.value)" onfocus="vtQRun(this.value)" onkeydown="vtQKey(event)" onblur="setTimeout(()=>{const b=document.getElementById('vt-qr');if(b)b.style.display='none';},200)"><div id="vt-qr" class="vtq-r" style="display:none"></div></span><span id="mode-chip" class="mode-chip ops" title="Your current access level">Operations</span>
-    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.9 · Vaigai</span></span>
+    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.9b · Vaigai</span></span>
   </nav>
   <nav id="subnav" style="display:none"></nav>
 </header>
@@ -8612,6 +8613,17 @@ function kbPoCard(p){const stage=posStage(p),pr=posDocProg(p),over=posOverdue(p)
     ${posPbar(pr)}
     <div class="kb-qty">${posProgText(pr)}</div>
     <div class="kb-act">${posCardActions(p,stage)}${stage!=='made'&&stage!=='done'&&!VT_VIEW?`<button class="btn ghost sm" title="log the supplier's answer" onclick="fuLogOpen(['${id}'],'')">📞</button>`:''}</div></div>`;}
+function kbLotCard(p,L){const st=lotStatus(L);const [sLbl,sCol]=LOT_STATUS_CHIP[st];const top=fuTop(p)||p;
+  const items=(L.lines||[]).map(x=>({n:prodName(x.code,x.name),q:+x.qty||0}));const over=(L.lines||[]).some(x=>(x.flags||[]).includes('over-shipped'));
+  const g=(L.lines||[]).reduce((a,x)=>a+(+x.g||0),0),n=(L.lines||[]).reduce((a,x)=>a+(+x.n||0),0);
+  const when=L.receivedAt?'received '+d8show(dOnly(L.receivedAt)):'shipped '+(d8show(dOnly(L.date))||'—');
+  return `<div class="kb-card">
+    <div class="kb-top"><a class="kb-no mono linky" title="${esc(lotDisplayId(p,L))}" onclick="lotDetailOpen('${esc(p.poId)}','${esc(L.lotId)}')">${esc(lotDisplayId(p,L))}</a><span class="kb-date">${esc(when)}</span></div>
+    <div class="kb-chips"><span class="chip" style="background:${sCol};color:#fff;border-color:transparent">${sLbl}</span><span class="chip lite">V1 lot</span>
+      ${g>0?`<span class="chip gst">w ${NUM(g)}</span>`:''}${n>0?`<span class="chip non">wo ${NUM(n)}</span>`:''}${over?'<span class="chip" style="background:var(--fn-excess);color:#fff;border-color:transparent">excess</span>':''}${L.uploadedAt?'<span class="chip ok">⬆ uploaded</span>':''}</div>
+    <div class="kb-items" title="${esc(items.map(x=>x.n+' × '+NUM(x.q)).join('\n'))}">${items.slice(0,2).map(x=>`${esc(x.n)} <b>${NUM(x.q)}</b>`).join(' · ')}${items.length>2?` <span class="muted">+${items.length-2} more</span>`:''}</div>
+    <div class="kb-sup"><b>${NUM(lotQty(L))}</b> nos${L.lr?' · LR '+esc(L.lr):''} · ${supMask(top)}</div>
+    <div class="kb-act"><button class="btn ghost sm" onclick="lotDetailOpen('${esc(p.poId)}','${esc(L.lotId)}')">Open</button></div></div>`;}
 function kbShipCard(s){const sid=esc(s.shipmentId),st=v11ShipState(s),bc=v11ShipBillChip(s.shipmentId);
   const al=v11ShipAllocs(s.shipmentId),q=al.reduce((a,x)=>a+(+x.qty||0),0),ex=al.filter(a=>a.type==='EXCESS').reduce((a,x)=>a+(+x.qty||0),0);
   const seen=new Map();al.forEach(a=>{const o=seen.get(a.canon)||{c:a.canon,n:a.name||prodName(a.canon,''),q:0};o.q+=(+a.qty||0);seen.set(a.canon,o);});const prods=[...seen.values()];
@@ -8632,9 +8644,9 @@ function posKanban(){
   const ships=(V11.shipments||[]).filter(s=>s.status!=='Cancelled'&&v11ShipPos(s.shipmentId).some(po=>ids.has(po)));
   const oldLots=[];docs.forEach(p=>{lotMigrate(p);(poIsSplit(p)?poChildren(p):[p]).forEach(u=>(u.lots||[]).forEach(L=>{if(!v11Lot(L))oldLots.push({p:u,L});}));});
   const byExp=(a,b)=>String(dOnly(a.expected)||'9999').localeCompare(String(dOnly(b.expected)||'9999'))||String(dOnly(a.shipDate)).localeCompare(String(dOnly(b.shipDate)));
-  const transit=ships.filter(s=>!s.arrivedAt).sort(byExp).map(kbShipCard).concat(oldLots.filter(x=>!x.L.receivedAt).map(x=>lotCard(x.p,x.L)));
+  const transit=ships.filter(s=>!s.arrivedAt).sort(byExp).map(kbShipCard).concat(oldLots.filter(x=>!x.L.receivedAt).map(x=>kbLotCard(x.p,x.L)));
   const arrivedS=ships.filter(s=>s.arrivedAt).sort((a,b)=>String(dOnly(b.arrivedAt)).localeCompare(String(dOnly(a.arrivedAt))));
-  const arrived=arrivedS.map(s=>({d:dOnly(s.arrivedAt),h:()=>kbShipCard(s)})).concat(oldLots.filter(x=>x.L.receivedAt).map(x=>({d:dOnly(x.L.receivedAt),h:()=>lotCard(x.p,x.L)})))
+  const arrived=arrivedS.map(s=>({d:dOnly(s.arrivedAt),h:()=>kbShipCard(s)})).concat(oldLots.filter(x=>x.L.receivedAt).map(x=>({d:dOnly(x.L.receivedAt),h:()=>kbLotCard(x.p,x.L)})))
     .sort((a,b)=>String(b.d).localeCompare(String(a.d)));
   const col=(label,color,html,count)=>`<div class="kcol"><div class="kcol-h" style="border-color:${color}"><span style="color:${color}">${label}</span><span class="kcount">${count}</span></div><div class="kcol-b">${html||'<div class="small muted" style="padding:10px;text-align:center">—</div>'}</div></div>`;
   return posStatusStrip(docs)+`<div class="kboard">`+
@@ -8688,7 +8700,7 @@ function lotCard(p,L){
     <div class="pos-card-h"><a class="linky mono" style="font-weight:700" title="open lot details" onclick="lotDetailOpen('${esc(p.poId)}','${esc(L.lotId)}')">${esc(lotDisplayId(p,L))}</a>${L._synced?'':'<span class="muted">⋯</span>'}
       <span class="chip" style="font-size:.6rem;background:${sCol};color:#fff;border-color:transparent">${sLbl}</span>
       ${over?'<span class="chip" style="font-size:.6rem;background:var(--fn-excess);color:#fff;border-color:transparent">⚠</span>':''}
-      <span style="flex:1"></span><span class="small muted">${esc(L.date||'')}</span></div>
+      <span style="flex:1"></span><span class="small muted">${esc(posDispDate(L.date))}</span></div>
     <div class="small" style="margin:3px 0">${itemsPreviewHTML('lot:'+L.lotId,L.lines,3)}</div>
     ${lotBar(p,L)}
     <div class="small" style="display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap">
@@ -8715,7 +8727,7 @@ function v11LotCard(p,L){const st=lotStatus(L);const [sLbl,sCol]=LOT_STATUS_CHIP
       <span class="chip" style="font-size:.6rem;background:#0F766E;color:#fff;border-color:transparent">V1.1 shipment</span>
       <span class="chip" style="font-size:.6rem;background:${sCol};color:#fff;border-color:transparent">${sLbl}</span>
       ${over?'<span class="chip" style="font-size:.6rem;background:var(--fn-excess);color:#fff;border-color:transparent">⚠ excess</span>':''}
-      <span style="flex:1"></span><span class="small muted">${esc(L.date||'')}</span></div>
+      <span style="flex:1"></span><span class="small muted">${esc(posDispDate(L.date))}</span></div>
     <div class="small" style="margin:3px 0">${itemsPreviewHTML('lot:'+L.lotId,L.lines,3)}</div>
     ${lotBar(p,L)}
     <div class="small" style="display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap"><b>${NUM(lotQty(L))}</b> nos
