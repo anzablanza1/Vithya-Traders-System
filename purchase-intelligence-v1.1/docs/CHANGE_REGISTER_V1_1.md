@@ -319,7 +319,7 @@ No production change is complete until this log is updated.
 
 ---
 
-### <<LIVE_DATE_117>> — V1.1.7 (dashboard file only) — R49 phase 1 · R57 · R58 · R61
+### 14 Oct 2026 — V1.1.7 (dashboard file only) — R49 phase 1 · R57 · R58 · R61
 
 **Requirement** — restructure phase 1 (`DASHBOARD_STRUCTURE_PROPOSAL.md` §6): workflow-ordered menu; POs (Requests · New PO · All POs); Bills as its own tab; quick views on Shipments and Bills (bills may be prepared before or after arrival); Track and Analyse split; closed POs only in Analyse › PO History; Fund planning for the Purchase team; By PO / By bill retired; mode names Operations / Purchase team. Phases 3 and 4 next; phase 2 (server PIN) only after owner approval.
 
@@ -332,16 +332,16 @@ No production change is complete until this log is updated.
 
 **Data / Sheet / API changes** — none. **Backward-compatibility impact** — none; server stays 2.7.
 
-**Deployment** — <<NEW_VERSION_117>>.
+**Deployment** — released together with V1.1.9c — staff deployment updated to a new version after version 7 (exact number not stated by the owner).
 
 **Tests performed** — `tests/dashboard/t38.js`, `t39.js`; all earlier dashboard tests; button audit 1,735 buttons across 33 screens / views incl. the new menu in Operations and Purchase team — 0 problems.
-- LIVE checks: <<LIVE_CHECKS_117>>
+- LIVE checks: owner tested V1.1.7 → V1.1.9c together in LIVE and confirmed on 14 Oct 2026: "everything is working"
 
-**Result** — <<RESULT_117>>
+**Result** — ✅ LIVE (14 Oct 2026, as part of V1.1.9c)
 
 ---
 
-### <<LIVE_DATE_118>> — V1.1.8 (dashboard file only) — R49 phase 3 · R60 · R62–R67
+### 14 Oct 2026 — V1.1.8 (dashboard file only) — R49 phase 3 · R60 · R62–R67
 
 **Requirement** — restructure phase 3 with the owner's follow-up model: dad is the only contact with suppliers; the purchase team drives him in a short daily meeting, supplier by supplier (promised dates, shipping, transport / LR, pending items, bills posted in the WhatsApp group or sent to his phone). "Sent but no promised date" is chased at once. Simpler All POs / Fund planning panel. MOQ / EOQ Levels replaced by a lead time & MOQ entry module, with no Apps Script change.
 
@@ -364,12 +364,12 @@ No production change is complete until this log is updated.
 
 **Backward-compatibility impact** — an older dashboard file ignores the new note kinds (they are marked done) and the `~ST|` rows (no matching PO). Old snooze dates simply become follow-up dates.
 
-**Deployment** — <<NEW_VERSION_118>> (dashboard file only — no Apps Script deployment).
+**Deployment** — released together with V1.1.9c — staff deployment updated to a new version after version 7 (exact number not stated by the owner) (dashboard file only — no Apps Script deployment).
 
 **Tests performed** — `tests/dashboard/t40.js` (ask list, Today sections, answer log incl. "one answer for all", bill-in-group flags, WhatsApp text, calendar, PO strip, bills next step, filter panel, lead time & MOQ save / reload / 2,500-row chunking, Operations hides the ask list and supplier names); all earlier dashboard tests t28–t39; button audit 2,219 buttons incl. the new screens and the answer window — 0 problems.
-- LIVE checks: <<LIVE_CHECKS_118>>
+- LIVE checks: owner tested V1.1.7 → V1.1.9c together in LIVE and confirmed on 14 Oct 2026: "everything is working"
 
-**Result** — <<RESULT_118>>
+**Result** — ✅ LIVE (14 Oct 2026, as part of V1.1.9c)
 
 **Known issues** — the ask list cannot know whether a bill really reached the WhatsApp group; the team marks it (✓ in the group / 📱 on dad's phone). Real lead time counts only shipments recorded in this system (older lots without a ship date use the PO date). Two people editing the same supplier's lead times at the same moment: the last save wins for that supplier.
 
@@ -383,7 +383,7 @@ No production change is complete until this log is updated.
 
 ---
 
-### <<LIVE_DATE_119>> — V1.1.9 + server 2.8 — restructure phases 2 + 4 · R56 · R72–R90
+### 14 Oct 2026 — V1.1.9 + server 2.8 — restructure phases 2 + 4 · R56 · R72–R90
 
 **Requirement** — owner approved the Apps Script change (phase 2) and all recommended phase-4 ideas; plus: every overview tile opens its list; shipments and bills open read-only first with an Edit button and an audited edit history; product search in shipments; Board cards fit their columns.
 
@@ -403,12 +403,12 @@ No production change is complete until this log is updated.
 
 **Backward-compatibility impact** — older dashboards keep working with server 2.8 (new route and tier are additive). The V1.1.9 dashboard on server 2.7: history says it needs 2.8, and an Operations PIN cannot be shared — so deploy the server first.
 
-**Deployment** — <<NEW_VERSION_119>> (Apps Script: LiveApi 7.2, ShipmentApi, BillApi) + new dashboard file on every PC.
+**Deployment** — released together with V1.1.9c — staff deployment updated to a new version after version 7 (exact number not stated by the owner) (Apps Script: LiveApi 7.2, ShipmentApi, BillApi) + new dashboard file on every PC.
 
 **Tests performed** — server: self-tests 42 + 54, product sync, lot conversion / undo, `tests/server/hhist.js` (ops tier and auth, history route, change notes for shipment and bill edits); dashboard: t28–t42 (`t42.js` = this release), button audit 3,212 buttons incl. View only, shipment / bill view + edit, board, fix list, search, overview drill — 0 problems.
-- LIVE checks: <<LIVE_CHECKS_119>>
+- LIVE checks: owner tested V1.1.7 → V1.1.9c together in LIVE and confirmed on 14 Oct 2026: "everything is working"
 
-**Result** — <<RESULT_119>>
+**Result** — ✅ LIVE (14 Oct 2026, as part of V1.1.9c)
 
 **Known issues** — PINs protect the dashboard, not the server (the token does). "Discussed" marks are per PC. The promise score counts a promise as kept when anything on that PO ships by the promised date. Saves made before server 2.8 have no change details in the history.
 

@@ -1,6 +1,6 @@
 # Purchase Intelligence V1.1 — Project State
 
-Status: LIVE — release "Vaigai" V1.1.6 (server 2.7, products 1.2), staff deployment version 7 (13 Oct 2026) · old V1 frozen at version 36
+Status: LIVE — release "Vaigai" V1.1.9c (server 2.8, products 1.2), staff deployment updated 14 Oct 2026 (previous: version 7 = V1.1.6) · old V1 frozen at version 36
 
 New chat? Read `START_HERE_V1_1.md` first.
 Branch: `purchase-v1.1-transition`
@@ -44,7 +44,7 @@ V1.1.1 onwards were tested in simulation first, then on a separate trial deploym
 
 ## Current next items
 
-0. R49 dashboard restructure — ALL phases built, local only: 1 (V1.1.7), 3 (V1.1.8 / 8b), 2 + 4 (V1.1.9 + server 2.8: View only, Operations PIN, audited edit history, view-first shipment / bill windows, overview drill lists, Board redesign, the 12 picked speed-ups). Waiting for the owner's combined LIVE test → then fill the V1.1.7–V1.1.9 register placeholders and push.
+0. R49 dashboard restructure — ALL phases LIVE (V1.1.7 → V1.1.9c, owner confirmed 14 Oct 2026). Next: closed POs out of every Track screen, clearer scope labels, MRP / selling price fill, close-with-reason + PO History redesign (plans).
 0. R50 Apps Script clean-up — owner action.
 1. R41 — product charge insight should also read V1.1 bill charges.
 2. V1.1-06 — line-level Goods Check / receipt with rejections (replaces the interim "Mark arrived").

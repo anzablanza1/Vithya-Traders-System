@@ -9,7 +9,7 @@ This repository is the memory. Do not rely on any earlier chat.
 |---|---|
 | Branch | `purchase-v1.1-transition` (never `v2-development`, never edit `archive/`, never move tag `purchase-v1-v8.6`) |
 | LIVE sheet ("po request live V1.1") | `1SuQsKP9JwE4DGk8RELGdqMpfQjquVhK_vWC6pmIcJfE` |
-| LIVE Apps Script project | `1R3cGa6vgyOkdwF3qFsZ38Tmu48YXBe0qLnyg3ArmEM2TeGWSbfczRNT9` — staff deployment **version 7** = V1.1.6 |
+| LIVE Apps Script project | `1R3cGa6vgyOkdwF3qFsZ38Tmu48YXBe0qLnyg3ArmEM2TeGWSbfczRNT9` — staff deployment: new version after 7 = V1.1.9c · server 2.8 (14 Oct 2026) |
 | Old V1 (frozen) | old sheet + Apps Script deployment **version 36**; token changed, access owner-only; nothing talks to it |
 | Old TEST copy (Phase 0–2 only) | sheet `1ojAFR5wv6tKt94CB0EwoEs14iCp7lPeRbnhBvjm6XX8`, script `1qpYtgC8qkJg9iPfFoqXTEebbdtdp4lMBP-sBYHFO9LfsT5Z62PBlL4Yv`; the self-tests run only here; its link no longer works with the new dashboard |
 | Supabase | project `kssydapdfmkfufrqhwzp` — `sku_master`, `erp_snapshot` (Vasy prices; `data` is a JSON **string**), `purchase_bill_data` (register). Read-only from Apps Script with Script Property `VT_SB_KEY` |
@@ -47,7 +47,7 @@ Script Properties (values never in Git): `VT_API_TOKEN`, `VT_SB_KEY`, `VT_PIN_SA
 
 ## 5. Current state (keep this short and current)
 
-- LIVE: V1.1.6 · server 2.7 · products 1.2 (deployment version 7, 13 Oct 2026).
-- Built, not yet LIVE: V1.1.7 (phase 1), V1.1.8 / 8b (phase 3) and V1.1.9 + server 2.8 (phases 2 + 4). Server 2.8 = LiveApi 7.2 + ShipmentApi + BillApi.
+- LIVE: V1.1.9c · server 2.8 (LiveApi 7.2 + ShipmentApi + BillApi) · products 1.2 — owner confirmed 14 Oct 2026. Restructure phases 1–4 (R49) are all LIVE.
+- Script Properties on LIVE: `VT_API_TOKEN`, PIN hashes, `VT_PIN_OPS` (Operations PIN, set from Management). Never copy their values into Git.
 - In progress: see the top of `PROJECT_STATE.md` → "Current next items".
 - Restructure plan v3 approved in principle: `DASHBOARD_STRUCTURE_PROPOSAL.md` (R49, phases 1–4; four modes R56; closed POs only in Analyse R57; bills before or after arrival R58).
