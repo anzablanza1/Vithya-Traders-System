@@ -671,7 +671,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
       <span class="density-toggle" id="density-toggle" title="Spacing on every screen — Detailed or Condensed"><button data-d="detailed" class="active" onclick="setDensity('detailed')">Detailed</button><button data-d="condensed" onclick="setDensity('condensed')">Condensed</button></span>
       <button class="btn ghost sm" id="btn-settings-top" title="Settings &amp; access" onclick="event.stopPropagation();acOpenSettings()" style="font-weight:700">⚙ Settings</button>
       <button class="btn ghost sm" id="btn-theme" title="Toggle dark mode" onclick="toggleTheme()">🌙</button>
-      <span class="sync-pill ok" id="sync-pill" style="display:none" onclick="if(SYNC.failed)syncRetry()"></span>
+      <span class="sync-pill ok" id="sync-pill" style="cursor:pointer" onclick="connOpen()" title="Live sheet connection"></span>
       <button class="btn ghost sm" id="btn-reload" style="display:none">↻ Load new files</button>
     </div>
   </div>
@@ -689,7 +689,7 @@ html[data-theme="dark"] .live-conn{background:#23201c}
     </span>
 
     <span class="nav-right"><span class="vtq"><input id="vt-q" placeholder="🔍 PO · SH · BL · LR · product  ( / )" autocomplete="off" oninput="vtQRun(this.value)" onfocus="vtQRun(this.value)" onkeydown="vtQKey(event)" onblur="setTimeout(()=>{const b=document.getElementById('vt-qr');if(b)b.style.display='none';},200)"><div id="vt-qr" class="vtq-r" style="display:none"></div></span><span id="mode-chip" class="mode-chip ops" title="Your current access level">Operations</span>
-    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.9b · Vaigai</span></span>
+    <span class="nav-ver" title="Purchase Intelligence V1.1 — transitional upgrade (multi-PO shipments + bills)">V1.1.9c · Vaigai</span></span>
   </nav>
   <nav id="subnav" style="display:none"></nav>
 </header>
@@ -869,17 +869,8 @@ html[data-theme="dark"] .live-conn{background:#23201c}
       <span style="flex:1"></span>
       <span class="small muted" id="live-synced"></span>
     </summary>
-    <div id="live-conn" class="live-conn" style="border:none;padding:10px 0 0;background:none">
-      <div class="foot-note" style="margin:0 0 8px">Only the shared PO-request sheet connects. Your purchase register &amp; pricing stay offline.</div>
-      <div class="live-inputs">
-        <div class="f" style="flex:2;min-width:240px"><label>Apps Script /exec URL</label><input id="live-url" placeholder="https://script.google.com/macros/s/…/exec"></div>
-        <div class="f" style="flex:1;min-width:150px"><label>Secret token</label><input id="live-token" type="password" placeholder="your private token"></div>
-        <button class="btn red sm" onclick="liveTest()">Connect &amp; sync</button>
-        <button class="btn sm" id="live-syncbtn" style="display:none;background:var(--gst);border-color:var(--gst)" onclick="liveSync()">↻ Sync now</button>
-        <button class="btn ghost sm" id="live-disconnect" style="display:none" onclick="liveDisconnect()">Disconnect</button>
-      </div>
-      <div class="foot-note" id="live-status" style="margin-top:4px"></div>
-    </div>
+    <div class="small" style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">The live-sheet connection is now in the menu bar (the <b>✓ saved / ● not connected</b> button) and in ⚙ Settings — it opens over any screen.
+      <button class="btn sm" onclick="connOpen()">🔌 Open connection</button></div>
     <details class="live-upload">
       <summary>or upload the request sheet as a file (.xlsx / .csv)</summary>
       <div class="filters" style="margin:8px 0 0">
@@ -1009,6 +1000,27 @@ html[data-theme="dark"] .live-conn{background:#23201c}
     <div id="mi11-body"></div>
   </div>
 </div>
+<!-- ===== [V1.1.9c R92] live-sheet connection — opens over any screen ===== -->
+<div class="modal-bg" id="conn-modal">
+  <div class="modal" style="max-width:680px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><h3 style="margin:0">🔌 Live sheet connection</h3><span style="flex:1"></span>
+      <button class="btn ghost sm" onclick="mClose('conn-modal')">Close</button></div>
+    <div id="connm-state" class="card" style="padding:9px 11px;margin-bottom:10px"></div>
+    <div id="connm-slot">
+    <div id="live-conn" class="live-conn" style="border:none;padding:10px 0 0;background:none">
+      <div class="foot-note" style="margin:0 0 8px">Paste the Apps Script /exec link and the token once on each PC. Everything else on this PC stays as it is.</div>
+      <div class="live-inputs">
+        <div class="f" style="flex:2;min-width:240px"><label>Apps Script /exec URL</label><input id="live-url" placeholder="https://script.google.com/macros/s/…/exec"></div>
+        <div class="f" style="flex:1;min-width:150px"><label>Secret token</label><input id="live-token" type="password" placeholder="your private token"></div>
+        <button class="btn red sm" onclick="liveTest()">Connect &amp; sync</button>
+        <button class="btn sm" id="live-syncbtn" style="display:none;background:var(--gst);border-color:var(--gst)" onclick="liveSync()">↻ Sync now</button>
+        <button class="btn ghost sm" id="live-disconnect" style="display:none" onclick="liveDisconnect()">Disconnect</button>
+      </div>
+      <div class="foot-note" id="live-status" style="margin-top:4px"></div>
+    </div>
+    </div>
+  </div>
+</div>
 <!-- ===== [P1] SETTINGS & ACCESS ===== -->
 <div class="modal-bg" id="settings-modal">
   <div class="modal" style="max-width:560px">
@@ -1046,6 +1058,8 @@ html[data-theme="dark"] .live-conn{background:#23201c}
       <span class="lane-toggle" id="set-search-toggle">
         <button onclick="vtSetFuzzy(false);acSearchTogglePaint()">Strict</button>
         <button onclick="vtSetFuzzy(true);acSearchTogglePaint()">Fuzzy</button></span></div>
+    <div class="set-row"><div class="lbl"><b>Live sheet connection</b><div class="small muted">Link, token, connection state and any changes waiting to be saved.</div></div>
+      <button class="btn ghost sm" onclick="connOpen()">🔌 Open connection</button></div>
     <div class="set-row"><div class="lbl"><b>Sync &amp; reset this device</b><div class="small muted">Pull the latest from the sheet, or clear this device's saved copy if it's showing old / deleted POs. Unsynced lots on this device would be lost by a reset.</div></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn sm" style="background:var(--gst);border-color:var(--gst)" onclick="acForceSync()">↻ Sync now</button>
@@ -2982,7 +2996,8 @@ function outboxAdd(kind,ref){
 }
 function outboxDone(kind,ref){VT_OUTBOX=VT_OUTBOX.filter(o=>!(o.kind===kind&&o.ref===ref));outboxSave();syncPaint();}
 async function outboxFlush(){
-  if(!liveConnected()||!VT_OUTBOX.length)return;
+  if(!liveConnected()||!VT_OUTBOX.length||OUTBOX_RUNNING)return;OUTBOX_RUNNING=true;try{await outboxFlushRun();}finally{OUTBOX_RUNNING=false;try{connPaint();}catch(e){}}}
+async function outboxFlushRun(){
   const jobs=VT_OUTBOX.slice();
   for(const o of jobs){
     o.tries=(o.tries||0)+1;
@@ -3001,10 +3016,11 @@ async function outboxFlush(){
 setInterval(()=>{try{outboxFlush();}catch(e){}},20000);   // background retry every 20s
 function syncPaint(){
   const el=document.getElementById('sync-pill');if(!el)return;
-  if(!liveConnected()){el.style.display='none';return;}
-  el.style.display='inline-flex';
+  el.style.display='inline-flex';try{connPaint();}catch(e){}
+  if(!liveConnected()){el.className='sync-pill fail';el.innerHTML='● not connected · <u>connect</u>';el.title='Click to connect this PC to the live sheet';return;}
+  if(VT_NET.err&&Date.now()-VT_NET.errAt<5*60000&&VT_OUTBOX.length){el.className='sync-pill fail';el.innerHTML='⚠ sheet not answering · '+VT_OUTBOX.length+' waiting';el.title='Click to check the connection — waiting changes are kept and saved automatically';return;}
   if(SYNC.pending>0){el.className='sync-pill saving';el.innerHTML='⟳ saving… ('+SYNC.pending+')';}
-  else if(VT_OUTBOX.length>0){el.className='sync-pill fail';el.innerHTML='⚠ '+VT_OUTBOX.length+' unsaved · <u>retry</u>';el.title='These changes have not reached the sheet yet. Click to retry now; they also retry automatically.';}
+  else if(VT_OUTBOX.length>0){el.className='sync-pill fail';el.innerHTML='⚠ '+VT_OUTBOX.length+' unsaved · <u>open</u>';el.title='These changes have not reached the sheet yet. They retry automatically — click to see them or save now.';}
   else if(SYNC.lastOk){el.className='sync-pill ok';const t=SYNC.lastOk;const mm=Math.round((Date.now()-t)/60000);
     el.innerHTML='✓ saved '+(mm<1?'just now':mm+'m ago');el.title='All changes are on the sheet';}
   else{el.className='sync-pill ok';el.innerHTML='✓ live';}
@@ -3031,7 +3047,7 @@ async function vtApiGet(api,extra){
   // extra = {from:0, limit:4000} — kept separate so the api name itself stays encoded
   let q='';if(extra)Object.keys(extra).forEach(k=>{if(extra[k]!==undefined&&extra[k]!==null&&extra[k]!=='')q+='&'+encodeURIComponent(k)+'='+encodeURIComponent(extra[k]);});
   const u=liveBaseUrl()+'?api='+encodeURIComponent(api)+'&token='+encodeURIComponent(VT_LIVE.token)+q+'&t='+Date.now();
-  const res=await fetch(u,{method:'GET',redirect:'follow'});
+  let res;try{res=await fetch(u,{method:'GET',redirect:'follow'});}catch(e){await new Promise(r=>setTimeout(r,1500));res=await fetch(u,{method:'GET',redirect:'follow'});}   // [V1.1.9c] one quiet retry
   if(!res.ok)throw new Error('HTTP '+res.status);
   return await res.json();
 }
@@ -3039,11 +3055,9 @@ async function vtApiGet(api,extra){
 async function vtApiPost(body){
   // [V1.1.9 R56] View only: only reads reach the server
   if(VT_VIEW&&!(body&&(VT_READ_API.has(body.api)||(body.api==='security'&&!body.set)))){vtViewMsg();return {ok:false,error:'View only — nothing was saved.'};}
-  const res=await fetch(liveBaseUrl(),{method:'POST',redirect:'follow',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify(Object.assign({token:VT_LIVE.token},body))});
-  if(!res.ok)throw new Error('HTTP '+res.status);
-  return await res.json();
+  // [V1.1.9c R93/R94] reads go straight; writes go one after another, each retried on a passing problem
+  if(vtIsRead(body))return vtSend(body,true);
+  const p=VT_WQ.then(()=>vtSend(body,false),()=>vtSend(body,false));VT_WQ=p.catch(()=>{});return p;
 }
 function liveStatus(msg,kind){const el=document.getElementById('live-status');if(!el)return;
   el.textContent=msg;el.style.color=kind==='err'?'var(--non)':(kind==='ok'?'var(--ok)':'var(--grey)');}
@@ -3054,7 +3068,7 @@ async function liveTest(){
   VT_LIVE.url=url;VT_LIVE.token=token;
   liveStatus('Testing connection…');
   try{const r=await vtApiGet('ping');
-    if(r&&r.ok){liveSaveCfg();liveStatus('✔ Connected · '+(r.version||'')+' — now syncing…','ok');await liveSync();}
+    if(r&&r.ok){liveSaveCfg();liveStatus('✔ Connected · '+(r.version||'')+' — now syncing…','ok');await liveSync();try{liveRenderConn();connAfterConnect();}catch(e){}}
     else liveStatus('✖ '+((r&&r.error)||'unauthorized — check the token.'),'err');
   }catch(err){liveStatus('✖ Could not reach the script: '+err.message+'. Check the URL, or use file upload below.','err');}
 }
@@ -4935,12 +4949,17 @@ async function v11Post(body,label){
   v11Busy(true,label+' — saving…');try{return await v11PostRaw(body,label);}finally{v11Busy(false);}
 }
 async function v11PostRaw(body,label){
-  if(!liveConnected()){alert('Not connected to the live sheet — '+label+' needs a connection. Nothing was saved.');return null;}
-  toast(label+' — saving…');
-  try{const r=await vtApiPost(Object.assign({by:vtBy()},body));
-    if(!r||r.ok===false){alert(label+' — not saved.\n\n'+((r&&r.errors)?r.errors.join('\n'):((r&&r.error)||'unknown error')));return null;}
-    v11TakeFresh(r);return r;}
-  catch(e){alert(label+' — not saved (connection problem: '+e.message+'). Please try again.');return null;}
+  // [V1.1.9c R94] a connection problem never throws the entries away: fix the connection, then Try again
+  for(;;){
+    if(!liveConnected()){if(await vtSaveFail(label,'')==='retry')continue;return null;}
+    toast(label+' — saving…');
+    try{const r=await vtApiPost(Object.assign({by:vtBy()},body));
+      if(!r||r.ok===false){const msg=(r&&r.errors)?r.errors.join('\n'):((r&&r.error)||'unknown error');
+        if(r&&!r.errors&&VT_TRANSIENT.test(msg)){if(await vtSaveFail(label,msg)==='retry')continue;return null;}
+        alert(label+' — not saved.\n\n'+msg);return null;}
+      v11TakeFresh(r);return r;}
+    catch(e){if(await vtSaveFail(label,e.message)==='retry')continue;return null;}
+  }
 }
 // [R19] server 2.5 sends the fresh V1.1 data inside the save reply — apply it and skip the second call
 let V11_FRESH=0;
@@ -10352,6 +10371,76 @@ function acSearchTogglePaint(){const w=document.getElementById('set-search-toggl
 function acOpenSettings(){mOpen('settings-modal');try{regStatusPaint();}catch(e){}const u=document.getElementById('set-username');if(u)u.value=vtUser();acSearchTogglePaint();acApply();}
 function acCloseSettings(){mClose('settings-modal');}
 function acGoUpload(){if(VT_MODE!=='mgmt'){alert('Management mode required.');return;}acCloseSettings();switchScreen('upload');}
+
+/* ===================== [V1.1.9c R92–R94] CONNECTION FROM ANY SCREEN · ONE SAVE AT A TIME · AUTOMATIC RETRY =====================
+   • The live-sheet connection opens in a window over the current screen (header pill, ⚙ Settings, or the "not saved" dialog).
+   • Saves go to the sheet one after another (the sheet locks while saving; parallel saves only waited or failed).
+   • A save that hits a passing problem (network blip, sheet busy) is retried twice by itself before anything is shown.
+   • If it still fails, the entries stay on screen: fix the connection and press Try again — nothing is lost. */
+let VT_WQ=Promise.resolve();
+const VT_NET={ok:0,err:'',errAt:0};
+const VT_TRANSIENT=/lock|timed? ?out|too many|temporar|try again|service (invoked|unavailable|error)|server error|internal error|rate limit|quota|exceeded maximum|bad response|unexpected token|failed to fetch|networkerror|network request|load failed|abort|HTTP 5\d\d|HTTP 429|HTTP 408/i;
+function vtSleep(ms){return new Promise(r=>setTimeout(r,ms));}
+async function vtFetchOnce(body,ms){const ctl=(typeof AbortController!=='undefined')?new AbortController():null;const t=ctl?setTimeout(()=>ctl.abort(),ms):null;
+  try{const res=await fetch(liveBaseUrl(),{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(Object.assign({token:VT_LIVE.token},body)),signal:ctl?ctl.signal:undefined});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const txt=await res.text();try{return JSON.parse(txt);}catch(e){throw new Error('bad response from the script');}}
+  catch(e){if(e&&e.name==='AbortError')throw new Error('timed out — the sheet took too long to answer');throw e;}
+  finally{if(t)clearTimeout(t);}}
+async function vtSend(body,read){
+  const del=/Delete$/.test(String(body&&body.api||''));let last=null;
+  for(let a=0;a<3;a++){
+    try{const r=await vtFetchOnce(body,read?90000:60000);
+      if(r&&r.ok===false&&VT_TRANSIENT.test(String(r.error||''))&&a<2){last=new Error(String(r.error));await vtSleep(a?3500:1500);continue;}
+      VT_NET.ok=Date.now();VT_NET.err='';return r;}
+    catch(e){last=e;VT_NET.err=String(e&&e.message||e);VT_NET.errAt=Date.now();
+      if(del&&!/lock|too many|HTTP 5|HTTP 429/i.test(VT_NET.err))break;   // a delete is not repeated blindly
+      if(a<2)await vtSleep(a?3500:1500);}}
+  try{syncPaint();}catch(e){}
+  throw last||new Error('no answer');}
+function vtIsRead(body){return !!(body&&(VT_READ_API.has(body.api)||(body.api==='security'&&!body.set)));}
+
+/* ---------- "not saved" dialog — entries stay on screen ---------- */
+let VT_SAVEFAIL=null;
+function vtSaveFail(label,msg){return new Promise(res=>{
+  const o=document.getElementById('v11-busy');if(o)o.style.display='none';
+  let m=document.getElementById('savefail-modal');
+  if(!m){m=document.createElement('div');m.className='modal-bg';m.id='savefail-modal';m.innerHTML='<div class="modal" style="max-width:520px"><div id="savefail-body"></div></div>';document.body.appendChild(m);}
+  VT_SAVEFAIL={res,label};
+  document.getElementById('savefail-body').innerHTML=`<h3 style="margin:0 0 6px;color:var(--non)">⚠ Not saved yet — ${esc(label)}</h3>
+    <div class="small" style="margin-bottom:10px">${liveConnected()?'The live sheet could not be reached':'This PC is not connected to the live sheet'}${msg?` <span class="muted">(${esc(msg)})</span>`:''}.</div>
+    <div class="small" style="margin-bottom:12px"><b>Everything you typed is still on screen — nothing is lost.</b> Check the connection, then press <b>Try again</b>.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+      <button class="btn ghost sm" onclick="vtSaveFailDone('cancel')">Close — keep my entries</button>
+      <button class="btn ghost sm" onclick="connOpen()">🔌 Check / fix connection</button>
+      <button class="btn sm" onclick="vtSaveFailDone('retry')">↻ Try again</button></div>`;
+  v11Front('savefail-modal');});}
+function vtSaveFailDone(choice){const f=VT_SAVEFAIL;VT_SAVEFAIL=null;mClose('savefail-modal');
+  const o=document.getElementById('v11-busy');if(o&&V11_BUSYN>0)o.style.display='flex';if(f)f.res(choice);}
+
+/* ---------- the connection window ---------- */
+let OUTBOX_RUNNING=false;
+function connOpen(){
+  let m=document.getElementById('conn-modal');
+  const box=document.getElementById('live-conn');
+  if(m&&box&&box.parentNode!==document.getElementById('connm-slot'))document.getElementById('connm-slot').appendChild(box);
+  connPaint();v11Front('conn-modal');
+  setTimeout(()=>{try{const u=document.getElementById('live-url');if(u&&!u.value)u.focus();}catch(e){}},60);}
+function connPaint(){const el=document.getElementById('connm-state');if(!el)return;const on=liveConnected();
+  const n=VT_OUTBOX.length;
+  el.innerHTML=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span class="live-dot${on?' on':''}"></span><b>${on?'Connected':'Not connected'}</b>
+      ${on&&VT_NET.ok?`<span class="small muted">last answer ${esc(vtTs(new Date(VT_NET.ok)))}</span>`:''}
+      ${VT_NET.err&&Date.now()-VT_NET.errAt<10*60000?`<span class="small" style="color:var(--non)">last problem: ${esc(VT_NET.err)}</span>`:''}</div>
+    <div class="small" style="margin-top:6px">${n?`<b style="color:var(--non)">${n} change(s) on this PC are waiting to reach the sheet</b> — they are kept and saved as soon as the sheet answers. <button class="btn sm" onclick="connFlush()">↻ Save them now</button>`:'<span style="color:var(--ok)">✓ No changes waiting — everything on this PC is on the sheet.</span>'}</div>
+    ${VT_SAVEFAIL?`<div class="small" style="margin-top:6px;color:#9A6212">⏸ "${esc(VT_SAVEFAIL.label)}" is waiting — it is retried automatically after you connect.</div>`:''}`;}
+async function connFlush(){if(!liveConnected()){toast('Connect first.');return;}toast('Saving '+VT_OUTBOX.length+' change(s)…');await outboxFlush();connPaint();
+  toast(VT_OUTBOX.length?VT_OUTBOX.length+' change(s) still waiting — the sheet did not answer.':'All changes are on the sheet.');}
+// after a successful connect: save what was waiting
+function connAfterConnect(){try{connPaint();}catch(e){}
+  if(VT_SAVEFAIL){mClose('conn-modal');setTimeout(()=>vtSaveFailDone('retry'),150);}
+  else if(VT_OUTBOX.length)setTimeout(()=>{outboxFlush().then(()=>{try{connPaint();}catch(e){}});},300);}
 
 /* ===================== [V1.1.9 R49 phase 2 · R56] VIEW ONLY + OPERATIONS PIN =====================
    View only  = display, nothing can be changed, no supplier / rates (no PIN).

@@ -60,7 +60,8 @@ function billStatus_(b) {
 function billLocked_(b) { return !!(b.miG || b.miN || b.vasyG || b.vasyN); }
 
 /* ===================== READERS (never throw) ===================== */
-function billReadBills_() {
+function billReadBills_() { return (typeof v11Memo_ === 'function') ? v11Memo_('bill', billReadBillsRaw_) : billReadBillsRaw_(); }
+function billReadBillsRaw_() {
   var out = [];
   try {
     var s = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(BILL_TAB);
@@ -81,7 +82,8 @@ function billReadBills_() {
   } catch (e) { return []; }
   return out;
 }
-function billReadLines_() {
+function billReadLines_() { return (typeof v11Memo_ === 'function') ? v11Memo_('billl', billReadLinesRaw_) : billReadLinesRaw_(); }
+function billReadLinesRaw_() {
   var out = [];
   try {
     var s = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(BILLL_TAB);
@@ -244,6 +246,7 @@ function apiBill_(body) {
     });
     var goneRows = v11ReplaceRows_(sl, BILLL_HEADERS.length, function (r) { return String(r[1]) === id; }, rows);   // [2.6 R23] one block write
     var removed = goneRows.length;
+    if (typeof V11_TOUCHED !== 'undefined') V11_TOUCHED = ['bill', 'billl'];            // [2.8 R93] shipments unchanged — reuse them
     if (typeof audit_ === 'function') {
       var head = rows.length + ' line(s)' + (chk.warnings.length ? ' · ' + chk.warnings.length + ' warning(s)' : '');
       var note = head;

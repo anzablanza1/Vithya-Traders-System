@@ -51,6 +51,8 @@ const CTX=[
  ['Fix list',`VT_VIEW=false;navGo('track','fix')`],
  ['Menu search open',`VT_VIEW=false;vtQRun('sh')`],
  ['Ship overview drill',`VT_VIEW=false;navGo('ships','shipov');ovDrill11('tr')`],
+ ['Connection window',`VT_VIEW=false;navGo('ships');connOpen()`],
+ ['Not-saved dialog',`VT_VIEW=false;vtSaveFail('Shipment','Failed to fetch')`],
  ['Call log window',`fuLogOpen(['PO-1'],'promised')`],
  ['Call log window (no choice yet)',`fuLogOpen(['PO-1','PO-2'],'')`],
  ['Shipments + filters open',`F11_OPEN=true;switchScreen('ships');v11ShipsView('ships')`],

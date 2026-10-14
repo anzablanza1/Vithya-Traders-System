@@ -34,3 +34,5 @@ with a fake Google Sheets (server) and a simulated browser (dashboard). Nothing 
 The self-tests inside `ShipmentApi.gs` / `BillApi.gs` refuse to run on any workbook except the old TEST copy.
 | `dashboard/t42.js` | V1.1.9: View only / Operations PIN, shipment and bill view-first windows (search, edit, history), overview drill lists, Board cards, discussed / promise score / escalate, lead time + MOQ + duplicate warning in New PO, request on-order info, bulk send / close, auto expected date, since yesterday, tab count, fix list, menu search. |
 | `server/hhist.js` (+ `server/hbase.js`) | Server 2.8: Operations PIN tier (needs the Management PIN), `history` route, "what changed" notes on shipment and bill edits. |
+| `dashboard/t43.js` | V1.1.9c: connection window over any screen, one save at a time, automatic retries, "not saved" window keeps the draft, connecting sends the waiting save. |
+| `server/hspeed.js` | Server 2.8: sheet reads / cells per save, the save reply equals a fresh read, the read cache is off after each request. |

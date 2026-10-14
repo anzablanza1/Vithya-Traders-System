@@ -158,51 +158,62 @@ function v11ReplaceRows_(sh, width, isGone, newRows) {
     if (add.length) sh.getRange(last + 1, 1, add.length, w).setValues(add);
     return gone;
   }
-  var out = keep.concat(add);
-  if (out.length) sh.getRange(2, 1, out.length, w).setValues(out);
-  if (data.length > out.length) sh.getRange(2 + out.length, 1, data.length - out.length, w).clearContent();
+  // [2.8 R93] rewrite only from the first removed row down — rows above it are untouched (same result, far less writing)
+  var fi = 0; while (fi < data.length && !isGone(data[fi])) fi++;
+  var out = keep.slice(fi).concat(add);
+  if (out.length) sh.getRange(2 + fi, 1, out.length, w).setValues(out);
+  var oldLen = data.length - fi;
+  if (oldLen > out.length) sh.getRange(2 + fi + out.length, 1, oldLen - out.length, w).clearContent();
   return gone;
 }
 
 /* ===================== READERS (never throw) ===================== */
-function shpReadShipments_() {
+/* [2.8 R93] speed: inside one dashboard request each sheet is read once (memo), not 2–3 times.
+   Off for self-tests and the editor (V11_MEMO stays null there). Writes drop what they changed. */
+var V11_MEMO = null, V11_TOUCHED = null;
+function v11Memo_(k, fn) { if (!V11_MEMO) return fn(); if (!(k in V11_MEMO)) V11_MEMO[k] = fn(); return V11_MEMO[k]; }
+function v11MemoDrop_(keys) { if (!V11_MEMO) return; if (!keys) { V11_MEMO = {}; return; } keys.forEach(function (k) { delete V11_MEMO[k]; }); }
+function shpReadShipments_() { return v11Memo_('ship', shpReadShipmentsRaw_); }
+function shpReadAllocs_() { return v11Memo_('alloc', shpReadAllocsRaw_); }
+function shpReadShipmentsRaw_() {
   var out = [];
   try {
     var s = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHP_TAB);
     if (!s || s.getLastRow() < 2) return out;
     var v = s.getRange(2, 1, s.getLastRow() - 1, SHP_HEADERS.length).getValues();
-    for (var i = 0; i < v.length; i++) {
-      var r = v[i]; if (!r[0]) continue;
-      out.push({ shipmentId: String(r[0]), shipmentNo: String(r[1] || ''), supplier: String(r[2] || ''),
-        shipDate: shpStr_(r[3]), transport: String(r[4] || ''), lr: String(r[5] || ''),
-        expected: shpStr_(r[6]), status: String(r[7] || 'In Transit'), note: String(r[8] || ''),
-        createdAt: String(r[9] || ''), updatedAt: String(r[10] || ''), by: String(r[11] || ''),
-        arrivedAt: shpStr_(r[12]), arrivedBy: String(r[13] || '') });
-    }
+    for (var i = 0; i < v.length; i++) { var r = v[i]; if (!r[0]) continue; out.push(shpShipObj_(r)); }
   } catch (e) { return []; }
   return out;
 }
-function shpReadAllocs_() {
+function shpShipObj_(r) {
+  return { shipmentId: String(r[0]), shipmentNo: String(r[1] || ''), supplier: String(r[2] || ''),
+    shipDate: shpStr_(r[3]), transport: String(r[4] || ''), lr: String(r[5] || ''),
+    expected: shpStr_(r[6]), status: String(r[7] || 'In Transit'), note: String(r[8] || ''),
+    createdAt: String(r[9] || ''), updatedAt: String(r[10] || ''), by: String(r[11] || ''),
+    arrivedAt: shpStr_(r[12]), arrivedBy: String(r[13] || '') };
+}
+function shpReadAllocsRaw_() {
   var out = [];
   try {
     var s = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHPA_TAB);
     if (!s || s.getLastRow() < 2) return out;
     var v = s.getRange(2, 1, s.getLastRow() - 1, SHPA_HEADERS.length).getValues();
-    for (var i = 0; i < v.length; i++) {
-      var r = v[i]; if (!r[0] || !r[1]) continue;
-      out.push({ allocId: String(r[0]), shipmentId: String(r[1]), type: String(r[2] || '').toUpperCase(),
-        poNumber: String(r[3] || ''), canon: shpCanon_(r[4]), code: String(r[5] || ''), name: String(r[6] || ''),
-        qty: Number(r[7]) || 0, suggestedQty: (r[8] === '' || r[8] == null) ? '' : (Number(r[8]) || 0),
-        note: String(r[9] || ''), updatedAt: String(r[10] || ''), by: String(r[11] || ''), uom: String(r[12] || ''),
-        ret: Number(r[13]) || 0 });                                                       // [2.6]
-    }
+    for (var i = 0; i < v.length; i++) { var r = v[i]; if (!r[0] || !r[1]) continue; out.push(shpAllocObj_(r)); }
   } catch (e) { return []; }
   return out;
+}
+function shpAllocObj_(r) {
+  return { allocId: String(r[0]), shipmentId: String(r[1]), type: String(r[2] || '').toUpperCase(),
+    poNumber: String(r[3] || ''), canon: shpCanon_(r[4]), code: String(r[5] || ''), name: String(r[6] || ''),
+    qty: Number(r[7]) || 0, suggestedQty: (r[8] === '' || r[8] == null) ? '' : (Number(r[8]) || 0),
+    note: String(r[9] || ''), updatedAt: String(r[10] || ''), by: String(r[11] || ''), uom: String(r[12] || ''),
+    ret: Number(r[13]) || 0 };                                                            // [2.6]
 }
 
 /* ===================== V1.1-02 — OLD V1 LOTS, READ AS ONE-PO SHIPMENTS ===================== */
 // Nothing is copied. Each V1 lot line becomes a virtual PO allocation at read time.
-function shpLegacyAllocs_() {
+function shpLegacyAllocs_() { return v11Memo_('legacy', shpLegacyAllocsRaw_); }
+function shpLegacyAllocsRaw_() {
   var out = [];
   try {
     var lots = (typeof readLots_ === 'function') ? readLots_() : [];
@@ -286,7 +297,8 @@ function shpBills_(shipmentId) {
 }
 
 // ordered qty per (PO|canon) from PO Tracking — rows repeat the full line qty per request line, so take MAX
-function shpOrderedByPoCode_() {
+function shpOrderedByPoCode_() { return v11Memo_('ord', shpOrderedByPoCodeRaw_); }
+function shpOrderedByPoCodeRaw_() {
   var out = {}, pos = {};
   try {
     var track = (typeof readTrack_ === 'function') ? readTrack_() : [];
@@ -414,10 +426,8 @@ function apiShipment_(body) {
     else s.getRange(s.getLastRow() + 1, 1, 1, SHP_HEADERS.length).setValues([vals]);
 
     // replace this shipment's allocations — [2.6 R23] one block rewrite instead of one deleteRow per line
-    var oldRet = {};
-    (sa.getLastRow() > 1 ? sa.getRange(2, 1, sa.getLastRow() - 1, SHPA_HEADERS.length).getValues() : []).forEach(function (r) {
-      if (String(r[1]) === id && Number(r[13])) oldRet[String(r[2]).toUpperCase() + '|' + String(r[3]) + '|' + shpCanon_(r[4])] = Number(r[13]);
-    });
+    var oldRet = {};                                                                 // [2.8 R93] from the read already made
+    shpReadAllocs_().forEach(function (a) { if (a.shipmentId === id && a.ret) oldRet[a.type + '|' + a.poNumber + '|' + a.canon] = a.ret; });
     var rows = (sh.allocations || []).map(function (a, k) {
       var sug = (a.suggestedQty === undefined || a.suggestedQty === null || a.suggestedQty === '') ? '' : Number(a.suggestedQty);
       var ty = String(a.type).toUpperCase(), po = String(a.poNumber || '').trim(), cn = shpCanon_(a.code);
@@ -427,6 +437,14 @@ function apiShipment_(body) {
     });
     var goneRows = v11ReplaceRows_(sa, SHPA_HEADERS.length, function (r) { return String(r[1]) === id; }, rows);
     var removed = goneRows.length;
+    // [2.8 R93] bring the in-request copy up to date instead of reading both sheets again for the reply
+    if (V11_MEMO && V11_MEMO.ship && V11_MEMO.alloc) {
+      var so = shpShipObj_(vals), ix = -1;
+      V11_MEMO.ship.forEach(function (x, k) { if (x.shipmentId === id) ix = k; });
+      if (ix >= 0) V11_MEMO.ship[ix] = so; else V11_MEMO.ship.push(so);
+      V11_MEMO.alloc = V11_MEMO.alloc.filter(function (a) { return a.shipmentId !== id; }).concat(rows.map(shpAllocObj_));
+      V11_TOUCHED = [];
+    } else V11_TOUCHED = ['ship', 'alloc'];
 
     if (typeof audit_ === 'function') {
       var head = rows.length + ' allocation(s)' + (chk.warnings.length ? ' · ' + chk.warnings.length + ' warning(s)' : '');

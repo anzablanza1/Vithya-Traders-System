@@ -157,7 +157,13 @@ function doPost(e){
   try { body = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch(_){}
   return handleApi_(body.api || 'record', (e && e.parameter) || {}, body);
 }
+// [2.8 R93] the per-request read cache lives only while one dashboard request runs — never outside it
 function handleApi_(api, params, body){
+  try { if (typeof V11_MEMO !== 'undefined') { V11_MEMO = {}; V11_TOUCHED = null; } } catch (_) {}
+  try { return handleApiInner_(api, params, body); }
+  finally { try { if (typeof V11_MEMO !== 'undefined') { V11_MEMO = null; V11_TOUCHED = null; } } catch (_) {} }
+}
+function handleApiInner_(api, params, body){
   var token = (body && body.token) || params.token || '';
   if (token !== apiToken_()) {
     return json_({ ok:false, error:'unauthorized',
@@ -200,7 +206,7 @@ function handleApi_(api, params, body){
 function v11Payload_(){ return { ok:true, v11:(typeof V11_VERSION!=='undefined'?V11_VERSION:''),
   shipments:(typeof shpReadShipments_==='function'?shpReadShipments_():[]), shipAllocs:(typeof shpReadAllocs_==='function'?shpReadAllocs_():[]),
   bills:(typeof billReadBills_==='function'?billReadBills_():[]), billLines:(typeof billReadLines_==='function'?billReadLines_():[]) }; }
-function v11Wrap_(res){ try{ if(res && res.ok) res.v11data = v11Payload_(); }catch(e){} return res; }
+function v11Wrap_(res){ try{ if(typeof v11MemoDrop_==='function') v11MemoDrop_(V11_TOUCHED); if(res && res.ok) res.v11data = v11Payload_(); }catch(e){} return res; }   // [2.8 R93] re-read only what the save changed
 function json_(o){
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 }
