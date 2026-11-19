@@ -127,3 +127,10 @@
 - Full sales_data currently 229204 lines, 39324 distinct invoice IDs.
 - Shrink audit table now has 3 pending entries; new October 17 `VPOS2627/13109` / DB ID `129909242`, 22 existing lines -> 19 incoming lines (requires Vasy review later). Previous Oct 16 entries are 124205048 and 122968208, both user-confirmed one-line corrections; review_status not yet changed.
 - This is a completed controlled batch, not proof of full FTP backlog or date coverage. Run the next bounded 20-file batch, inspect output and verify, then eventually reconcile missing dates and totals. Keep permanent cron disabled during recovery.
+
+## October 31 timed-out sales file recovered — 2026-11-20
+- A 200-file Hostinger batch encountered `Supabase RPC HTTP 500` / PostgreSQL `57014 canceling statement due to statement timeout` at `SalesInvoiceData_21024_31102026_020148.csv`. Before retry, zero documents for export `20261031020148` were versioned; earlier Oct 31 vendor (1) and material inward (15) documents were committed.
+- Found no btree index on `public.sales_data(invoice_id_db_id)`, despite importer V2 filtering, counting and deleting by that column. Live Supabase index created: `CREATE INDEX IF NOT EXISTS idx_sales_invoice_id_db_id ON public.sales_data (invoice_id_db_id);`. `EXPLAIN` confirmed `Index Only Scan using idx_sales_invoice_id_db_id`. Database statement_timeout was 120000 ms.
+- User performed one-file controlled retry `--apply --file=SalesInvoiceData_21024_31102026_020148.csv`; output `SUCCESS files=1 lines=666 mode=APPLY` and `PROCESSED`. SHA256 `9c3a4b2d9fe58276d71c64c33def76687f13e04e626fda59ba86e8c4bfae1a37`.
+- Live Supabase verification: 100 invoice version entries for export `20261031020148`; all 100 invoice IDs present, exactly 666 current lines; no shrink audit events with this export stamp. Full sales_data at validation: 233060 lines, 40096 distinct invoice DB IDs.
+- Follow-up: record index migration in GitHub SQL if not already committed. Continue with bounded batches (prefer 50–100 per run rather than 200 until duration/limits established); keep permanent cron disabled pending backlog/date/completeness audit.
