@@ -195,3 +195,9 @@
 - User previously set approval policy: live Supabase verified against live Vasy -> approve; current 149 vouchers classified APPROVED aggregate-match; no production data changed.
 - Conversation file: VT_Purchase_150_Reconciled_Approval_Register.csv, all 150 rows and detailed verification fields. NOT a full item-by-item column comparison. Latest-export precedence still relies on matching document IDs and provenance; source contents can have overlapping historical date coverage.
 - Next: audit material inward and stock adjustments against current Vasy registers if available; otherwise compare version timestamps, stock adjustment composite keys and missing totals carefully. Do not mass-replay Oct09 historical exports or enable permanent cron pending final auditing.
+
+## 2026-11-20 — User approval and FY24-25 audit exclusion
+- User instructed: "ignore any verification for 24-25 data as many entries are already wrong in that year. rest approve everything."
+- **Purchase bill audit:** Approve the 149 of 150 flagged bills already matched against live Vasy. Exclude `PUR24-25/42` (FY24-25) from verification and from any "approved" accuracy counts; classify EXCLUDED_UNRELIABLE_FY24_25, not pending and not certified.
+- **General remaining-dataset audit scope:** exclude financial year 2024-25 (2024-04-01 through 2025-03-31) from validation/approval, including older purchase/inward/stock adjustment records. Focus reconciliations on FY25-26 and FY26-27. For these years, the user approves retaining current Supabase data as the working authority over Oct09 historical snapshot, with newer complete Vasy exports taking precedence. Such blanket approval is an operational decision, NOT proof of row-level field accuracy or that missing records have been identified.
+- Do not modify/remove FY24-25 rows or reimport Oct09 historical files. Preserve audit/source-provenance records. No live Supabase data changes were requested or performed.
