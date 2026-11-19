@@ -102,3 +102,11 @@
 - Installed updated V2 RPC with a **strict second shrink exception** requiring exactly this ID, export timestamp `20261016020156`, previous five lines, one incoming line, matching voucher/item/quantity/amount. Earlier Oct 15 exception is retained. The amended function passed `BEGIN/ROLLBACK` compilation before installation.
 - GitHub source for this scoped update: `sql/ftp_v2_verified_shrink_exception_20261016.sql`.
 - **No live CSV retry has been executed yet.** Next controlled step: run `--apply --file=SalesInvoiceData_21024_16102026_020156.csv` once; stop on error, then verify the corrected invoice and 106 version entries / 862 current lines. Keep permanent cron off.
+
+## Systemic sales-shrink policy — 2026-11-20
+- User confirmed Vasy one line on invoice DB IDs 124205048 and 122968208; existing Supabase had four lines for each. Uploaded October 16 CSV has one gn13 line each, net_amount 85904 and 95650.999 respectively.
+- Implemented sales-only audit-and-replace policy in live V2 RPC. For any NEWER sales export containing fewer invoice lines than existing, audit table public.vt_ftp_document_shrink_audit records table, document, export stamp, prior/incoming counts, voucher and pending review status. Then atomic document replacement proceeds. Other datasets preserve the old 40% shrink guard.
+- Existing per-document export timestamps, replay idempotency, RPC locks, CSV header checks and safety stops remain. Audit entries do NOT prove every export is complete; validate changed invoices and totals against Vasy after backlog.
+- Source committed at sql/ftp_v2_sales_shrink_audit_policy.sql. SQL syntax checked inside rollback transaction, then deployed to live project. Audit table exists; service_role can invoke RPC; anon cannot.
+- No CSV imported by this schema change. At deployment: 98/106 versioned October 16 invoices, zero audit rows, and both verified candidate invoices still had four old lines.
+- Next: one-file controlled retry of SalesInvoiceData_21024_16102026_020156.csv; then verify 106 invoice versions, 862 current sales lines, exact two invoice corrections, and shrink audit records. Permanent cron stays disabled.
