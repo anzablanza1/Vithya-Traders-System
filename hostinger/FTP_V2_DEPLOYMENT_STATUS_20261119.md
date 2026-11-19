@@ -66,3 +66,8 @@
 - Synthetic vendor ledger entry for `FTP_V2_RETRY_TEST_DO_NOT_SAVE`, matching payload hash and export stamp, was tested with RPC: `status=skipped_same`. Entire transaction rolled back, synthetic ledger row not retained.
 - This verifies core RPC branches. It does not yet verify recovery after PHP process interruption, or every dataset-specific key.
 - Next controlled step: one scheduled `/usr/bin/php /home/u631621082/vt_ftp_sync.php --apply --all --max-files=10`, only after confirming no other apply cron exists. Check output for `SUCCESS` and `PROCESSED`, stop on first error, delete temporary cron and audit Supabase row/ledger effects before expanding further.
+
+## Third controlled batch — 2026-11-19 around 23:26 IST
+- Hostinger screenshot: `SUCCESS files=10 lines=124 mode=APPLY`; last visible files processed include ProductConsumptionAndWastageData_21024_13102026_024255.csv (header-only), CreditNoteData_21024_13102026_024256.csv (header-only), StockAdjustmentData_21024_13102026_024256.csv (31/31), VendorData_21024_14102026_021934.csv (3/3), MaterialInwardData_21024_14102026_021938.csv (18/3).
+- Independently verified live Supabase: stock adjustment 31 rows / 31 keyed documents, vendor 3/3, material inward 18/3. Version ledger contains matching 31, 3, 3 document-version entries for their respective export stamps.
+- Entire backlog is NOT complete. Keep full recovery audit and permanent cron enablement pending. Operator must delete completed temporary cron before next bounded run.
