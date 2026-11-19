@@ -58,3 +58,11 @@
 - Total sales rows changed 226457 -> 227088; distinct invoice IDs 38893 -> 38970. This is consistent with document replacement, not naive append; a full duplicate audit and replay test are still outstanding.
 - Total version entries now 115: 112 sales and 3 material inward.
 - Keep permanent cron disabled. Next test should check unchanged version replay and older-version rejection safely, without rewriting existing sales data. Do not claim these have passed yet.
+
+## Transactional retry/order verification — 2026-11-19
+
+- SQL tests invoked live installed `public.vt_ftp_replace_document_v2` **within explicit BEGIN/ROLLBACK transactions only**, with session claim role set to service_role; no lasting test data or document changes.
+- Existing sales invoice DB ID 102465374 (current export stamp 20261013021952) was tested with earlier stamp 20261012021952 and a minimal payload: RPC responded `status=skipped_older`, `current_stamp=20261013021952`. No sales modification.
+- Synthetic vendor ledger entry for `FTP_V2_RETRY_TEST_DO_NOT_SAVE`, matching payload hash and export stamp, was tested with RPC: `status=skipped_same`. Entire transaction rolled back, synthetic ledger row not retained.
+- This verifies core RPC branches. It does not yet verify recovery after PHP process interruption, or every dataset-specific key.
+- Next controlled step: one scheduled `/usr/bin/php /home/u631621082/vt_ftp_sync.php --apply --all --max-files=10`, only after confirming no other apply cron exists. Check output for `SUCCESS` and `PROCESSED`, stop on first error, delete temporary cron and audit Supabase row/ledger effects before expanding further.
