@@ -78,3 +78,10 @@
 - Earlier completed files reported `PROCESSED`, including October 15 MaterialInwardData_21024_15102026_020740.csv (20 rows/3 docs) and header-only PurchaseReturn.
 - Read-only Supabase: 167 version entries for `sales_data` with export_stamp `20261015020753`, against 203 invoice documents reported by Hostinger for the stopped CSV. Thus per-document commits occurred before stop. Retry is designed to skip identical committed versions, but this exact partially failed file has not yet been replay-tested.
 - Do not weaken 40% shrink guard or manually rename failed CSV. Need exact offender invoice ID and side-by-side 9 previous lines vs 1 incoming line from uploaded CSV; distinguish legitimate correction from incomplete export. No further cron until reviewed.
+
+## Verified Oct 15 invoice shrink exception installed (Nov 19)
+- User checked Vasy invoice `VTMIN2627-1155` (invoice DB ID `112464397`) and confirmed its current complete invoice is **one item gn13, qty 1, ₹38,000**; prior Supabase document had 9 lines.
+- Uploaded `SalesInvoiceData_21024_15102026_020753.csv` was locally inspected: exactly one matching invoice row with voucher `VTMIN2627-1155`, item `gn13`, qty 1.0, net amount 38000.0.
+- Applied narrow, version-specific exception in Supabase `vt_ftp_replace_document_v2`: allows shrinking **only** invoice DB ID 112464397, export stamp 20261015020753, existing lines 9 -> incoming 1, voucher/item/qty/amount exact. All other shrink guards remain active.
+- GitHub SQL file `sql/ftp_v2_verified_shrink_exception_20261015.sql`. Its syntax passed transaction-only BEGIN/ROLLBACK validation before production CREATE OR REPLACE FUNCTION.
+- **No retry or CSV apply performed** after this exception; original file should remain `.csv`. Next run only `--apply --file=SalesInvoiceData_21024_15102026_020753.csv`; validate PROCESSED and Supabase invoice after execution. 167 documents previously committed may report skipped_same. Stop if any other shrink mismatch surfaces.
