@@ -48,3 +48,13 @@
 - Older business dates inside a newer export are expected and important; export timestamp is not the same as transaction date.
 - **Not yet tested:** duplicate-safe replay, older-version skip, same-timestamp-content conflict, interrupted batch retry, and larger daily batches.
 - **Next:** process October 13 PurchaseReturn (zero rows) and SalesInvoice (917 rows/112 IDs) in a controlled two-file batch. Confirm Supabase row counts, ledger entries, amounts and stop on any error. Keep the permanent cron disabled.
+
+## Second controlled batch — 2026-11-19 (independently verified)
+
+- User ran `/usr/bin/php /home/u631621082/vt_ftp_sync.php --apply --all --max-files=2`.
+- Hostinger reported PurchaseReturnData_21024_13102026_021947.csv, 0 lines, processed; SalesInvoiceData_21024_13102026_021952.csv, 917 lines / 112 invoice IDs, processed.
+- Final Hostinger result: `SUCCESS files=2 lines=917 mode=APPLY`.
+- Live read-only Supabase checks: 112 sales ledger entries, all 112 IDs present, exactly 917 current lines across those IDs, loaded during 17:33–17:34 UTC.
+- Total sales rows changed 226457 -> 227088; distinct invoice IDs 38893 -> 38970. This is consistent with document replacement, not naive append; a full duplicate audit and replay test are still outstanding.
+- Total version entries now 115: 112 sales and 3 material inward.
+- Keep permanent cron disabled. Next test should check unchanged version replay and older-version rejection safely, without rewriting existing sales data. Do not claim these have passed yet.
