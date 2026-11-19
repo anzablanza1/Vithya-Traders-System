@@ -119,3 +119,11 @@
 - Invoice DB ID `122968208`, voucher `VTMIN2627-2139`: one line gn13 qty 1 net 95650.999 (previously 4).
 - Shrink audit captured 2 rows in `public.vt_ftp_document_shrink_audit` for the latter two 4-to-1 replacements, both initially status pending. The 5-to-1 invoice was committed under the previous exact exception, thus not backfilled into the new audit.
 - Full `sales_data` at validation: 228680 rows and 39240 distinct invoice DB IDs. No entire-backlog completeness claim. Continue bounded chronologically ordered imports; keep permanent cron disabled.
+
+## October 17 controlled batch — 2026-11-20
+- Hostinger screenshot of `--apply --all --max-files=20` ended `SUCCESS files=20 lines=1243 mode=APPLY`, with final processed file `StockAdjustmentData_21024_17102026_020350.csv`. Other file rows and exact set of 20 not individually reconciled from screenshot.
+- Read-only Supabase V2 version ledger checks for October 17 export stamps: vendor_data 1, material_inward_data 7, sales_data 145, cash_receipt_data 45, bank_receipt_data 19, purchase_bill_data 15, stock_adjustment_data 13.
+- Verified all 145 October 17 versioned sales invoice IDs are present in sales_data, with exactly 906 current lines across them.
+- Full sales_data currently 229204 lines, 39324 distinct invoice IDs.
+- Shrink audit table now has 3 pending entries; new October 17 `VPOS2627/13109` / DB ID `129909242`, 22 existing lines -> 19 incoming lines (requires Vasy review later). Previous Oct 16 entries are 124205048 and 122968208, both user-confirmed one-line corrections; review_status not yet changed.
+- This is a completed controlled batch, not proof of full FTP backlog or date coverage. Run the next bounded 20-file batch, inspect output and verify, then eventually reconcile missing dates and totals. Keep permanent cron disabled during recovery.
