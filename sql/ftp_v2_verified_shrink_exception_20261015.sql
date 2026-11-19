@@ -95,5 +95,4 @@ BEGIN
   ON CONFLICT(table_name,document_key) DO UPDATE
   SET export_stamp=EXCLUDED.export_stamp,payload_hash=EXCLUDED.payload_hash,updated_at=now();
   RETURN jsonb_build_object('table',p_table,'incoming',incoming,'previous',existing,'status','committed');
-END $function$
-
+END $function$;
