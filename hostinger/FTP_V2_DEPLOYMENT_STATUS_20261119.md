@@ -85,3 +85,11 @@
 - Applied narrow, version-specific exception in Supabase `vt_ftp_replace_document_v2`: allows shrinking **only** invoice DB ID 112464397, export stamp 20261015020753, existing lines 9 -> incoming 1, voucher/item/qty/amount exact. All other shrink guards remain active.
 - GitHub SQL file `sql/ftp_v2_verified_shrink_exception_20261015.sql`. Its syntax passed transaction-only BEGIN/ROLLBACK validation before production CREATE OR REPLACE FUNCTION.
 - **No retry or CSV apply performed** after this exception; original file should remain `.csv`. Next run only `--apply --file=SalesInvoiceData_21024_15102026_020753.csv`; validate PROCESSED and Supabase invoice after execution. 167 documents previously committed may report skipped_same. Stop if any other shrink mismatch surfaces.
+
+## Oct 15 sales file retry successful — verified live after targeted correction
+- User executed `--apply --file=SalesInvoiceData_21024_15102026_020753.csv`; Hostinger output `SUCCESS files=1 lines=1441 mode=APPLY`, `PROCESSED`, checksum `6d6c9b06f23dfb41e6aceb9ab53cf5fb2d78b36242c01202d00894d3abc9d88d`.
+- Live Supabase verification: 203 version-ledger entries for `sales_data`, export `20261015020753`; all 203 invoice DB IDs present and currently exactly 1,441 lines total.
+- Vasy-confirmed corrected invoice `112464397` / `VTMIN2627-1155` now exactly one row `gn13`, qty 1, net_amount 38000, source FTP, loaded 2026-11-19 18:30:49 UTC. Old 9-line document replaced.
+- Current full `sales_data`: 228,049 lines, 39,157 distinct invoice DB IDs at verification.
+- The exception is currently embedded in RPC V2, restricted to exact invoice/export/amount/qty and prior row count; retain and later remove/reconcile as part of permanent configuration.
+- This validates successful recovery of one interrupted multi-document CSV. Entire Oct-Nov backlog and cross-dataset audits remain outstanding. Old cron stays disabled.
