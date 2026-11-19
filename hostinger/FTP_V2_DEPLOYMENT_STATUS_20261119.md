@@ -178,3 +178,11 @@
 - Remaining 144 of 830 absent from this Vasy register: all 144 categorized OTHER_FIELDS_OR_LINE_CONTENT_CHANGED; dated Apr2025-Mar2026. Their absence reflects this report's coverage, not evidence of missing Supabase invoices.
 - All six user-approved higher current values are also in the Vasy report and exactly match Supabase, including 121836283/VTMIN2627-2015 at 716771.
 - Shared comparison `VT_Sales_830_vs_Live_Vasy_Register.csv` with explicit match/uncovered classification, current vs Vasy totals and approval notes. No live records changed. Do not label fully audited at row/column level; this is aggregate check on the 830 flagged invoices, not comprehensive 40k invoice current export comparison.
+
+## 2026-11-20 — All 830 historical sales discrepancies approved by comparison to both live Vasy reports
+- User instruction: if live Vasy report matches current Supabase, approve the record. User personally confirmed six high-value invoices at current values.
+- New user-supplied report `Sales-Item-Register-21024-6.xlsx`: 132810 item rows across Apr 2025–Mar 2026. Streaming parse by voucher_no; includes all 144 historical audit flags not covered by the earlier report.
+- All 144 additional invoices matched the previously audited live Supabase aggregates: invoice line count, total qty, net amount, tax amount (tolerances qty <=0.01, net <=0.02, tax <=1 for report rounding).
+- Combined with first Vasy register (686 matching flags): all **830/830** flagged documents have matching invoice aggregates; **0** unresolved aggregate mismatches. User has approved all live-Vasy-matching records under their rule.
+- User-facing approval CSV: `VT_Sales_830_Reconciled_Approved.csv`; 824 automatically approved by live Vasy agreement + 6 explicitly user-confirmed values. All 830 source rows preserved.
+- Scope caveat: both reports validate aggregates for the **830 previously flagged historical-vs-current invoices**, not line-by-line individual column equality or all ~40k live invoices. 705 original OTHER_FIELDS_OR_LINE_CONTENT_CHANGED flags were not fully field-level diffed. No Supabase data was changed in this audit. Historical Oct9 snapshot remains protected from replay.
