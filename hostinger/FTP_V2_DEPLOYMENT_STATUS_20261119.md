@@ -34,3 +34,17 @@
 - Version ledger starts empty; the first V2 application establishes its watermark even for documents that already exist.
 - Older partially processed Oct 9–12 files are excluded from the normal loader, not declared reconciled or discarded.
 - Keep this draft PR unmerged until real Hostinger test passes.
+
+## Hostinger first live test — 2026-11-19 (verified)
+
+- User deployed V2 PHP and ran `--check --max-files=10`: **SUCCESS files=10 lines=1012 mode=CHECK**. Old October 9 historical file no longer blocks this daily recovery check.
+- `--apply --file=VendorData_21024_13102026_021942.csv` succeeded, zero rows; Hostinger renamed it to `.csv.processed`.
+- `--apply --file=MaterialInwardData_21024_13102026_021946.csv` succeeded with 23 lines grouped into three documents; Hostinger renamed it to `.csv.processed`.
+- Independently confirmed live Supabase records:
+  - MI3098, inward_date 10/10/2026: 9 rows
+  - MI3099, inward_date 28/09/2026: 7 rows
+  - MI3100, inward_date 28/09/2026: 7 rows
+  - All source=FTP and three corresponding ledger entries with export_stamp=20261013021946.
+- Older business dates inside a newer export are expected and important; export timestamp is not the same as transaction date.
+- **Not yet tested:** duplicate-safe replay, older-version skip, same-timestamp-content conflict, interrupted batch retry, and larger daily batches.
+- **Next:** process October 13 PurchaseReturn (zero rows) and SalesInvoice (917 rows/112 IDs) in a controlled two-file batch. Confirm Supabase row counts, ledger entries, amounts and stop on any error. Keep the permanent cron disabled.
