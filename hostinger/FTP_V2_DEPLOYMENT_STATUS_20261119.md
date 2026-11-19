@@ -71,3 +71,10 @@
 - Hostinger screenshot: `SUCCESS files=10 lines=124 mode=APPLY`; last visible files processed include ProductConsumptionAndWastageData_21024_13102026_024255.csv (header-only), CreditNoteData_21024_13102026_024256.csv (header-only), StockAdjustmentData_21024_13102026_024256.csv (31/31), VendorData_21024_14102026_021934.csv (3/3), MaterialInwardData_21024_14102026_021938.csv (18/3).
 - Independently verified live Supabase: stock adjustment 31 rows / 31 keyed documents, vendor 3/3, material inward 18/3. Version ledger contains matching 31, 3, 3 document-version entries for their respective export stamps.
 - Entire backlog is NOT complete. Keep full recovery audit and permanent cron enablement pending. Operator must delete completed temporary cron before next bounded run.
+
+## 20-file batch stopped on shrink guard — 2026-11-19 around 23:38 IST
+
+- Hostinger output: `STOPPED SalesInvoiceData_21024_15102026_020753.csv: Supabase RPC HTTP 400 ... Shrink guard: 1 incoming against 9 live`. No overall success; file must remain `.csv`.
+- Earlier completed files reported `PROCESSED`, including October 15 MaterialInwardData_21024_15102026_020740.csv (20 rows/3 docs) and header-only PurchaseReturn.
+- Read-only Supabase: 167 version entries for `sales_data` with export_stamp `20261015020753`, against 203 invoice documents reported by Hostinger for the stopped CSV. Thus per-document commits occurred before stop. Retry is designed to skip identical committed versions, but this exact partially failed file has not yet been replay-tested.
+- Do not weaken 40% shrink guard or manually rename failed CSV. Need exact offender invoice ID and side-by-side 9 previous lines vs 1 incoming line from uploaded CSV; distinguish legitimate correction from incomplete export. No further cron until reviewed.
