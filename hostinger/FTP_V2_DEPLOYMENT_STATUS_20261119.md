@@ -93,3 +93,12 @@
 - Current full `sales_data`: 228,049 lines, 39,157 distinct invoice DB IDs at verification.
 - The exception is currently embedded in RPC V2, restricted to exact invoice/export/amount/qty and prior row count; retain and later remove/reconcile as part of permanent configuration.
 - This validates successful recovery of one interrupted multi-document CSV. Entire Oct-Nov backlog and cross-dataset audits remain outstanding. Old cron stays disabled.
+
+## 2026-11-20 — Oct 16 shrink guard on invoice 126039277
+
+- Oct 16 controlled batch halted at `SalesInvoiceData_21024_16102026_020156.csv`: RPC shrink guard `1 incoming against 5 live`. Hostinger indicated 862 lines / 106 invoice documents. By the stop, Supabase had 93 version ledger entries for that export, representing 762 current invoice lines. Do not regard the failed file as fully committed.
+- Uploaded CSV verified one line for DB ID `126039277`, voucher `VTMIN2627-2409`, date `21/09/2026`, item `gn13`, qty `1.0`, net amount `90104.999`. User checked Vasy and confirmed the invoice has **one line**.
+- Existing Supabase data still had five lines for this invoice before retry, with no version entry for this Oct 16 export.
+- Installed updated V2 RPC with a **strict second shrink exception** requiring exactly this ID, export timestamp `20261016020156`, previous five lines, one incoming line, matching voucher/item/quantity/amount. Earlier Oct 15 exception is retained. The amended function passed `BEGIN/ROLLBACK` compilation before installation.
+- GitHub source for this scoped update: `sql/ftp_v2_verified_shrink_exception_20261016.sql`.
+- **No live CSV retry has been executed yet.** Next controlled step: run `--apply --file=SalesInvoiceData_21024_16102026_020156.csv` once; stop on error, then verify the corrected invoice and 106 version entries / 862 current lines. Keep permanent cron off.
