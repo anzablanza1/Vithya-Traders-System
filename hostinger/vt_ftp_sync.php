@@ -1,10 +1,10 @@
 <?php
 /**
  * Vithya Traders - Vasy FTP -> Supabase (review candidate; CLI ONLY).
- * Validated on sample Vasy CSVs 2026-11-19. Not deployed to Hostinger.
+ * Version-aware candidate. Not deployed to Hostinger.
  * DO NOT use the former web-facing supabase.php or start the old cron.
  * Processes ONLY *.csv; *.csv.processed are never selected.
- * All writes go through Supabase vt_ftp_replace_document RPC, one complete document at a time.
+ * All writes go through Supabase vt_ftp_replace_document_v2 RPC, one complete document at a time.
  * --check [--file=basename.csv | --prefix=SalesInvoiceData] scans without changing files/DB.
  * --apply --file=basename.csv processes exactly one named file (controlled live test).
  * --apply --all [--max-files=10] processes pending CSVs oldest first; stops on any error.
@@ -18,7 +18,7 @@ $cfg = require __DIR__.'/vt_ftp_schema.php';
 $ftpRoot = '/home/u631621082';
 $keyFile = '/home/u631621082/supabase_key.txt';
 $lockFile = '/home/u631621082/vt_ftp_sync.lock';
-$endpoint = 'https://kssydapdfmkfufrqhwzp.supabase.co/rest/v1/rpc/vt_ftp_replace_document';
+$endpoint = 'https://kssydapdfmkfufrqhwzp.supabase.co/rest/v1/rpc/vt_ftp_replace_document_v2';
 // Guardrail: don't accidentally re-import a failed multi-year bulk repush.
 $maxRowsPerDailyFile = 25000;
 $maxBytesPerDailyFile = 24 * 1024 * 1024;
@@ -119,8 +119,8 @@ function csvStage(string $path,array $spec,int $maxRows,int $maxBytes,int $maxLi
         return [$docs,$lines];
     } finally {fclose($fh);}
 }
-function sendRpc(string $url,string $serviceKey,string $table,array $rows):void {
-    $payload=json_encode(['p_table'=>$table,'p_rows'=>$rows],JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE);
+function sendRpc(string $url,string $serviceKey,string $table,array $rows,string $exportStamp):void {
+    $payload=json_encode(['p_table'=>$table,'p_rows'=>$rows,'p_export_stamp'=>$exportStamp],JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE);
     $c=curl_init($url);
     if(!$c)throw new RuntimeException('Could not initialize curl');
     curl_setopt_array($c,[CURLOPT_POST=>true,CURLOPT_RETURNTRANSFER=>true,CURLOPT_CONNECTTIMEOUT=>15,CURLOPT_TIMEOUT=>120,
@@ -129,7 +129,7 @@ function sendRpc(string $url,string $serviceKey,string $table,array $rows):void 
     $r=curl_exec($c);$code=curl_getinfo($c,CURLINFO_HTTP_CODE);$err=curl_error($c);curl_close($c);
     if ($r===false||$code<200||$code>=300)throw new RuntimeException('Supabase RPC HTTP '.$code.' '.substr((string)($r?:$err),0,250));
     $ack=json_decode((string)$r,true);
-    if(!is_array($ack)||($ack['status']??'')!=='committed'||(int)($ack['incoming']??-1)!==count($rows))
+    if(!is_array($ack)||!in_array(($ack['status']??''),['committed','skipped_older','skipped_same'],true)||(int)($ack['incoming']??-1)!==count($rows))
         throw new RuntimeException('Unexpected RPC acknowledgement');
 }
 $files=[];
@@ -140,6 +140,7 @@ foreach(glob(rtrim($ftpRoot,'/').'/*.csv')?:[] as $path) {
     if($info===null)continue; // Do not touch unrelated files.
     if(isset($info['disabled'])){echo "DISABLED: $base (product batch identities need validation)\n";continue;}
     if($prefixFilter!==null&&$info['prefix']!==$prefixFilter)continue;
+    if($info['stamp'] < $earliestSafeDate.'000000') continue; // Preserve historical exports outside automated recovery.
     $files[]=[$info['stamp'],$base,$path,$info['spec']];
 }
 usort($files,fn($a,$b)=>[$a[0],$a[1]]<=>[$b[0],$b[1]]);
@@ -175,7 +176,7 @@ foreach($files as [$stamp,$basename,$path,$spec]) {
         if ($apply) {
             // Every RPC is atomic; on interruption, replaying the SAME file is idempotent.
             // Stop entirely on first failure, so a later Vasy revision cannot be applied out of order.
-            foreach($docs as $rows)sendRpc($endpoint,$secret,$spec['table'],$rows);
+            foreach($docs as $rows)sendRpc($endpoint,$secret,$spec['table'],$rows,$stamp);
             if(!rename($path,$path.'.processed'))throw new RuntimeException('All rows committed, but rename failed. Keep file for controlled retry.');
             echo "PROCESSED $basename\n";
         }
