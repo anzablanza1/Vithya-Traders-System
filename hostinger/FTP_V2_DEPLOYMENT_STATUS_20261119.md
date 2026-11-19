@@ -110,3 +110,12 @@
 - Source committed at sql/ftp_v2_sales_shrink_audit_policy.sql. SQL syntax checked inside rollback transaction, then deployed to live project. Audit table exists; service_role can invoke RPC; anon cannot.
 - No CSV imported by this schema change. At deployment: 98/106 versioned October 16 invoices, zero audit rows, and both verified candidate invoices still had four old lines.
 - Next: one-file controlled retry of SalesInvoiceData_21024_16102026_020156.csv; then verify 106 invoice versions, 862 current sales lines, exact two invoice corrections, and shrink audit records. Permanent cron stays disabled.
+
+## October 16 sales file completed after systemic shrink policy — 2026-11-20
+- Hostinger output for `SalesInvoiceData_21024_16102026_020156.csv`: `SUCCESS files=1 lines=862 mode=APPLY`; file renamed `.csv.processed`.
+- Read-only live Supabase validation: export stamp `20261016020156` now has **106 versioned invoice documents**, all 106 present in `sales_data` with exactly **862 current lines** among those invoice IDs.
+- Invoice DB ID `126039277`, voucher `VTMIN2627-2409`: one line gn13 qty 1 net 90104.999 (previously 5).
+- Invoice DB ID `124205048`, voucher `VTMIN2627-2250`: one line gn13 qty 1 net 85904 (previously 4).
+- Invoice DB ID `122968208`, voucher `VTMIN2627-2139`: one line gn13 qty 1 net 95650.999 (previously 4).
+- Shrink audit captured 2 rows in `public.vt_ftp_document_shrink_audit` for the latter two 4-to-1 replacements, both initially status pending. The 5-to-1 invoice was committed under the previous exact exception, thus not backfilled into the new audit.
+- Full `sales_data` at validation: 228680 rows and 39240 distinct invoice DB IDs. No entire-backlog completeness claim. Continue bounded chronologically ordered imports; keep permanent cron disabled.
