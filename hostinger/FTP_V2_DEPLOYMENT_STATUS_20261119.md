@@ -151,3 +151,15 @@
 - Three purchase-return vouchers in Oct9 CSV exist in live DB, with 1 row each. Four uploaded ProductConsumptionAndWastage Oct9-12 CSVs are header-only (0 data rows).
 - **Do not remove cutoff or replay old bulk CSV into live tables.** Correct policy: preserve latest per-document export version; stage Oct9 historical CSVs read-only, compare row identities, quantities, amounts, tax, line counts and voucher statuses against DB, classify newer-version revisions vs missing/stale/mismatched docs, and only make approved selective changes. Do not delete records absent in Oct9 snapshot, given differing historical coverage. Keep ProductData disabled.
 - This is INITIAL aggregation/sample audit, not complete document-level or financial reconciliation. Avoid declaring recovery complete until row-level diff and missing-date review is performed.
+
+## User-confirmed Vasy value and expanded discrepancy review — 2026-11-20
+- User verified invoice DB ID 121836283 / VTMIN2627-2015: correct Vasy value is **716771.000**. October 9 snapshot value 135 was outdated; live Supabase already shows 716771. Mark this item approved/current-correct, DO NOT revert.
+- Additional high-priority sales discrepancies confirmed by direct read-only lookup vs locally inspected Oct 9 historical CSV (user Vasy confirmation pending):
+  - 120504347 / VTMIN2627-1881 / 19 Aug 2026: gn13 old 135, live 85367.
+  - 120504453 / VTMIN2627-1882 / 19 Aug 2026: gn13 old 135, live 77266.
+  - 120504536 / VTMIN2627-1883 / 19 Aug 2026: gn13 old 135, live 84960.
+  - 120504622 / VTMIN2627-1884 / 19 Aug 2026: gn13 old 135, live 86288.
+  - 120326792 / VTMIN2627-1855 / 18 Aug 2026: old item IP80V47582T net 290.01, live gn13 net 89774.
+- A partial, user-editable workbook `VT_Historical_Discrepancies_Initial_Review.xlsx` was generated on the conversation surface; it **does not represent every historical discrepancy**.
+- Prepared local read-only PHP helper `vt_historical_audit_readonly.php` for private Hostinger placement. It uses existing private Supabase key and V2 schema, compares one Oct 9 historical CSV against the full current table per run, outputs private discrepancy CSV, does no DB writes or file renames. Static `php -l` syntax check passed; no live execution yet. This helper is NOT deployed or integrated into cron; operator must upload and first run it separately under control before results can be certified.
+- Need full execution of per-dataset audit (sales, purchase bills, material inward, stock adjustments, purchase returns), careful comparison of later Oct10–12 revisions, and classification of missing/current-only records. No historical replay has been authorized.
